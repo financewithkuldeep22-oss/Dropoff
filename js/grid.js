@@ -301,8 +301,14 @@ function applyFormat(type, value) {
     if (firstCell) {
       if (type === 'bold') toggleOn = firstCell.style.fontWeight === 'bold';
       if (type === 'italic') toggleOn = firstCell.style.fontStyle === 'italic';
-      if (type === 'underline') toggleOn = firstCell.style.textDecoration.includes('underline');
-      if (type === 'strike') toggleOn = firstCell.style.textDecoration.includes('line-through');
+      if (type === 'underline') {
+        const td = firstCell.style.textDecoration || '';
+        toggleOn = td.includes('underline');
+      }
+      if (type === 'strike') {
+        const td = firstCell.style.textDecoration || '';
+        toggleOn = td.includes('line-through');
+      }
       if (type === 'wrap') toggleOn = firstCell.style.whiteSpace === 'normal';
     }
 
@@ -335,26 +341,56 @@ function applyFormat(type, value) {
             break;
           }
           case 'underline': {
-            const val = toggleOn ? 'none' : 'underline';
-            cell.style.setProperty('text-decoration', val, 'important');
-            sessionStyles[key]['text-decoration'] = val;
+            // Get current text-decoration value
+            let currentTd = cell.style.textDecoration || sessionStyles[key]['text-decoration'] || '';
+            if (toggleOn) {
+              // Remove underline
+              currentTd = currentTd.replace('underline', '').trim();
+              if (!currentTd) currentTd = 'none';
+            } else {
+              // Add underline
+              if (currentTd === 'none' || !currentTd) {
+                currentTd = 'underline';
+              } else if (!currentTd.includes('underline')) {
+                currentTd = currentTd + ' underline';
+              }
+            }
+            cell.style.setProperty('text-decoration', currentTd, 'important');
+            sessionStyles[key]['text-decoration'] = currentTd;
             break;
           }
           case 'strike': {
-            const val = toggleOn ? 'none' : 'line-through';
-            cell.style.setProperty('text-decoration', val, 'important');
-            sessionStyles[key]['text-decoration'] = val;
+            // Get current text-decoration value
+            let currentTd = cell.style.textDecoration || sessionStyles[key]['text-decoration'] || '';
+            if (toggleOn) {
+              // Remove line-through
+              currentTd = currentTd.replace('line-through', '').trim();
+              if (!currentTd) currentTd = 'none';
+            } else {
+              // Add line-through
+              if (currentTd === 'none' || !currentTd) {
+                currentTd = 'line-through';
+              } else if (!currentTd.includes('line-through')) {
+                currentTd = currentTd + ' line-through';
+              }
+            }
+            cell.style.setProperty('text-decoration', currentTd, 'important');
+            sessionStyles[key]['text-decoration'] = currentTd;
             break;
           }
           case 'color':
             cell.style.setProperty('color', value, 'important');
             sessionStyles[key]['color'] = value;
-            document.getElementById('tc-sw').style.background = value;
+            if (document.getElementById('tc-sw')) {
+              document.getElementById('tc-sw').style.background = value;
+            }
             break;
           case 'background':
             cell.style.setProperty('background-color', value, 'important');
             sessionStyles[key]['background-color'] = value;
-            document.getElementById('bc-sw').style.background = value;
+            if (document.getElementById('bc-sw')) {
+              document.getElementById('bc-sw').style.background = value;
+            }
             break;
           case 'textAlign':
             cell.style.setProperty('text-align', value, 'important');
