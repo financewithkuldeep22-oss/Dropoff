@@ -94,8 +94,6 @@ const formatBar = {
           }
         }
       }
-      // Re-focus grid
-      setTimeout(() => { if(inst.focus) inst.focus(); }, 10);
     } catch (e) {
       console.warn('Set font family error:', e);
     }
@@ -150,8 +148,6 @@ const formatBar = {
           }
         }
       }
-      // Re-focus grid
-      setTimeout(() => { if(inst.focus) inst.focus(); }, 10);
     } catch (e) {
       console.warn('Set font size error:', e);
     }
