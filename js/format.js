@@ -51,16 +51,24 @@ const formatBar = {
     try {
       const inst = Array.isArray(window.jss) ? window.jss[0] : window.jss;
       const selection = inst.getSelected ? inst.getSelected() : null;
-      if (!selection) {
+      if (!selection || selection.length === 0) {
         uiModule.toast('Select a cell first');
         return;
       }
       
       const x1 = Math.min(selection[0], selection[2]);
       const y1 = Math.min(selection[1], selection[3]);
-      const cell = inst.getCellFromCoords(x1, y1);
-      if (cell) {
-        cell.style.setProperty('font-family', value, 'important');
+      const x2 = Math.max(selection[0], selection[2]);
+      const y2 = Math.max(selection[1], selection[3]);
+      
+      // Apply to all selected cells
+      for (let x = x1; x <= x2; x++) {
+        for (let y = y1; y <= y2; y++) {
+          const cell = inst.getCellFromCoords(x, y);
+          if (cell) {
+            cell.style.setProperty('font-family', value, 'important');
+          }
+        }
       }
       
       // Update session styles
@@ -71,13 +79,17 @@ const formatBar = {
       if (window.activeFilters.length) {
         displayData = filterModule.applyFilters(window.filteredData, window.activeFilters, window.headers);
       }
-      const rowData = displayData[y1];
-      if (rowData) {
-        const oriRowIdx = window.filteredData.indexOf(rowData);
-        const oriColIdx = visibleIndices[x1];
-        const key = oriRowIdx + '_' + oriColIdx;
-        if (!gridModule.sessionStyles[key]) gridModule.sessionStyles[key] = {};
-        gridModule.sessionStyles[key]['font-family'] = value;
+      for (let x = x1; x <= x2; x++) {
+        for (let y = y1; y <= y2; y++) {
+          const rowData = displayData[y];
+          if (rowData) {
+            const oriRowIdx = window.filteredData.indexOf(rowData);
+            const oriColIdx = visibleIndices[x];
+            const key = oriRowIdx + '_' + oriColIdx;
+            if (!gridModule.sessionStyles[key]) gridModule.sessionStyles[key] = {};
+            gridModule.sessionStyles[key]['font-family'] = value;
+          }
+        }
       }
     } catch (e) {
       console.warn('Set font family error:', e);
@@ -93,16 +105,24 @@ const formatBar = {
     try {
       const inst = Array.isArray(window.jss) ? window.jss[0] : window.jss;
       const selection = inst.getSelected ? inst.getSelected() : null;
-      if (!selection) {
+      if (!selection || selection.length === 0) {
         uiModule.toast('Select a cell first');
         return;
       }
       
       const x1 = Math.min(selection[0], selection[2]);
       const y1 = Math.min(selection[1], selection[3]);
-      const cell = inst.getCellFromCoords(x1, y1);
-      if (cell) {
-        cell.style.setProperty('font-size', value + 'px', 'important');
+      const x2 = Math.max(selection[0], selection[2]);
+      const y2 = Math.max(selection[1], selection[3]);
+      
+      // Apply to all selected cells
+      for (let x = x1; x <= x2; x++) {
+        for (let y = y1; y <= y2; y++) {
+          const cell = inst.getCellFromCoords(x, y);
+          if (cell) {
+            cell.style.setProperty('font-size', value + 'px', 'important');
+          }
+        }
       }
       
       // Update session styles
@@ -113,13 +133,17 @@ const formatBar = {
       if (window.activeFilters.length) {
         displayData = filterModule.applyFilters(window.filteredData, window.activeFilters, window.headers);
       }
-      const rowData = displayData[y1];
-      if (rowData) {
-        const oriRowIdx = window.filteredData.indexOf(rowData);
-        const oriColIdx = visibleIndices[x1];
-        const key = oriRowIdx + '_' + oriColIdx;
-        if (!gridModule.sessionStyles[key]) gridModule.sessionStyles[key] = {};
-        gridModule.sessionStyles[key]['font-size'] = value + 'px';
+      for (let x = x1; x <= x2; x++) {
+        for (let y = y1; y <= y2; y++) {
+          const rowData = displayData[y];
+          if (rowData) {
+            const oriRowIdx = window.filteredData.indexOf(rowData);
+            const oriColIdx = visibleIndices[x];
+            const key = oriRowIdx + '_' + oriColIdx;
+            if (!gridModule.sessionStyles[key]) gridModule.sessionStyles[key] = {};
+            gridModule.sessionStyles[key]['font-size'] = value + 'px';
+          }
+        }
       }
     } catch (e) {
       console.warn('Set font size error:', e);
