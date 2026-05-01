@@ -89,6 +89,9 @@ function buildGrid(headers, colVisible, filteredData, activeFilters) {
       search: false,
       pagination: false,
       style: gridStyles,
+      // Mobile-friendly touch settings
+      touchMove: true,
+      pinchZoom: false,
       updateTable: function(el, cell, x, y) {
         if (!cell.style.backgroundColor && !cell.style.background) {
           cell.style.background = y % 2 === 0 ? '' : '#f9fafb';

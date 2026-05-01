@@ -122,18 +122,27 @@ body{font-family:'DM Sans',system-ui,sans-serif;font-size:13.5px;line-height:1.5
 #ss-fmt{height:38px;background:var(--cs);border-bottom:1px solid var(--cbo);display:none;align-items:center;padding:0 8px;gap:1px;flex-shrink:0;overflow-x:auto}
 #ss-fmt::-webkit-scrollbar{height:0}
 #ss-fmt.vis{display:flex}
-.fBtn{width:28px;height:28px;border:none;background:none;border-radius:var(--rS);cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--ct2);transition:background .1s,color .1s;font-size:13px;font-weight:700;font-family:'DM Sans',sans-serif;flex-shrink:0;outline:none}
+.fBtn{width:28px;height:28px;border:none;background:none;border-radius:var(--rS);cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--ct2);transition:background .1s,color .1s;font-size:13px;font-weight:700;font-family:'DM Sans',sans-serif;flex-shrink:0;outline:none;-webkit-tap-highlight-color:transparent}
 .fBtn:hover{background:var(--cbg);color:var(--ct1)}
-.fBtn.on{background:var(--cb-dim);color:var(--cb)}
+.fBtn.on{background:var(--cb-dim)!important;color:var(--cb)!important}
+.fBtn:active{transform:scale(.95)}
 .fBtn .material-icons-round{font-size:16px;font-weight:400}
 .fsep{width:1px;height:18px;background:var(--cbo);margin:0 3px;flex-shrink:0}
-.fSel{height:26px;border:1px solid var(--cbo);border-radius:var(--rS);font-size:12px;padding:0 5px;color:var(--ct1);font-family:'DM Sans',sans-serif;background:var(--cs);cursor:pointer;outline:none;flex-shrink:0}
+.fSel{height:26px;border:1px solid var(--cbo);border-radius:var(--rS);font-size:12px;padding:0 5px;color:var(--ct1);font-family:'DM Sans',sans-serif;background:var(--cs);cursor:pointer;outline:none;flex-shrink:0;-webkit-tap-highlight-color:transparent}
 .fSel:focus{border-color:var(--cb)}
-.fSwWrap{display:flex;flex-direction:column;align-items:center;cursor:pointer;padding:3px 4px 2px;border-radius:var(--rS);transition:background .1s;flex-shrink:0}
+.fSwWrap{display:flex;flex-direction:column;align-items:center;cursor:pointer;padding:3px 4px 2px;border-radius:var(--rS);transition:background .1s;flex-shrink:0;-webkit-tap-highlight-color:transparent}
 .fSwWrap:hover{background:var(--cbg)}
 .fSwWrap .material-icons-round{font-size:14px;color:var(--ct2)}
 .fSw{width:14px;height:3px;border-radius:2px;margin-top:1px}
 .fBadges{display:flex;gap:4px;margin-left:auto;flex-shrink:0}
+
+/* Mobile responsive format bar */
+@media(max-width:640px){
+  #ss-fmt{padding:0 4px;gap:0}
+  .fBtn{width:32px;height:32px}
+  .fSel{font-size:11px;height:28px}
+  .fsep{margin:0 2px}
+}
 
 /* SEARCH BAR */
 #ss-srch{display:none;align-items:center;gap:8px;padding:5px 12px;background:var(--cs);border-bottom:1px solid var(--cbo);flex-shrink:0}
@@ -278,9 +287,17 @@ body{font-family:'DM Sans',system-ui,sans-serif;font-size:13.5px;line-height:1.5
 /* JSS overrides */
 .jtoolbar{display:none!important}
 #ss-jss .jexcel_content{font-family:'DM Sans',sans-serif!important}
-#ss-jss table.jexcel td{font-size:12px!important;padding:2px 7px!important;border-color:var(--cbo)!important;vertical-align:middle}
+#ss-jss table.jexcel td{font-size:12px!important;padding:2px 7px!important;border-color:var(--cbo)!important;vertical-align:middle;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#ss-jss table.jexcel td.wrap{white-space:normal!important;overflow:visible!important;text-overflow:clip!important}
 #ss-jss table.jexcel td.highlight{background-color:rgba(26,111,244,.08)!important;border:1px solid var(--cb)!important}
 #ss-jss table.jexcel thead td{background:var(--cbg)!important;font-weight:600!important;font-size:11px!important;color:var(--ct2)!important;border-color:var(--cbo)!important}
+
+/* Mobile-friendly grid styles */
+@media(max-width:768px){
+  #ss-jss table.jexcel td{padding:4px 6px!important;font-size:13px!important}
+  #ss-jss table.jexcel tbody td{min-height:32px}
+  .jexcel>.controls{display:none!important}
+}
 </style>
 </head>
 <body>
@@ -405,38 +422,38 @@ body{font-family:'DM Sans',system-ui,sans-serif;font-size:13.5px;line-height:1.5
       <!-- This is THE fix: prevents focus leaving the grid, so jspreadsheet   -->
       <!-- keeps its selection highlight when you click a format button.        -->
       <div id="ss-fmt">
-        <select class="fSel" style="width:86px" onmousedown="event.preventDefault()" onchange="formatBar.setFontFamily(this.value)" oninput="formatBar.setFontFamily(this.value)">
+        <select class="fSel" style="width:86px" onmousedown="event.preventDefault()" onchange="formatBar.setFontFamily(this.value)" oninput="this.blur()">
           <option value="DM Sans" selected>DM Sans</option><option value="Arial">Arial</option>
           <option value="Courier New">Courier New</option><option value="Georgia">Georgia</option>
           <option value="Verdana">Verdana</option>
         </select>
-        <select class="fSel" style="width:50px;margin-left:3px" onmousedown="event.preventDefault()" onchange="formatBar.setFontSize(this.value)" oninput="formatBar.setFontSize(this.value)">
+        <select class="fSel" style="width:50px;margin-left:3px" onmousedown="event.preventDefault()" onchange="formatBar.setFontSize(this.value)" oninput="this.blur()">
           <option>10</option><option selected>11</option><option>12</option><option>13</option>
           <option>14</option><option>16</option><option>18</option><option>20</option><option>24</option>
         </select>
         <div class="fsep"></div>
-        <button class="fBtn" id="fb-bold"    title="Bold (Ctrl+B)"   onmousedown="event.preventDefault()" onclick="fmt('bold')"><b>B</b></button>
-        <button class="fBtn" id="fb-italic"  title="Italic (Ctrl+I)" onmousedown="event.preventDefault()" onclick="fmt('italic')"><i>I</i></button>
-        <button class="fBtn" id="fb-under"   title="Underline"       onmousedown="event.preventDefault()" onclick="fmt('underline')"><u>U</u></button>
-        <button class="fBtn" id="fb-strike"  title="Strikethrough"   onmousedown="event.preventDefault()" onclick="fmt('strike')"><s>S</s></button>
+        <button class="fBtn" id="fb-bold"    title="Bold (Ctrl+B)"   onmousedown="event.preventDefault()" onclick="formatBar.toggleBold();return false;"><b>B</b></button>
+        <button class="fBtn" id="fb-italic"  title="Italic (Ctrl+I)" onmousedown="event.preventDefault()" onclick="formatBar.toggleItalic();return false;"><i>I</i></button>
+        <button class="fBtn" id="fb-under"   title="Underline"       onmousedown="event.preventDefault()" onclick="formatBar.toggleUnderline();return false;"><u>U</u></button>
+        <button class="fBtn" id="fb-strike"  title="Strikethrough"   onmousedown="event.preventDefault()" onclick="formatBar.toggleStrike();return false;"><s>S</s></button>
         <div class="fsep"></div>
-        <div class="fSwWrap" title="Text color" onclick="document.getElementById('tc-inp').click()">
+        <div class="fSwWrap" title="Text color" onclick="document.getElementById('tc-inp').click();return false;">
           <span class="material-icons-round">format_color_text</span>
           <div class="fSw" id="tc-sw" style="background:#111827"></div>
         </div>
-        <input type="color" id="tc-inp" style="display:none;width:0;height:0;visibility:hidden" value="#111827" onmousedown="event.preventDefault()" onchange="fmt('color',this.value)"/>
-        <div class="fSwWrap" title="Fill color" onclick="document.getElementById('bc-inp').click()">
+        <input type="color" id="tc-inp" style="display:none;width:0;height:0;visibility:hidden" value="#111827" onmousedown="event.preventDefault()" onchange="formatBar.setTextColor(this.value);this.blur()"/>
+        <div class="fSwWrap" title="Fill color" onclick="document.getElementById('bc-inp').click();return false;">
           <span class="material-icons-round">format_color_fill</span>
           <div class="fSw" id="bc-sw" style="background:#fbbf24"></div>
         </div>
-        <input type="color" id="bc-inp" style="display:none;width:0;height:0;visibility:hidden" value="#fbbf24" onmousedown="event.preventDefault()" onchange="fmt('background',this.value)"/>
+        <input type="color" id="bc-inp" style="display:none;width:0;height:0;visibility:hidden" value="#fbbf24" onmousedown="event.preventDefault()" onchange="formatBar.setBackgroundColor(this.value);this.blur()"/>
         <div class="fsep"></div>
-        <button class="fBtn" title="Align left"   onmousedown="event.preventDefault()" onclick="fmt('textAlign','left')"><span class="material-icons-round">format_align_left</span></button>
-        <button class="fBtn" title="Align center" onmousedown="event.preventDefault()" onclick="fmt('textAlign','center')"><span class="material-icons-round">format_align_center</span></button>
-        <button class="fBtn" title="Align right"  onmousedown="event.preventDefault()" onclick="fmt('textAlign','right')"><span class="material-icons-round">format_align_right</span></button>
+        <button class="fBtn" title="Align left"   onmousedown="event.preventDefault()" onclick="formatBar.setTextAlign('left');return false;"><span class="material-icons-round">format_align_left</span></button>
+        <button class="fBtn" title="Align center" onmousedown="event.preventDefault()" onclick="formatBar.setTextAlign('center');return false;"><span class="material-icons-round">format_align_center</span></button>
+        <button class="fBtn" title="Align right"  onmousedown="event.preventDefault()" onclick="formatBar.setTextAlign('right');return false;"><span class="material-icons-round">format_align_right</span></button>
         <div class="fsep"></div>
-        <button class="fBtn" id="fb-wrap"  title="Wrap text"      onmousedown="event.preventDefault()" onclick="fmt('wrap')"><span class="material-icons-round">wrap_text</span></button>
-        <button class="fBtn"               title="Clear formatting" onmousedown="event.preventDefault()" onclick="fmtClear()"><span class="material-icons-round">format_clear</span></button>
+        <button class="fBtn" id="fb-wrap"  title="Wrap text"      onmousedown="event.preventDefault()" onclick="formatBar.toggleWrap();return false;"><span class="material-icons-round">wrap_text</span></button>
+        <button class="fBtn"               title="Clear formatting" onmousedown="event.preventDefault()" onclick="formatBar.clearFormatting();return false;"><span class="material-icons-round">format_clear</span></button>
         <div style="flex:1"></div>
         <div class="fBadges">
           <span class="badge badge-b" id="fbadge-r"></span>
