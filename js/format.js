@@ -18,13 +18,16 @@ const formatBar = {
       const cell = inst.getCellFromCoords(x, y);
       if (!cell) return;
       
+      // Get computed styles for accurate state detection
+      const computedStyle = window.getComputedStyle(cell);
+      
       // Toggle button states
-      this.toggleButton('fb-bold', cell.style.fontWeight === 'bold');
-      this.toggleButton('fb-italic', cell.style.fontStyle === 'italic');
-      const td = cell.style.textDecoration || '';
+      this.toggleButton('fb-bold', cell.style.fontWeight === 'bold' || computedStyle.fontWeight === 'bold');
+      this.toggleButton('fb-italic', cell.style.fontStyle === 'italic' || computedStyle.fontStyle === 'italic');
+      const td = cell.style.textDecoration || computedStyle.textDecoration || '';
       this.toggleButton('fb-under', td.includes('underline'));
       this.toggleButton('fb-strike', td.includes('line-through'));
-      this.toggleButton('fb-wrap', cell.style.whiteSpace === 'normal');
+      this.toggleButton('fb-wrap', cell.style.whiteSpace === 'normal' || (cell.classList && cell.classList.contains('wrap')));
     } catch (e) {
       console.warn('Update format states error:', e);
     }
@@ -91,6 +94,8 @@ const formatBar = {
           }
         }
       }
+      // Re-focus grid
+      setTimeout(() => { if(inst.focus) inst.focus(); }, 10);
     } catch (e) {
       console.warn('Set font family error:', e);
     }
@@ -145,6 +150,8 @@ const formatBar = {
           }
         }
       }
+      // Re-focus grid
+      setTimeout(() => { if(inst.focus) inst.focus(); }, 10);
     } catch (e) {
       console.warn('Set font size error:', e);
     }
