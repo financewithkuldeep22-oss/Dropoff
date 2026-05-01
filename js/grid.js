@@ -279,7 +279,10 @@ function applyFormat(type, value) {
   try {
     const inst = Array.isArray(window.jss) ? window.jss[0] : window.jss;
     const selection = inst.getSelected ? inst.getSelected() : null;
-    if (!selection) return;
+    if (!selection || selection.length === 0) {
+      uiModule.toast('Select a cell first');
+      return;
+    }
 
     const x1 = Math.min(selection[0], selection[2]);
     const x2 = Math.max(selection[0], selection[2]);
