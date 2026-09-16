@@ -203,7 +203,7 @@
   </style>
 
   <!-- CSS Style Overrides -->
-  <link rel="stylesheet" href="style.css?v=13">
+  <link rel="stylesheet" href="style.css?v=14">
   <!-- GSAP Animation Library -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
 </head>
@@ -601,8 +601,8 @@
            ========================================== -->
       <div id="tab-content-qc" class="flex flex-col lg:flex-row gap-2.5 flex-1 min-h-0 overflow-hidden pt-2 px-3 pb-2 md:pt-2 md:px-3 md:pb-2 lg:pt-2 lg:px-3 lg:pb-2 bg-gradient-to-br from-slate-50 to-indigo-50/30" style="display:none;">
         
-        <!-- Inner Sidebar: Pending QC Items -->
-        <aside class="w-full lg:w-[190px] xl:w-[210px] h-full card-elevated rounded-[16px] flex flex-col z-10 overflow-hidden bg-white/80 backdrop-blur-xl border border-slate-200/60 shadow-[0_4px_24px_rgba(15,23,42,0.04)] shrink-0">
+        <!-- Inner Sidebar: Pending QC Items (Wider, Not Congested) -->
+        <aside class="w-full lg:w-[230px] xl:w-[250px] h-full card-elevated rounded-[16px] flex flex-col z-10 overflow-hidden bg-white/80 backdrop-blur-xl border border-slate-200/60 shadow-[0_4px_24px_rgba(15,23,42,0.04)] shrink-0">
           <div class="px-3 py-2 border-b border-outline-variant flex items-center justify-between sticky top-0 bg-white/90 dark:bg-slate-900/90 backdrop-blur-md z-20">
             <div class="flex items-center gap-1.5">
               <h2 class="font-headline-md text-sm text-primary-container font-bold">Pending QC</h2>
@@ -661,27 +661,30 @@
 <!-- Active Review Panel (2-Column Pro Layout) -->
           <div class="flex-1 flex flex-row gap-0 overflow-hidden card-elevated rounded-[16px] border border-slate-200/60 shadow-[0_4px_24px_rgba(15,23,42,0.04)] bg-white/90 backdrop-blur-xl h-full" id="allo-qc-review-panel" style="display:none;">
             
-            <!-- LEFT COLUMN: Patient Info + Tubes + Actions -->
-            <div class="w-[210px] shrink-0 flex flex-col overflow-y-auto border-r border-outline-variant/30 bg-white">
+            <!-- LEFT COLUMN: Patient Info + Tubes + Actions (Wider, Not Congested) -->
+            <div class="w-[270px] xl:w-[285px] shrink-0 flex flex-col overflow-y-auto border-r border-outline-variant/30 bg-white">
               
-              <!-- Active Patient Identity Card -->
-              <div class="p-2.5 border-b border-outline-variant/20 bg-gradient-to-r from-slate-900 to-indigo-950 text-white rounded-t-[14px]">
-                <div class="flex items-center justify-between gap-1 mb-1">
-                  <span class="px-2 py-0.5 bg-blue-500 text-white text-[9px] font-extrabold rounded-md uppercase tracking-wider" id="qc-active-patient-row-badge">Row -</span>
-                  <span class="font-mono text-[11px] font-black text-sky-300 tracking-tight cursor-pointer hover:underline flex items-center gap-0.5" id="qc-active-patient-bid" title="Click to copy ID" onclick="window.copyActiveBookingId()">
+              <!-- Active Patient Identity Card (Clean, Spacious, No Row Clutter) -->
+              <div class="p-3 border-b border-outline-variant/20 bg-gradient-to-r from-slate-900 to-indigo-950 text-white rounded-t-[14px]">
+                <span id="qc-active-patient-row-badge" class="hidden"></span>
+                <div class="flex items-center justify-between gap-2 mb-1">
+                  <span class="font-mono text-xs font-black text-sky-300 tracking-tight cursor-pointer hover:underline flex items-center gap-1" id="qc-active-patient-bid" title="Click to copy ID" onclick="window.copyActiveBookingId()">
                     ID: -
                   </span>
+                  <button class="px-2 py-0.5 rounded bg-white/10 hover:bg-white/20 text-slate-200 text-[10px] font-bold transition-all flex items-center gap-1 cursor-pointer" onclick="window.copyActiveBookingId()" title="Copy ID">
+                    <span class="material-symbols-outlined text-[12px]">content_copy</span> Copy
+                  </button>
                 </div>
-                <div class="font-black text-[13px] text-white truncate leading-tight tracking-tight" id="qc-active-patient-name" title="Patient Name">
+                <div class="font-black text-sm text-white truncate leading-tight tracking-tight mt-0.5" id="qc-active-patient-name" title="Patient Name">
                   Patient Name
                 </div>
-                <div class="text-[10px] text-slate-300 flex items-center gap-1 mt-1 truncate">
-                  <span class="material-symbols-outlined text-[12px] text-sky-400 shrink-0">location_on</span>
+                <div class="text-[11px] text-slate-300 flex items-center gap-1 mt-1 truncate">
+                  <span class="material-symbols-outlined text-[13px] text-sky-400 shrink-0">location_on</span>
                   <span id="qc-active-patient-location" class="truncate font-medium">-</span>
                 </div>
-                <div class="mt-1.5 pt-1.5 border-t border-white/10 flex items-center justify-between text-[10px]">
+                <div class="mt-2 pt-2 border-t border-white/10 flex items-center justify-between text-[10.5px]">
                   <span id="qc-active-patient-age" class="font-bold text-slate-200">-</span>
-                  <span id="qc-active-patient-date" class="text-slate-400 font-mono text-[9px]">-</span>
+                  <span id="qc-active-patient-date" class="text-slate-400 font-mono text-[10px]">-</span>
                 </div>
               </div>
               
@@ -2086,7 +2089,7 @@
   <script src="offline-game.js"></script>
   <script src="auth.js?v=6"></script>
   <script src="api_v2.js?v=4"></script>
-  <script src="app.js?v=21"></script>
+  <script src="app.js?v=22"></script>
   <!-- <script src="challan.js?v=6"></script> -->
 </body>
 </html>

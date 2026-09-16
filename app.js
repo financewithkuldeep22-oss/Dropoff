@@ -2359,7 +2359,15 @@ if(syncBtnEl && !syncBtnEl.dataset.fix) {
         </div>
       `;
     }
-  }
+  window.cleanBookingId = function(bid) {
+    if (!bid) return 'N/A';
+    var s = String(bid)
+      .replace(/vendor\s*booking\s*(id)?\s*:?/gi, '')
+      .replace(/^ID\s*:?\s*/gi, '')
+      .trim();
+    return s || String(bid);
+  };
+
   function Br(e) {
     const t = document.getElementById("allo-qc-queue");
     if (!t) return;
@@ -2385,13 +2393,14 @@ if(syncBtnEl && !syncBtnEl.dataset.fix) {
       s.className = "qc-queue-card " + (vr && vr.rowNum === item.rowNum ? "active" : "");
       s.onclick = () => window.selectAlloQCBooking(item, true);
       const locStr = item.location || item.city || "Mumbai";
+      const cleanId = window.cleanBookingId(item.bookingId);
       s.innerHTML = `
         <div class="flex flex-col gap-0.5 w-full">
           <div class="font-extrabold text-slate-900 dark:text-slate-100 text-xs truncate leading-snug" title="${item.patientName || 'N/A'}">
             ${item.patientName || "N/A"}
           </div>
           <div class="text-[11px] font-bold text-sky-700 dark:text-sky-400 font-mono tracking-tight">
-            ID: ${item.bookingId || "N/A"}
+            ID: ${cleanId}
           </div>
           <div class="text-[10px] text-slate-500 dark:text-slate-400 flex items-center gap-0.5 truncate mt-0.5" title="${locStr}">
             <span class="material-symbols-outlined text-[12px] text-slate-400 shrink-0">location_on</span>
@@ -2912,13 +2921,15 @@ if(syncBtnEl && !syncBtnEl.dataset.fix) {
       const genderStr = (e.gender && e.gender !== 'N/A') ? e.gender : '';
       const ageGender = (ageStr || genderStr) ? `${ageStr} / ${genderStr}`.replace(/^ \/ | \/ $/g, '') : 'N/A';
       
+      const cleanId = window.cleanBookingId(e.bookingId);
       document.getElementById("qc-active-patient-name").innerText = e.patientName || "N/A";
-      document.getElementById("qc-active-patient-row-badge").innerText = `Row ${e.rowNum}`;
-      document.getElementById("qc-active-patient-bid").innerText = `ID: ${e.bookingId || "N/A"}`;
+      const rowBadge = document.getElementById("qc-active-patient-row-badge");
+      if (rowBadge) rowBadge.innerText = `Row ${e.rowNum}`;
+      document.getElementById("qc-active-patient-bid").innerText = `ID: ${cleanId}`;
       if (document.getElementById("qc-active-patient-location")) { document.getElementById("qc-active-patient-location").innerText = e.location || e.city || "Mumbai"; }
       if (document.getElementById("qc-active-patient-age")) { document.getElementById("qc-active-patient-age").innerText = ageGender; }
       const headerTitle = document.getElementById("qc-active-header-title");
-      if (headerTitle) { headerTitle.innerText = `${e.patientName || "N/A"} (#${e.bookingId || e.rowNum})`; }
+      if (headerTitle) { headerTitle.innerText = `${e.patientName || "N/A"} (#${cleanId})`; }
       
       let t = e.colTime || "";
       if (t.includes("GMT")) {
@@ -3200,16 +3211,18 @@ if(syncBtnEl && !syncBtnEl.dataset.fix) {
     processQueue();
   }),
   (window.copyActiveBookingId = function () {
-      vr &&
-        vr.bookingId &&
+      if (!vr || !vr.bookingId) return;
+      const cleanId = window.cleanBookingId(vr.bookingId);
+      if (navigator.clipboard && navigator.clipboard.writeText) {
         navigator.clipboard
-          .writeText(vr.bookingId)
+          .writeText(cleanId)
           .then(() => {
-            if (typeof wr === "function") wr("Booking ID copied to clipboard!");
+            if (typeof wr === "function") wr(`Booking ID #${cleanId} copied to clipboard!`);
           })
           .catch(() => {
             if (typeof wr === "function") wr("Failed to copy Booking ID", true);
           });
+      }
     }),
     (window.openAllPhotosInNewTabs = function () {
       if (!vr) return;
@@ -3313,7 +3326,7 @@ if(syncBtnEl && !syncBtnEl.dataset.fix) {
         if (typeof wr === 'function') wr("No Booking ID available for this customer", true);
         return;
       }
-      const cleanId = vr.bookingId.toString().trim();
+      const cleanId = window.cleanBookingId(vr.bookingId);
       const e = `https://partner.redcliffelabs.com/dashboard/corpclientadmin/booking-edit/${encodeURIComponent(cleanId)}/edit`;
       (window.open(e, "_blank"), wr(`Opening Booking View: #${cleanId}`));
     }),

@@ -2383,7 +2383,7 @@ input[type="password"]::-ms-clear {
     position: relative !important;
   }
 
-  /* Full Bleed Iframe Tabs - 75% Compact Density (Vector-Crisp via Chromium Zoom) */
+  /* Full Bleed Iframe Tabs - 100% Contained, Never Outside Screen (Compact 80% Density) */
   #tab-content-ops iframe,
   #tab-content-allo iframe,
   #tab-content-bhmc iframe,
@@ -2392,11 +2392,13 @@ input[type="password"]::-ms-clear {
     position: absolute !important;
     top: 0 !important;
     left: 0 !important;
-    width: 133.333333% !important;
-    height: 133.333333% !important;
-    min-width: 133.333333% !important;
-    min-height: 133.333333% !important;
-    zoom: 0.75 !important;
+    width: 100% !important;
+    height: 100% !important;
+    min-width: 100% !important;
+    min-height: 100% !important;
+    max-width: 100% !important;
+    max-height: 100% !important;
+    zoom: 0.8 !important;
     transform: none !important;
     -webkit-font-smoothing: antialiased !important;
     border: none !important;
@@ -2788,11 +2790,13 @@ input[type="password"]::-ms-clear {
 .botlab-iframe {
   position: absolute;
   top: 0; left: 0;
-  width: 133.333333% !important;
-  height: 133.333333% !important;
-  min-width: 133.333333% !important;
-  min-height: 133.333333% !important;
-  zoom: 0.75 !important;
+  width: 100% !important;
+  height: 100% !important;
+  min-width: 100% !important;
+  min-height: 100% !important;
+  max-width: 100% !important;
+  max-height: 100% !important;
+  zoom: 0.8 !important;
   transform: none !important;
   -webkit-font-smoothing: antialiased !important;
   border: none;
