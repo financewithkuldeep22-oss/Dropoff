@@ -6005,7 +6005,7 @@ window.addEventListener('message', function(event) {
     var allBtn = document.createElement("button");
     allBtn.className = "botlab-ai-chip all-chip";
     allBtn.title = "View all " + totalPending + " pending bookings";
-    allBtn.onclick = function () { window.botAICommand("all"); };
+    allBtn.onclick = function () { window.botlabLaunchPendingTabs("all"); };
     allBtn.innerHTML =
       '<span class="material-symbols-outlined" style="font-size:13px;">inventory_2</span>' +
       '<span>All Pending</span>' +
@@ -6020,7 +6020,7 @@ window.addEventListener('message', function(event) {
           var btn = document.createElement("button");
           btn.className = "botlab-ai-chip";
           btn.title = "View " + count + " pending for " + cName;
-          btn.onclick = function () { window.botAICommand(cName); };
+          btn.onclick = function () { window.botlabLaunchPendingTabs(cName); };
 
           var icon = "business";
           var clow = cName.toLowerCase();

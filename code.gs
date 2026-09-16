@@ -751,7 +751,7 @@ function getDashboardLogsData(forceSync, startDate, endDate, targetClientName) {
           var lastRow = sheet.getLastRow();
           if (lastRow < 2) return;
           
-          var startRow = Math.max(2, lastRow - 200 + 1);
+          var startRow = Math.max(2, lastRow - 400 + 1);
           var numRows = lastRow - startRow + 1;
           var sheetLastCol = sheet.getLastColumn() || 1;
           var readCols = Math.min(Math.max(colMap.maxColToRead || colMap.lastCol || 1, 1), sheetLastCol);
@@ -920,7 +920,7 @@ function getDashboardLogsData(forceSync, startDate, endDate, targetClientName) {
         if (lastRow < 2) return;
         
         // Scan up to 500 rows for high accuracy weekly / custom date range aggregates
-        var startRow = Math.max(2, lastRow - 100 + 1);
+        var startRow = Math.max(2, lastRow - 300 + 1);
         var numRows = lastRow - startRow + 1;
         var sheetLastCol = sheet.getLastColumn() || 1;
         var readCols = Math.min(Math.max(colMap.maxColToRead || colMap.lastCol || 1, 1), sheetLastCol);

@@ -3730,9 +3730,7 @@ body.dark-mode .empty-state {
 
   /* ── 4. Bot Lab AI Panel Ultra Compact ── */
   .botlab-ai-panel {
-    width: 220px !important;
-    min-width: 200px !important;
-    max-width: 235px !important;
+    
   }
   .botlab-ai-header {
     padding: 5px 8px !important;
@@ -3767,4 +3765,5 @@ body.dark-mode .empty-state {
     height: 26px !important;
   }
 }
+
 
