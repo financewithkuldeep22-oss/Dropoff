@@ -220,22 +220,17 @@ function getSafeLocalStorage(key, defaultVal) {
           });
         }
       });
-      // 2. Active client pendency: Always accurately reflect unresolved pending bookings from allLogs
+      // 2. Active client pendency: Always accurately reflect unresolved pending bookings from allLogs and trendData
       l.forEach((cli) => {
         const cliActivePending = allLogs.filter(log => log.isPending && (n ? lr(log.client) === cli : log.client === cli)).length;
-        // Use allLogs pending if available, or fall back to trendData aggregates
-        if (cliActivePending > 0) {
-          a[cli].pending = cliActivePending;
-        } else {
-          // If allLogs is empty or paginated, sum pending from trendData across available dates
-          let sumPending = 0;
-          Object.keys(Qs.trendData || {}).forEach(dKey => {
-            if (Qs.trendData[dKey] && Qs.trendData[dKey][cli]) {
-              sumPending += (Qs.trendData[dKey][cli].pending || 0);
-            }
-          });
-          a[cli].pending = sumPending;
-        }
+        let sumPending = 0;
+        o.forEach(dKey => {
+          if (Qs.trendData && Qs.trendData[dKey] && Qs.trendData[dKey][cli]) {
+            sumPending += (Qs.trendData[dKey][cli].pending || 0);
+          }
+        });
+        const mathMinPending = Math.max(0, (a[cli].total || 0) - (a[cli].created || 0));
+        a[cli].pending = Math.max(cliActivePending, sumPending, mathMinPending);
       });
       // 3. Total active pending KPI: count all unresolved pending across selected clients
       const seenPendingKeys = new Set();
@@ -6124,36 +6119,46 @@ window.addEventListener('message', function(event) {
   };
 
   window.botAICommand = function (filter) {
-    _addMsg("bot", "Scanning pending bookings" + (filter !== "all" ? " for " + filter : "") + "...");
+    var filterLabel = filter === "all" ? "all clients" : filter;
+    _addMsg("bot", "Scanning pending bookings for " + filterLabel + "...");
 
     var allLogs = [];
     try {
-      if (window.Qs && window.Qs.logs) allLogs = window.Qs.logs;
+      if (window.Qs && Array.isArray(window.Qs.logs)) allLogs = window.Qs.logs;
     } catch (e) {}
+
+    if (allLogs.length === 0) {
+      _addMsg("bot", "Dashboard data is syncing or empty. Please wait a moment or click 'Apply Sync' on Overview.");
+      return;
+    }
 
     var pending = allLogs.filter(function (log) { return log.isPending === true; });
 
     if (filter && filter !== "all") {
+      var fNorm = filter.toLowerCase().replace(/[^a-z0-9]/g, '');
       pending = pending.filter(function (log) {
-        return (log.clientName || "").toLowerCase().indexOf(filter.toLowerCase()) !== -1;
+        var cNorm = (log.client || log.clientName || "").toLowerCase().replace(/[^a-z0-9]/g, '');
+        return cNorm.indexOf(fNorm) !== -1 || fNorm.indexOf(cNorm) !== -1;
       });
     }
 
     if (pending.length === 0) {
-      _addMsg("bot", "No pending bookings found" + (filter !== "all" ? " for " + filter : "") + ". All up to date.");
+      _addMsg("bot", "No pending bookings found for " + filterLabel + ". All up to date.");
       return;
     }
 
-    _addMsg("bot", "Found " + pending.length + " pending booking(s). Review in Overview tab and use the portal to process them.");
+    _addMsg("bot", "Found " + pending.length + " pending booking(s) for " + filterLabel + ":");
 
-    var grouped = {};
-    pending.forEach(function (log) {
-      var key = log.clientName || "Unknown";
-      if (!grouped[key]) grouped[key] = 0;
-      grouped[key]++;
+    pending.slice(0, 10).forEach(function (b, idx) {
+      var clientStr = b.client || b.clientName || "Client";
+      var patientStr = b.name || "Patient";
+      var rowStr = b.rowNum ? " (Row " + b.rowNum + ")" : "";
+      var cityStr = b.location ? " - " + b.location : "";
+      _addMsg("bot", (idx + 1) + ". " + patientStr + " | " + clientStr + rowStr + cityStr);
     });
-    var summary = Object.keys(grouped).map(function (k) { return k + ": " + grouped[k]; }).join(", ");
-    _addMsg("bot", "Breakdown: " + summary);
+    if (pending.length > 10) {
+      _addMsg("bot", "...and " + (pending.length - 10) + " more.");
+    }
   };
 
 })();
