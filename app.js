@@ -192,7 +192,7 @@ function getSafeLocalStorage(key, defaultVal) {
 
     if (searchVal) {
       l.forEach((cli) => {
-        const cliLogs = matchingLogs.filter(log => (n ? lr(log.client) === cli : log.client === cli));
+        const cliLogs = matchingLogs.filter(log => log.client === cli);
         a[cli].total = cliLogs.length;
         a[cli].created = cliLogs.filter(log => !log.isPending).length;
         a[cli].pending = cliLogs.filter(log => log.isPending).length;
@@ -222,7 +222,7 @@ function getSafeLocalStorage(key, defaultVal) {
       });
       // 2. Active client pendency: Always accurately reflect unresolved pending bookings from allLogs and trendData
       l.forEach((cli) => {
-        const cliActivePending = allLogs.filter(log => log.isPending && (n ? lr(log.client) === cli : log.client === cli)).length;
+        const cliActivePending = allLogs.filter(log => log.isPending && log.client === cli).length;
         let sumPending = 0;
         o.forEach(dKey => {
           if (Qs.trendData && Qs.trendData[dKey] && Qs.trendData[dKey][cli]) {
@@ -6113,8 +6113,10 @@ window.addEventListener('message', function(event) {
       window.botAICommand("tghs");
     } else if (cmd.indexOf("morepen") !== -1) {
       window.botAICommand("morepen");
+    } else if (cmd.indexOf("hcl") !== -1) {
+      window.botAICommand("hcl");
     } else {
-      _addMsg("bot", "Command not recognized. Try: 'all pending', 'medibuddy', 'flebo', 'tatvacare', 'tghs', or 'morepen'.");
+      _addMsg("bot", "Command not recognized. Try: 'all pending', 'hcl', 'medibuddy', 'flebo', 'tatvacare', 'tghs', or 'morepen'.");
     }
   };
 
