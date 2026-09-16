@@ -6234,31 +6234,175 @@ window.addEventListener('message', function(event) {
     return "https://partner.redcliffelabs.com/dashboard/corpclientadmin/booking?" + p.toString();
   }
 
-  // ── Command Handler ────────────────────────────────────────
-  window.sendBotlabCommand = function (text) {
-    if (!text || !text.trim()) return;
-    _addMsg("user", text.trim());
+  // ── Chat Reset / Clear ─────────────────────────────────────
+  window.botlabClearChat = function () {
+    var msgContainer = document.getElementById("botlab-ai-messages");
+    if (msgContainer) msgContainer.innerHTML = "";
+    _addMsg("bot", "Chat reset. RedcliffeBot ready. Ask me anything (e.g. <i>'Flebo ki kitni pending hai?'</i> ya <i>'Indore wali booking bana do'</i>) or click preset buttons above.", true);
+  };
 
-    var cmd = text.trim().toLowerCase();
-    if (cmd.indexOf("pending") !== -1 || cmd === "all" || cmd.indexOf("sab") !== -1 || cmd.indexOf("sabhi") !== -1) {
-      window.botAICommand("all");
-    } else if (cmd.indexOf("medibuddy") !== -1 || cmd.indexOf("medi") !== -1) {
-      window.botAICommand("medibuddy");
-    } else if (cmd.indexOf("flebo") !== -1) {
-      window.botAICommand("flebo");
-    } else if (cmd.indexOf("tatva") !== -1) {
-      window.botAICommand("tatvacare");
-    } else if (cmd.indexOf("tghs") !== -1) {
-      window.botAICommand("tghs");
-    } else if (cmd.indexOf("morepen") !== -1) {
-      window.botAICommand("morepen");
-    } else if (cmd.indexOf("hcl") !== -1) {
-      window.botAICommand("hcl");
-    } else if (cmd.indexOf("grid") !== -1 || cmd.indexOf("multi") !== -1) {
-      window.toggleBotlabViewMode();
-    } else {
-      _addMsg("bot", "Command not recognized. Try: 'all pending', 'flebo', 'medibuddy', 'hcl', 'tatvacare', 'tghs', 'morepen', or 'grid'.");
+  // ── Conversational AI Command Engine ───────────────────────
+  window.sendBotlabCommand = function (rawText) {
+    if (!rawText || !rawText.trim()) return;
+    var text = rawText.trim();
+    _addMsg("user", text);
+
+    var lower = text.toLowerCase().trim();
+
+    // 1. Get current state of logs and client stats
+    var allLogs = [];
+    try {
+      if (typeof Qs !== "undefined" && Qs && Array.isArray(Qs.logs)) {
+        allLogs = Qs.logs;
+      } else if (window.Qs && Array.isArray(window.Qs.logs)) {
+        allLogs = window.Qs.logs;
+      }
+    } catch (e) {}
+
+    var allPending = allLogs.filter(function (l) { return l.isPending === true; });
+
+    // Client detection mapping
+    var clientKeywords = {
+      "flebo": ["flebo", "flebo.in", "fleboin"],
+      "hcl": ["hcl"],
+      "medibuddy": ["medibuddy", "medi", "mb"],
+      "tatvacare": ["tatva", "tatvacare"],
+      "tghs": ["tghs"],
+      "morepen": ["morepen", "dr morepen"],
+      "bharath": ["bharath", "bhmc"],
+      "allo": ["allo", "allohealth"]
+    };
+
+    var targetClient = null;
+    for (var cKey in clientKeywords) {
+      var kws = clientKeywords[cKey];
+      for (var k = 0; k < kws.length; k++) {
+        if (lower.indexOf(kws[k]) !== -1) {
+          targetClient = cKey;
+          break;
+        }
+      }
+      if (targetClient) break;
     }
+
+    // 2. STOP COMMAND
+    if (/(\bstop\b|\brok\b|\bband\b|\bhyp\b|\bcancel\b)/i.test(lower)) {
+      window.botlabStopAllTabs();
+      return;
+    }
+
+    // 3. CLEAR CHAT COMMAND
+    if (/(\bclear\b|\bsaaf\b|\breset\b)/i.test(lower) && /(\bchat\b|\bmsg\b|\bconversation\b)/i.test(lower)) {
+      window.botlabClearChat();
+      return;
+    }
+
+    // 4. VIEW MODE TOGGLE
+    if (/(\bgrid\b|\bmulti\b|\bsaath\b|\bsabko ek sath\b)/i.test(lower)) {
+      if (_bl.viewMode !== "grid") window.toggleBotlabViewMode();
+      _addMsg("bot", "Switched to Grid Multi-View. All tabs visible side-by-side.");
+      return;
+    }
+    if (/(\bsingle\b|\bone\b|\bnormal\b|\bexpand\b|\bfull\b)/i.test(lower) && !/booking|bana/i.test(lower)) {
+      if (_bl.viewMode === "grid") window.toggleBotlabViewMode();
+      _addMsg("bot", "Switched to Single Tab View.");
+      return;
+    }
+
+    // 5. BOOKING LAUNCH / CREATION COMMAND: "flebo ki booking bana do indore wali" / "abhishek kumar ki bana do"
+    var isLaunchIntent = /(bana|punch|create|book|launch|khol|open|start|chalao|kardo)/i.test(lower);
+    var isBulkLaunch = /(saari|sari|all|sab|sabhi|bulk)/i.test(lower);
+
+    if (isLaunchIntent && isBulkLaunch) {
+      window.botlabLaunchPendingTabs(targetClient || "all");
+      return;
+    }
+
+    if (isLaunchIntent) {
+      // Check for row number: e.g. "row 6486" or "6486"
+      var rowMatch = lower.match(/row\s*[:#-]?\s*(\d+)/i) || lower.match(/\b(\d{3,5})\b/);
+      var searchRow = rowMatch ? parseInt(rowMatch[1], 10) : null;
+
+      // Extract location words
+      var knownLocations = ["indore", "kanpur", "lucknow", "noida", "delhi", "bhopal", "gurgaon", "ggn", "mumbai", "pune", "bangalore", "kolkata", "chennai", "jaipur", "mohali", "chandigarh", "sec 83", "vit bhopal"];
+      var matchedLocation = null;
+      for (var lIdx = 0; lIdx < knownLocations.length; lIdx++) {
+        if (lower.indexOf(knownLocations[lIdx]) !== -1) {
+          matchedLocation = knownLocations[lIdx];
+          break;
+        }
+      }
+
+      // Filter pool
+      var pool = allPending.slice();
+      if (targetClient) {
+        var fNorm = targetClient.toLowerCase().replace(/[^a-z0-9]/g, "");
+        pool = pool.filter(function (l) {
+          var cNorm = (l.client || l.clientName || "").toLowerCase().replace(/[^a-z0-9]/g, "");
+          return cNorm.indexOf(fNorm) !== -1 || fNorm.indexOf(cNorm) !== -1;
+        });
+      }
+
+      var candidate = null;
+      if (searchRow) {
+        candidate = pool.find(function (l) { return l.rowNum == searchRow; });
+      }
+      if (!candidate && matchedLocation) {
+        candidate = pool.find(function (l) {
+          var loc = (l.location || l.sheetName || "").toLowerCase();
+          return loc.indexOf(matchedLocation) !== -1;
+        });
+      }
+      if (!candidate) {
+        candidate = pool.find(function (l) {
+          if (!l.name) return false;
+          var nameParts = l.name.toLowerCase().split(/\s+/);
+          for (var p = 0; p < nameParts.length; p++) {
+            if (nameParts[p].length >= 3 && lower.indexOf(nameParts[p]) !== -1) return true;
+          }
+          return false;
+        });
+      }
+
+      if (candidate) {
+        window.botlabLaunchSinglePending(candidate.rowNum, candidate.client);
+        _addMsg("bot", "Opening booking tab for <b>" + _escHtml(candidate.name) + "</b> (" + _escHtml(candidate.client) + ", Row " + candidate.rowNum + (candidate.location ? " - " + candidate.location : "") + ") with automated form-fill parameters.", true);
+        return;
+      } else {
+        // If not in pending, check if already created
+        var alreadyCreated = allLogs.find(function (l) {
+          if (searchRow && l.rowNum == searchRow) return true;
+          if (matchedLocation && (l.location || l.sheetName || "").toLowerCase().indexOf(matchedLocation) !== -1) return true;
+          if (l.name) {
+            var nParts = l.name.toLowerCase().split(/\s+/);
+            for (var p = 0; p < nParts.length; p++) {
+              if (nParts[p].length >= 3 && lower.indexOf(nParts[p]) !== -1) return true;
+            }
+          }
+          return false;
+        });
+        if (alreadyCreated && !alreadyCreated.isPending) {
+          _addMsg("bot", "Ye booking (<b>" + _escHtml(alreadyCreated.name) + "</b> - " + _escHtml(alreadyCreated.client) + ", Row " + alreadyCreated.rowNum + ") pehle se sheet me created hai! (Booking ID: <b>" + (alreadyCreated.bookingId || "Done") + "</b>).", true);
+          return;
+        }
+        _addMsg("bot", "Mujhe koi matching pending booking nahi mili. Aap 'all pending' ya client name (jaise Flebo, HCL) check kar sakte hain.");
+        return;
+      }
+    }
+
+    // 6. QUERY PENDING INTENT: "flebo.in ki kitni bachi hai bookings pending ?" / "count" / "status"
+    if (/(kitni|kitna|how many|count|pending|bachi|baki|kya bacha|status|btao|batao|check)/i.test(lower) || targetClient) {
+      window.botAICommand(targetClient || "all");
+      return;
+    }
+
+    // 7. GREETING & HELP
+    _addMsg("bot", "Namaste! Main RedcliffeBot AI assistant hoon. Aap mujhse naturally kuch bhi bol sakte hain:<br/>" +
+      "• <i>'Flebo.in ki kitni pending bookings bachi hain?'</i><br/>" +
+      "• <i>'Flebo ki booking bana do Indore wali'</i><br/>" +
+      "• <i>'HCL ki saari bookings grid view me open karo'</i><br/>" +
+      "• <i>'Row 6632 open karo'</i><br/>" +
+      "• <i>'Bot ko stop kar do'</i> ya <i>'Grid view dikhao'</i>", true);
   };
 
   // ── AI Command & Live Pendency Engine ──────────────────────
@@ -6312,22 +6456,44 @@ window.addEventListener('message', function(event) {
       }
     } catch (e) {}
 
+    var fNorm = filter && filter !== "all" ? filter.toLowerCase().replace(/[^a-z0-9]/g, "") : null;
     var pending = allLogs.filter(function (log) { return log.isPending === true; });
 
-    if (filter && filter !== "all") {
-      var fNorm = filter.toLowerCase().replace(/[^a-z0-9]/g, "");
+    if (fNorm) {
       pending = pending.filter(function (log) {
         var cNorm = (log.client || log.clientName || "").toLowerCase().replace(/[^a-z0-9]/g, "");
         return cNorm.indexOf(fNorm) !== -1 || fNorm.indexOf(cNorm) !== -1;
       });
     }
 
+    // Also check clientStats for overview reference
+    var statsPending = 0;
+    try {
+      if (typeof Qs !== "undefined" && Qs && Qs.clientStats) {
+        for (var k in Qs.clientStats) {
+          if (!fNorm) {
+            statsPending += (Qs.clientStats[k].pending || 0);
+          } else {
+            var cNorm = k.toLowerCase().replace(/[^a-z0-9]/g, "");
+            if (cNorm.indexOf(fNorm) !== -1 || fNorm.indexOf(cNorm) !== -1) {
+              statsPending += (Qs.clientStats[k].pending || 0);
+            }
+          }
+        }
+      }
+    } catch (e) {}
+
     if (pending.length === 0) {
-      _addMsg("bot", "No pending bookings found for " + filterLabel + ". All up to date.");
+      if (statsPending > 0) {
+        _addMsg("bot", "Overview reports " + statsPending + " pending for " + filterLabel + " based on daily counts, but all individual rows are currently processed/punched in the Google Sheet. All up to date! 🎉");
+      } else {
+        _addMsg("bot", "No pending bookings found for " + filterLabel + ". All up to date! 🎉");
+      }
       return;
     }
 
-    _addMsg("bot", "Found " + pending.length + " pending booking(s) for " + filterLabel + ":");
+    var headerNote = (statsPending > pending.length) ? " (Overview reports " + statsPending + " total difference)" : "";
+    _addMsg("bot", "Found " + pending.length + " actionable pending booking(s) for " + filterLabel + headerNote + ":");
 
     pending.slice(0, 10).forEach(function (b, idx) {
       var clientStr = b.client || b.clientName || "Client";
@@ -6409,28 +6575,31 @@ window.addEventListener('message', function(event) {
     var toLaunch = pending.slice(0, 4);
     _addMsg("bot", "Opening " + toLaunch.length + " pending booking(s) with automated form-fill parameters in Grid View...");
 
+    // Switch to Grid View so user sees all opened tabs side-by-side
+    if (_bl.viewMode !== "grid") {
+      window.toggleBotlabViewMode();
+    }
+
     toLaunch.forEach(function (b, idx) {
       var pName = b.name || "Patient";
       var cli = b.client || "Client";
       var targetUrl = _buildBotBookingUrl(b);
       var tabTitle = pName + " (" + (b.rowNum ? "R" + b.rowNum : cli) + ")";
 
-      // If initial tab is blank, reuse it for the first pending booking
-      if (idx === 0 && _bl.tabs.length === 1 && (!_bl.tabs[0].url || _bl.tabs[0].url === "about:blank")) {
-        _bl.tabs[0].title = tabTitle;
-        _bl.tabs[0].url = targetUrl;
-        var tEl = document.getElementById("botlab-card-title-0");
-        if (tEl) tEl.textContent = tabTitle;
-        window.botlabNavigate(targetUrl);
-      } else {
-        window.botlabCreateTab(targetUrl, tabTitle);
-      }
+      // Stagger creation by 400ms to eliminate server/browser race conditions
+      setTimeout(function () {
+        // If initial tab is blank, reuse it for the first pending booking
+        if (idx === 0 && _bl.tabs.length === 1 && (!_bl.tabs[0].url || _bl.tabs[0].url === "about:blank")) {
+          _bl.tabs[0].title = tabTitle;
+          _bl.tabs[0].url = targetUrl;
+          var tEl = document.getElementById("botlab-card-title-0");
+          if (tEl) tEl.textContent = tabTitle;
+          window.botlabNavigate(targetUrl);
+        } else {
+          window.botlabCreateTab(targetUrl, tabTitle);
+        }
+      }, idx * 400);
     });
-
-    // Switch to Grid View so user sees all opened tabs side-by-side
-    if (_bl.viewMode !== "grid") {
-      window.toggleBotlabViewMode();
-    }
   };
 
 })();

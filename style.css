@@ -2303,6 +2303,9 @@ input[type="password"]::-ms-clear {
   .main-content-wrapper {
     margin-left: 74px !important;
     width: calc(100% - 74px) !important;
+    height: 100vh !important;
+    max-height: 100vh !important;
+    overflow: hidden !important;
     padding-bottom: 0 !important;
   }
 
@@ -2310,8 +2313,12 @@ input[type="password"]::-ms-clear {
     padding-left: 0 !important;
     padding-right: 0 !important;
     width: 100% !important;
+    height: calc(100vh - 64px) !important;
+    max-height: calc(100vh - 64px) !important;
     margin: 0 !important;
     margin-top: 64px !important;
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
     transition: margin-top 0.4s cubic-bezier(0.16, 1, 0.3, 1) !important;
   }
 
@@ -2336,9 +2343,11 @@ input[type="password"]::-ms-clear {
   #tab-content-bot-lab {
     width: 100% !important;
     height: 100% !important;
+    max-height: 100% !important;
     padding: 0 !important;
     margin: 0 !important;
     overflow: hidden !important;
+    position: relative !important;
   }
 
   #tab-content-ops iframe,
@@ -2663,20 +2672,22 @@ input[type="password"]::-ms-clear {
 
 /* Iframe & Tab Card Container */
 .botlab-iframe-wrap {
-  flex: 1;
-  position: relative;
+  flex: 1 1 0% !important;
+  height: 0 !important;
+  min-height: 0 !important;
+  position: relative !important;
   background: #fff;
-  overflow: hidden;
-  display: flex;
+  overflow: hidden !important;
+  display: flex !important;
 }
 
-/* Single Tab Card Mode (Zero-reload architecture: keep display:flex so Chromium never reloads the iframe) */
-.botlab-tab-card {
+/* Single Tab Card Mode (Zero-reload architecture) */
+.botlab-iframe-wrap:not(.grid-mode) .botlab-tab-card {
   width: 100%;
   height: 100%;
   flex-direction: column;
 }
-.botlab-tab-card.active {
+.botlab-iframe-wrap:not(.grid-mode) .botlab-tab-card.active {
   display: flex !important;
   position: absolute !important;
   inset: 0 !important;
@@ -2685,7 +2696,7 @@ input[type="password"]::-ms-clear {
   pointer-events: auto !important;
   z-index: 2 !important;
 }
-.botlab-tab-card:not(.active) {
+.botlab-iframe-wrap:not(.grid-mode) .botlab-tab-card:not(.active) {
   display: flex !important; /* CRITICAL: Never use display:none or Chromium reloads the iframe! */
   position: absolute !important;
   top: 0 !important;
@@ -2723,25 +2734,28 @@ input[type="password"]::-ms-clear {
 /* Grid Multi-View Mode (Side-by-side simultaneous cards) */
 .botlab-iframe-wrap.grid-mode {
   display: grid !important;
-  grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
-  gap: 14px;
-  padding: 14px;
+  grid-template-columns: repeat(auto-fit, minmax(360px, 1fr)) !important;
+  gap: 14px !important;
+  padding: 14px !important;
   overflow-y: auto !important;
-  align-content: start;
-  background: #f1f5f9;
+  align-content: start !important;
+  background: #f1f5f9 !important;
+  height: 100% !important;
+  max-height: 100% !important;
 }
-.botlab-iframe-wrap.grid-mode .botlab-tab-card {
+.botlab-iframe-wrap.grid-mode .botlab-tab-card,
+.botlab-iframe-wrap.grid-mode .botlab-tab-card:not(.active) {
   display: flex !important;
   position: relative !important;
   top: auto !important;
   left: auto !important;
   width: 100% !important;
-  height: 560px !important;
+  height: 520px !important;
   opacity: 1 !important;
   visibility: visible !important;
   pointer-events: auto !important;
   z-index: 1 !important;
-  flex-direction: column;
+  flex-direction: column !important;
   border-radius: 12px;
   border: 1px solid #e2e8f0;
   background: #ffffff;
@@ -2807,14 +2821,6 @@ input[type="password"]::-ms-clear {
   transform-origin: top left !important;
   border: none !important;
   background: #fff !important;
-}
-  font-size: 12px;
-  font-weight: 700;
-  color: #1e293b;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  max-width: 180px;
 }
 .botlab-card-actions {
   display: flex;
@@ -2968,11 +2974,12 @@ input[type="password"]::-ms-clear {
 
 /* Chat Messages */
 .botlab-ai-messages {
-  flex: 1;
-  min-height: 0;
-  max-height: 100%;
-  overflow-y: auto;
-  overflow-x: hidden;
+  flex: 1 1 0% !important;
+  height: 0 !important;
+  min-height: 0 !important;
+  max-height: 100% !important;
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
   padding: 12px;
   display: flex;
   flex-direction: column;
