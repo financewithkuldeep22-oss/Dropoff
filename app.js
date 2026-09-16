@@ -5740,6 +5740,10 @@ window.updateNavBadges = function() {
         mbBadge.style.display = "none";
       }
     }
+    // Also sync Bot Lab active pendency chips
+    if (typeof window.updateBotlabPendingChips === "function") {
+      window.updateBotlabPendingChips();
+    }
   } catch(err) {
     console.warn("Badge calculation notice:", err);
   }
@@ -5853,23 +5857,207 @@ window.addEventListener('message', function(event) {
 
   // ── State ──────────────────────────────────────────────────
   var _bl = {
-    tabs: [{ id: 0, title: "Home", url: "about:blank" }],
+    tabs: [{ id: 0, title: "Google", url: "https://www.google.com/search?igu=1" }],
     active: 0,
     nextId: 1,
-    history: { 0: [] },
-    histPos: { 0: -1 },
+    history: { 0: ["https://www.google.com/search?igu=1"] },
+    histPos: { 0: 0 },
     dryRun: true,
     viewMode: "single", // "single" or "grid"
-    initialized: false
+    initialized: false,
+    loaderTimeout: null
+  };
+
+  // ── Helper to wire iframe load handler (Tab 0 & Dynamic Tabs) ──
+  function _wireIframeLoadHandler(iframe, id) {
+    if (!iframe) return;
+    iframe.onload = function () {
+      if (_bl.loaderTimeout) {
+        clearTimeout(_bl.loaderTimeout);
+        _bl.loaderTimeout = null;
+      }
+      var loader = document.getElementById("botlab-iframe-loader");
+      if (loader) loader.classList.remove("show");
+      try {
+        var iframeTitle = iframe.contentDocument && iframe.contentDocument.title;
+        if (iframeTitle) {
+          var t = _bl.tabs.find(function (tabObj) { return tabObj.id === id; });
+          if (t) {
+            t.title = iframeTitle.substring(0, 30);
+            var titleEl = document.getElementById("botlab-card-title-" + id);
+            if (titleEl) titleEl.textContent = t.title;
+          }
+          _renderTabs();
+        }
+      } catch (e) { /* cross-origin */ }
+    };
+  }
+
+  // ── Adjustable Panel Resizer ──────────────────────────────
+  function _setupPanelResizer() {
+    var resizer = document.getElementById("botlab-ai-resizer");
+    var panel = document.getElementById("botlab-ai-panel");
+    if (!resizer || !panel || resizer._wired) return;
+    resizer._wired = true;
+
+    try {
+      var saved = localStorage.getItem("botlab_ai_panel_width");
+      if (saved && Number(saved) >= 250 && Number(saved) <= 700) {
+        panel.style.width = Number(saved) + "px";
+      }
+    } catch (e) {}
+
+    var isDragging = false;
+    var startX = 0;
+    var startWidth = 0;
+
+    resizer.addEventListener("mousedown", function (e) {
+      e.preventDefault();
+      isDragging = true;
+      startX = e.clientX;
+      startWidth = panel.getBoundingClientRect().width;
+      resizer.classList.add("is-dragging");
+      document.body.style.userSelect = "none";
+      document.body.style.cursor = "col-resize";
+
+      var iframes = document.querySelectorAll(".botlab-iframe");
+      iframes.forEach(function (f) { f.style.pointerEvents = "none"; });
+
+      function onMouseMove(moveEvent) {
+        if (!isDragging) return;
+        var delta = startX - moveEvent.clientX;
+        var newWidth = Math.max(250, Math.min(650, startWidth + delta));
+        panel.style.width = newWidth + "px";
+      }
+
+      function onMouseUp() {
+        if (!isDragging) return;
+        isDragging = false;
+        resizer.classList.remove("is-dragging");
+        document.body.style.userSelect = "";
+        document.body.style.cursor = "";
+        iframes.forEach(function (f) { f.style.pointerEvents = ""; });
+        window.removeEventListener("mousemove", onMouseMove);
+        window.removeEventListener("mouseup", onMouseUp);
+        try {
+          var finalWidth = panel.getBoundingClientRect().width;
+          localStorage.setItem("botlab_ai_panel_width", Math.round(finalWidth));
+        } catch (e) {}
+      }
+
+      window.addEventListener("mousemove", onMouseMove);
+      window.addEventListener("mouseup", onMouseUp);
+    });
+
+    resizer.addEventListener("dblclick", function () {
+      panel.style.width = "330px";
+      try { localStorage.setItem("botlab_ai_panel_width", "330"); } catch (e) {}
+    });
+  }
+
+  // ── Dynamic Active Pendency Chips (Filtered by Live Overview Data) ──
+  window.updateBotlabPendingChips = function () {
+    var container = document.getElementById("botlab-ai-chips");
+    if (!container) return;
+
+    var pendingByClient = {};
+    var totalPending = 0;
+
+    // 1. Extract from Qs.clientStats (Overview Source of Truth)
+    if (typeof Qs !== "undefined" && Qs && Qs.clientStats) {
+      for (var k in Qs.clientStats) {
+        var p = (Qs.clientStats[k] && Qs.clientStats[k].pending) || 0;
+        if (p > 0) {
+          pendingByClient[k] = p;
+          totalPending += p;
+        }
+      }
+    }
+
+    // 2. Extract from Qs.logs if available
+    if (typeof Qs !== "undefined" && Qs && Array.isArray(Qs.logs)) {
+      var logCounts = {};
+      var logTotal = 0;
+      Qs.logs.forEach(function (l) {
+        if (l && l.isPending === true) {
+          var cName = l.client || l.clientName || "Other";
+          logCounts[cName] = (logCounts[cName] || 0) + 1;
+          logTotal++;
+        }
+      });
+      if (totalPending === 0 && logTotal > 0) {
+        pendingByClient = logCounts;
+        totalPending = logTotal;
+      }
+    }
+
+    container.innerHTML = "";
+    if (totalPending === 0) {
+      container.innerHTML =
+        '<div class="botlab-chip-empty">' +
+          '<span class="material-symbols-outlined" style="font-size:14px;color:#10b981;">check_circle</span>' +
+          '<span>No pending bookings</span>' +
+        '</div>';
+      return;
+    }
+
+    // "All Pending" chip
+    var allBtn = document.createElement("button");
+    allBtn.className = "botlab-ai-chip all-chip";
+    allBtn.title = "View all " + totalPending + " pending bookings";
+    allBtn.onclick = function () { window.botAICommand("all"); };
+    allBtn.innerHTML =
+      '<span class="material-symbols-outlined" style="font-size:13px;">inventory_2</span>' +
+      '<span>All Pending</span>' +
+      '<span class="botlab-chip-badge">' + totalPending + '</span>';
+    container.appendChild(allBtn);
+
+    // Individual client chips (ONLY clients with pending > 0)
+    for (var client in pendingByClient) {
+      var cnt = pendingByClient[client];
+      if (cnt > 0) {
+        (function (cName, count) {
+          var btn = document.createElement("button");
+          btn.className = "botlab-ai-chip";
+          btn.title = "View " + count + " pending for " + cName;
+          btn.onclick = function () { window.botAICommand(cName); };
+
+          var icon = "business";
+          var clow = cName.toLowerCase();
+          if (clow.indexOf("flebo") !== -1) icon = "water_drop";
+          else if (clow.indexOf("medi") !== -1) icon = "medication";
+          else if (clow.indexOf("hcl") !== -1) icon = "domain";
+          else if (clow.indexOf("tatva") !== -1) icon = "shield";
+          else if (clow.indexOf("tghs") !== -1) icon = "health_and_safety";
+          else if (clow.indexOf("bharath") !== -1 || clow.indexOf("bhmc") !== -1) icon = "local_hospital";
+          else if (clow.indexOf("apollo") !== -1) icon = "emergency";
+
+          btn.innerHTML =
+            '<span class="material-symbols-outlined" style="font-size:13px;">' + icon + '</span>' +
+            '<span>' + _escHtml(cName) + '</span>' +
+            '<span class="botlab-chip-badge">' + count + '</span>';
+          container.appendChild(btn);
+        })(client, cnt);
+      }
+    }
   };
 
   // ── Init (called on tab switch) ────────────────────────────
   window.initBotlab = function () {
-    if (_bl.initialized) return;
+    if (_bl.initialized) {
+      if (typeof window.updateBotlabPendingChips === "function") window.updateBotlabPendingChips();
+      return;
+    }
     _bl.initialized = true;
     _renderTabs();
     _setupPostMessageListener();
     _setupModeToggle();
+    _setupPanelResizer();
+    if (typeof window.updateBotlabPendingChips === "function") window.updateBotlabPendingChips();
+    var frame0 = document.getElementById("botlab-iframe-0");
+    if (frame0) {
+      _wireIframeLoadHandler(frame0, 0);
+    }
   };
 
   // ── Tab Strip Rendering ────────────────────────────────────
@@ -5907,13 +6095,12 @@ window.addEventListener('message', function(event) {
     newBtn.className = "botlab-tab-new";
     newBtn.textContent = "+";
     newBtn.title = "New Tab";
-    newBtn.onclick = function () { window.botlabCreateTab("https://partner.redcliffelabs.com"); };
+    newBtn.onclick = function () { window.botlabCreateTab("https://www.google.com/search?igu=1", "Google"); };
     strip.appendChild(newBtn);
   }
 
   function _switchTab(id) {
     _bl.active = id;
-    // Show/hide cards (in single view mode, only active card is visible)
     var wrap = document.getElementById("botlab-iframe-wrap");
     if (wrap) {
       var cards = wrap.querySelectorAll(".botlab-tab-card");
@@ -5925,7 +6112,6 @@ window.addEventListener('message', function(event) {
         }
       });
     }
-    // Update URL bar
     var tab = _bl.tabs.find(function (t) { return t.id === id; });
     if (tab) {
       var urlInput = document.getElementById("botlab-url-input");
@@ -5937,10 +6123,11 @@ window.addEventListener('message', function(event) {
   // ── Tab Creation (Persistent Tab-Card Architecture) ────────
   window.botlabCreateTab = function (url, title) {
     var id = _bl.nextId++;
-    var tabTitle = title || "New Tab";
-    _bl.tabs.push({ id: id, title: tabTitle, url: url || "about:blank" });
-    _bl.history[id] = [];
-    _bl.histPos[id] = -1;
+    var tabUrl = (url && url !== "about:blank") ? url : "https://www.google.com/search?igu=1";
+    var tabTitle = title || (tabUrl.indexOf("google") !== -1 ? "Google" : "New Tab");
+    _bl.tabs.push({ id: id, title: tabTitle, url: tabUrl });
+    _bl.history[id] = [tabUrl];
+    _bl.histPos[id] = 0;
 
     // Create persistent card container
     var card = document.createElement("div");
@@ -5970,25 +6157,10 @@ window.addEventListener('message', function(event) {
     var iframe = document.createElement("iframe");
     iframe.id = "botlab-iframe-" + id;
     iframe.className = "botlab-iframe active";
-    iframe.src = "about:blank";
+    iframe.src = tabUrl;
     iframe.setAttribute("allow", "clipboard-read; clipboard-write; fullscreen");
     iframe.setAttribute("sandbox", "allow-same-origin allow-scripts allow-popups allow-forms allow-modals allow-top-navigation-by-user-activation");
-    iframe.onload = function () {
-      var loader = document.getElementById("botlab-iframe-loader");
-      if (loader) loader.classList.remove("show");
-      try {
-        var iframeTitle = iframe.contentDocument && iframe.contentDocument.title;
-        if (iframeTitle) {
-          var t = _bl.tabs.find(function (tabObj) { return tabObj.id === id; });
-          if (t) {
-            t.title = iframeTitle.substring(0, 30);
-            var titleEl = document.getElementById("botlab-card-title-" + id);
-            if (titleEl) titleEl.textContent = t.title;
-          }
-          _renderTabs();
-        }
-      } catch (e) { /* cross-origin */ }
-    };
+    _wireIframeLoadHandler(iframe, id);
 
     frameWrap.appendChild(iframe);
     card.appendChild(frameWrap);
@@ -5997,8 +6169,6 @@ window.addEventListener('message', function(event) {
     if (wrap) wrap.appendChild(card);
 
     _switchTab(id);
-    if (url && url !== "about:blank") window.botlabNavigate(url);
-
     return id;
   };
 
@@ -6009,11 +6179,9 @@ window.addEventListener('message', function(event) {
     delete _bl.history[id];
     delete _bl.histPos[id];
 
-    // Remove card container
     var card = document.getElementById("botlab-card-" + id);
     if (card) card.remove();
 
-    // Switch to last tab if active was closed
     if (_bl.active === id) {
       _bl.active = _bl.tabs[_bl.tabs.length - 1].id;
     }
@@ -6027,6 +6195,14 @@ window.addEventListener('message', function(event) {
   window.botlabReloadTab = function (id) {
     var iframe = document.getElementById("botlab-iframe-" + id);
     if (iframe) {
+      var loader = document.getElementById("botlab-iframe-loader");
+      if (loader) {
+        loader.classList.add("show");
+        if (_bl.loaderTimeout) clearTimeout(_bl.loaderTimeout);
+        _bl.loaderTimeout = setTimeout(function () {
+          if (loader) loader.classList.remove("show");
+        }, 2000);
+      }
       iframe.src = iframe.src;
     }
   };
@@ -6056,7 +6232,6 @@ window.addEventListener('message', function(event) {
     var wrap = document.getElementById("botlab-iframe-wrap");
     var toggleBtn = document.getElementById("botlab-view-toggle");
     var toggleIcon = document.getElementById("botlab-view-icon");
-    var toggleLabel = document.getElementById("botlab-view-label");
 
     if (wrap) {
       wrap.classList.toggle("grid-mode", _bl.viewMode === "grid");
@@ -6065,10 +6240,7 @@ window.addEventListener('message', function(event) {
       toggleBtn.classList.toggle("active", _bl.viewMode === "grid");
     }
     if (toggleIcon) {
-      toggleIcon.textContent = (_bl.viewMode === "grid" ? "tab" : "grid_view");
-    }
-    if (toggleLabel) {
-      toggleLabel.textContent = (_bl.viewMode === "grid" ? "Single View" : "Grid View");
+      toggleIcon.textContent = (_bl.viewMode === "grid" ? "crop_square" : "grid_view");
     }
 
     _addMsg("bot", _bl.viewMode === "grid"
@@ -6079,8 +6251,11 @@ window.addEventListener('message', function(event) {
   // ── Navigation ─────────────────────────────────────────────
   window.botlabNavigate = function (rawUrl, pushHist) {
     if (pushHist === undefined) pushHist = true;
-    if (!rawUrl || !rawUrl.trim()) return;
-    rawUrl = rawUrl.trim();
+    if (!rawUrl || !rawUrl.trim() || rawUrl.trim() === "about:blank") {
+      rawUrl = "https://www.google.com/search?igu=1";
+    } else {
+      rawUrl = rawUrl.trim();
+    }
 
     if (!/^https?:\/\//i.test(rawUrl)) {
       if (/^[a-z0-9]([a-z0-9-]*[a-z0-9])?\.[a-z]{2,}/i.test(rawUrl) && rawUrl.indexOf(" ") === -1) {
@@ -6103,7 +6278,13 @@ window.addEventListener('message', function(event) {
     var iframe = document.getElementById("botlab-iframe-" + id);
     if (iframe) {
       var loader = document.getElementById("botlab-iframe-loader");
-      if (loader) loader.classList.add("show");
+      if (loader) {
+        loader.classList.add("show");
+        if (_bl.loaderTimeout) clearTimeout(_bl.loaderTimeout);
+        _bl.loaderTimeout = setTimeout(function () {
+          if (loader) loader.classList.remove("show");
+        }, 2000);
+      }
       iframe.src = rawUrl;
     }
 
@@ -6150,6 +6331,9 @@ window.addEventListener('message', function(event) {
     window.addEventListener("message", function (event) {
       if (!event.data) return;
 
+      var loader = document.getElementById("botlab-iframe-loader");
+      if (loader) loader.classList.remove("show");
+
       // URL update from bot iframe reporter
       if (event.data.type === "redcliffe-iframe-url" && event.data.url) {
         var urlInput = document.getElementById("botlab-url-input");
@@ -6157,7 +6341,6 @@ window.addEventListener('message', function(event) {
         var tab = _bl.tabs.find(function (t) { return t.id === _bl.active; });
         if (tab) {
           try {
-            // ONLY update URL, do NOT overwrite the custom tab title 
             tab.url = event.data.url;
           } catch (e) {}
         }
@@ -6554,8 +6737,8 @@ window.addEventListener('message', function(event) {
     var targetUrl = _buildBotBookingUrl(b);
     var tabTitle = (b.name || "Patient") + " (" + (b.rowNum ? "R" + b.rowNum : b.client) + ")";
     
-    // If only Tab 0 is open and blank, reuse it
-    if (_bl.tabs.length === 1 && (!_bl.tabs[0].url || _bl.tabs[0].url === "about:blank")) {
+    // If only Tab 0 is open and blank or Google home, reuse it
+    if (_bl.tabs.length === 1 && (!_bl.tabs[0].url || _bl.tabs[0].url === "about:blank" || _bl.tabs[0].url.indexOf("google.com") !== -1)) {
       _bl.tabs[0].title = tabTitle;
       _bl.tabs[0].url = targetUrl;
       var tEl = document.getElementById("botlab-card-title-0");
@@ -6608,8 +6791,8 @@ window.addEventListener('message', function(event) {
 
       // Stagger creation by 400ms to eliminate server/browser race conditions
       setTimeout(function () {
-        // If initial tab is blank, reuse it for the first pending booking
-        if (idx === 0 && _bl.tabs.length === 1 && (!_bl.tabs[0].url || _bl.tabs[0].url === "about:blank")) {
+        // If initial tab is blank or Google home, reuse it for the first pending booking
+        if (idx === 0 && _bl.tabs.length === 1 && (!_bl.tabs[0].url || _bl.tabs[0].url === "about:blank" || _bl.tabs[0].url.indexOf("google.com") !== -1)) {
           _bl.tabs[0].title = tabTitle;
           _bl.tabs[0].url = targetUrl;
           var tEl = document.getElementById("botlab-card-title-0");
@@ -6621,6 +6804,14 @@ window.addEventListener('message', function(event) {
       }, idx * 400);
     });
   };
+
+  // Immediate init wiring for resizer and frame 0
+  try {
+    _setupPanelResizer();
+    var initialFrame0 = document.getElementById("botlab-iframe-0");
+    if (initialFrame0) _wireIframeLoadHandler(initialFrame0, 0);
+    if (typeof window.updateBotlabPendingChips === "function") window.updateBotlabPendingChips();
+  } catch (e) {}
 
 })();
 
