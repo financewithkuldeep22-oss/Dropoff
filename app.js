@@ -420,8 +420,8 @@ function getSafeLocalStorage(key, defaultVal) {
         }
         return a.localeCompare(b);
       });
-      0 !== s.length
-        ? s.forEach((e, sIdx) => {
+      if (s.length !== 0) {
+        s.forEach((e, sIdx) => {
             const r = n[e],
               o = !r.error,
               i = pr[sIdx % pr.length],
@@ -470,14 +470,22 @@ function getSafeLocalStorage(key, defaultVal) {
                  </span>`}
           </td>
           <td class="px-5 py-4 border-b border-slate-100 bg-white text-right">
-            <button class="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs font-bold text-slate-600 bg-white border border-slate-200 shadow-sm hover:bg-slate-50 hover:text-slate-900 transition-all ${o ? "" : "opacity-50 cursor-not-allowed"}" onclick="window.openBookingsInspector('${safeClientName}', 'all')" ${o ? "" : "disabled"}>
+            <button class="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs font-bold text-slate-600 bg-white border border-slate-200 shadow-sm hover:bg-slate-50 hover:text-slate-900 transition-all active:scale-95 ${o ? "" : "opacity-50 cursor-not-allowed"}" onclick="window.openBookingsInspector('${safeClientName}', 'all')" ${o ? "" : "disabled"}>
               View <span class="material-symbols-outlined text-[14px]">arrow_forward</span>
             </button>
           </td>
         `),
               t.appendChild(l));
-          })
-        : (t.innerHTML = '<tr><td colspan="6" style="text-align:center; padding:30px; color:var(--text-muted);">No active clients configured in Client_Config</td></tr>');
+          });
+          if (window.gsap) {
+            gsap.fromTo(t.children, 
+              { opacity: 0, y: 15 },
+              { opacity: 1, y: 0, duration: 0.4, stagger: 0.05, ease: "power2.out", clearProps: "all" }
+            );
+          }
+        } else {
+          t.innerHTML = '<tr><td colspan="6"><div class="empty-state"><span class="material-symbols-outlined empty-state-icon">inventory_2</span><h4 class="text-sm font-bold mb-1">No Active Clients</h4><p class="text-xs">Configure clients in the Client_Config sheet to see operations data.</p></div></td></tr>';
+        }
     })(y),
     (function renderProDashboardAnalytics(e) {
         if ("undefined" == typeof Chart) return void console.warn("Chart.js is not loaded. Skipping chart rendering.");
@@ -6427,3 +6435,79 @@ window.addEventListener('message', function(event) {
 
 })();
 
+
+/* =========================================================
+   KEYBOARD NAVIGATION (Superhuman Pattern)
+   ========================================================= */
+document.addEventListener("keydown", function(e) {
+  // Don't trigger if user is typing in an input or textarea
+  if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+  
+  if (e.key >= '1' && e.key <= '8') {
+    const tabsMap = {
+      '1': 'overview',
+      '2': 'qc',
+      '3': 'allo',
+      '4': 'bhmc',
+      '5': 'medibuddy',
+      '6': 'challan',
+      '7': 'ops',
+      '8': 'bot-lab'
+    };
+    const tabName = tabsMap[e.key];
+    if (tabName && typeof window.switchDashboardTab === 'function') {
+      window.switchDashboardTab(tabName);
+    }
+  } else if (e.key === 'Escape') {
+    // Close pending modal if open
+    if (typeof window.closePendingModal === 'function') {
+      window.closePendingModal();
+    }
+    // Deselect multi-select if any exist
+    if (typeof window.clearBatchSelection === 'function') {
+      window.clearBatchSelection();
+    }
+  }
+});
+
+window.clearBatchSelection = function() {
+  const bar = document.getElementById('floating-batch-bar');
+  if (bar) bar.classList.remove('show');
+  
+  // Uncheck all checkboxes
+  document.querySelectorAll('input[type="checkbox"]').forEach(cb => {
+    cb.checked = false;
+  });
+  
+  // Update count
+  const countEl = document.getElementById('batch-selected-count');
+  if (countEl) countEl.textContent = '0';
+};
+
+window.handleBatchSync = function() {
+  if (typeof window.syncAllDashboardData === 'function') {
+    window.syncAllDashboardData(true);
+  }
+  window.clearBatchSelection();
+};
+
+// Global checkbox listener to show/hide the floating batch bar
+document.addEventListener('change', function(e) {
+  if (e.target && e.target.type === 'checkbox') {
+    const checkedBoxes = document.querySelectorAll('input[type="checkbox"]:checked');
+    const bar = document.getElementById('floating-batch-bar');
+    const countEl = document.getElementById('batch-selected-count');
+    
+    // Don't count hidden menu checkboxes if any
+    const validCount = Array.from(checkedBoxes).filter(cb => !cb.closest('.menu-hidden')).length;
+    
+    if (bar && countEl) {
+      if (validCount > 0) {
+        countEl.textContent = validCount;
+        bar.classList.add('show');
+      } else {
+        bar.classList.remove('show');
+      }
+    }
+  }
+});

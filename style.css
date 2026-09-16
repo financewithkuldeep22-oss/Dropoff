@@ -3156,3 +3156,119 @@ body.dark-mode .botlab-ai-status { background: #0f2b1a; border-color: #15803d; }
   .botlab-ai-panel { display: none; }
   .botlab-browser-panel { border-right: none; }
 }
+
+/* =========================================================
+   FLOATING BATCH ACTION BAR
+   ========================================================= */
+.floating-batch-bar {
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%) translateY(100px);
+  background: rgba(15, 23, 42, 0.85);
+  backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 12px 24px;
+  border-radius: 100px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+  z-index: 100;
+  opacity: 0;
+  pointer-events: none;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.floating-batch-bar.show {
+  transform: translateX(-50%) translateY(0);
+  opacity: 1;
+  pointer-events: auto;
+}
+.floating-batch-bar-count {
+  color: #fff;
+  font-weight: 700;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.floating-batch-bar-count .badge {
+  background: #3b82f6;
+  color: #fff;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 12px;
+}
+.floating-batch-bar-actions {
+  display: flex;
+  gap: 8px;
+  border-left: 1px solid rgba(255, 255, 255, 0.2);
+  padding-left: 16px;
+}
+.batch-btn {
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: transform 0.1s ease, background 0.2s ease;
+}
+.batch-btn:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+.batch-btn:active {
+  transform: scale(0.95);
+}
+
+/* =========================================================
+   UX IMPROVEMENTS & SYNC PULSE
+   ========================================================= */
+.sync-pulse {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  background-color: #10b981;
+  border-radius: 50%;
+  box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
+  animation: pulse-green 2s infinite;
+  margin-left: 8px;
+  vertical-align: middle;
+}
+@keyframes pulse-green {
+  0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
+  70% { transform: scale(1); box-shadow: 0 0 0 6px rgba(16, 185, 129, 0); }
+  100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+}
+
+/* Tab Content GSAP Transitions */
+.tab-content {
+  opacity: 1; /* GSAP will control this */
+}
+
+/* Empty State Styling */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 20px;
+  text-align: center;
+  color: #64748b;
+}
+.empty-state-icon {
+  font-size: 48px;
+  color: #cbd5e1;
+  margin-bottom: 16px;
+}
+body.dark-mode .empty-state-icon {
+  color: #334155;
+}
+body.dark-mode .empty-state {
+  color: #94a3b8;
+}

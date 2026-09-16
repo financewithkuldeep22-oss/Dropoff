@@ -318,11 +318,7 @@
         <!-- Controls -->
         <div class="flex items-center gap-4 md:gap-5">
           <div class="hidden lg:flex items-center gap-2 text-[11px] font-semibold text-slate-500 dark:text-slate-400">
-            <span>Last Synced: <strong id="sync-time-lbl" class="font-bold text-slate-900 dark:text-white">Loading...</strong></span>
-            <div class="relative flex items-center justify-center ml-1">
-              <div class="pulse-ring absolute w-[12px] h-[12px] rounded-full bg-emerald-500 opacity-60"></div>
-              <div class="relative w-[7px] h-[7px] rounded-full bg-emerald-500 shadow-[0_0_6px_rgba(16,185,129,0.4)]"></div>
-            </div>
+            <span>Last Synced: <strong id="sync-time-lbl" class="font-bold text-slate-900 dark:text-white">Loading...</strong><span class="sync-pulse" title="Live WebSocket / Sheet Sync Connected"></span></span>
           </div>
           
           <button onclick="window.syncAllDashboardData(true)" class="bg-slate-50 hover:bg-slate-100 dark:bg-slate-900 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300 rounded-full p-1.5 transition-all flex items-center justify-center border border-slate-200/60 dark:border-slate-800/60 focus:outline-none cursor-pointer shadow-sm hover:shadow-md" title="Refresh Now">
@@ -2069,6 +2065,22 @@
               </button>
           </div>
       </div>
+  </div>
+
+  <!-- Floating Batch Action Bar -->
+  <div id="floating-batch-bar" class="floating-batch-bar">
+    <div class="floating-batch-bar-count">
+      <span id="batch-selected-count" class="badge">0</span>
+      <span>Bookings Selected</span>
+    </div>
+    <div class="floating-batch-bar-actions">
+      <button class="batch-btn" onclick="window.handleBatchSync()">
+        <span class="material-symbols-outlined" style="font-size:14px;">sync</span> Sync Selected
+      </button>
+      <button class="batch-btn" style="background: rgba(239, 68, 68, 0.2); color: #fca5a5;" onclick="window.clearBatchSelection()">
+        <span class="material-symbols-outlined" style="font-size:14px;">close</span> Clear
+      </button>
+    </div>
   </div>
 
   <script src="offline-game.js"></script>
