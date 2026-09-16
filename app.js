@@ -6806,9 +6806,9 @@ window.addEventListener('message', function(event) {
     var targetUrl = _buildBotBookingUrl(b, 0); // No delay needed for 1-by-1
     var tabTitle = pName + " (" + (b.rowNum ? "R" + b.rowNum : cli) + ")";
     
-    // Close all current tabs
-    while (_bl.tabs.length > 0) {
-      window.botlabCloseTab(_bl.tabs[0].id);
+    // Ensure we only have one tab open (close extras)
+    while (_bl.tabs.length > 1) {
+      window.botlabCloseTab(_bl.tabs[1].id);
     }
     
     // Switch to Single View for better performance
@@ -6827,7 +6827,22 @@ window.addEventListener('message', function(event) {
       '</div>';
       
     _addMsg("bot", "Queue: Running <b>" + tabTitle + "</b>... (" + window.botlabPendingQueue.length + " remaining)" + queueHtml, true);
-    window.botlabCreateTab(targetUrl, tabTitle);
+    
+    // Reuse the first tab instead of creating a new one (prevents infinite loop + faster)
+    if (_bl.tabs.length === 1) {
+      _bl.tabs[0].title = tabTitle;
+      _bl.tabs[0].url = targetUrl;
+      var tEl = document.getElementById("botlab-card-title-" + _bl.tabs[0].id);
+      if (tEl) tEl.textContent = tabTitle;
+      
+      var iframe = document.getElementById("botlab-iframe-" + _bl.tabs[0].id);
+      if (iframe) iframe.src = targetUrl;
+      
+      // Update UI active state just in case
+      _switchTab(_bl.tabs[0].id);
+    } else {
+      window.botlabCreateTab(targetUrl, tabTitle);
+    }
   };
   
   window.botlabLaunchPendingTabs = function (filter) {
