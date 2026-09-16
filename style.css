@@ -56,7 +56,7 @@ html {
 }
 
 body {
-  zoom: 0.78 !important; /* 78% Density Scale: Delivers authentic 75% compact dashboard feel on 100% monitor resolution */
+  
   background-color: var(--canvas);
   color: var(--text-primary);
   font-family: var(--font-body);
@@ -65,7 +65,7 @@ body {
   letter-spacing: -0.006em;
   font-feature-settings: "cv11" 1, "ss01" 1;
   -webkit-font-smoothing: antialiased;
-  min-height: calc(100vh / 0.78); /* Compensate zoom: body * 0.78 = 100vh visual */
+  min-height: 100vh; /* Compensate zoom: body * 0.78 = 100vh visual */
 }
 
 /* Crisp scaled SVGs and Icons across all modules */
@@ -1646,8 +1646,8 @@ svg {
 
 /* QC Workstation No-Scroll Viewport Optimization */
 #tab-content-qc {
-  height: calc(100vh / 0.78 - 48px) !important;
-  max-height: calc(100vh / 0.78 - 48px) !important;
+  height: calc(100vh - 48px) !important;
+  max-height: calc(100vh - 48px) !important;
   min-height: 0 !important;
   overflow: hidden !important;
   padding: 8px 12px !important;
@@ -2058,7 +2058,7 @@ input[type="password"]::-ms-clear {
     bottom: 0 !important;
     left: 0 !important;
     width: 60px !important;
-    height: calc(100vh / 0.78 - 48px) !important;
+    height: calc(100vh - 48px) !important;
     max-height: none !important;
     background: #f1f5f9 !important;
     border: none !important;
@@ -2348,8 +2348,8 @@ input[type="password"]::-ms-clear {
   .main-content-wrapper {
     margin-left: 60px !important;
     width: calc(100% - 60px) !important;
-    height: calc(100vh / 0.78) !important;
-    max-height: calc(100vh / 0.78) !important;
+    height: 100vh !important;
+    max-height: 100vh !important;
     overflow: hidden !important;
     padding-bottom: 0 !important;
   }
@@ -2358,8 +2358,8 @@ input[type="password"]::-ms-clear {
     padding-left: 0 !important;
     padding-right: 0 !important;
     width: 100% !important;
-    height: calc(100vh / 0.78 - 48px) !important;
-    max-height: calc(100vh / 0.78 - 48px) !important;
+    height: calc(100vh - 48px) !important;
+    max-height: calc(100vh - 48px) !important;
     margin: 0 !important;
     margin-top: 48px !important;
     overflow-y: auto !important;
