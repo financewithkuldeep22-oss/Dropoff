@@ -203,7 +203,7 @@
   </style>
 
   <!-- CSS Style Overrides -->
-  <link rel="stylesheet" href="style.css?v=6">
+  <link rel="stylesheet" href="style.css?v=7">
   <!-- GSAP Animation Library -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
 </head>
@@ -1062,6 +1062,9 @@
               <button class="botlab-view-toggle" style="background:#fee2e2; color:#ef4444; border-color:#fca5a5; margin-left: 8px;" onclick="window.botlabStopAllTabs()" title="Stop Bot">
                 <span class="material-symbols-outlined" style="font-size:14px;">stop_circle</span> <span class="botlab-view-label">Stop Bot</span>
               </button>
+              <button class="botlab-view-toggle active" id="botlab-ai-bar-btn" onclick="window.toggleBotlabAI()" title="Toggle RedcliffeBot AI Panel" style="margin-left: 8px; background: #eef2ff; color: #4f46e5; border-color: #c7d2fe;">
+                <span class="material-symbols-outlined" style="font-size:14px;">smart_toy</span> <span class="botlab-view-label">AI Chat</span>
+              </button>
             </div>
 
             <!-- Iframe Container (Single & Grid Multi-View) -->
@@ -1154,6 +1157,12 @@
             </div>
 
           </div>
+
+          <!-- Floating AI Restore Button (shows when AI panel is collapsed) -->
+          <button class="botlab-ai-float-btn" id="botlab-ai-float-btn" onclick="window.toggleBotlabAI()" title="Open RedcliffeBot AI Assistant">
+            <span class="material-symbols-outlined" style="font-size:18px;">smart_toy</span>
+            <span>Open RedcliffeBot</span>
+          </button>
 
         </div>
       </div>

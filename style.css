@@ -2731,12 +2731,12 @@ input[type="password"]::-ms-clear {
   transition: all 0.2s ease-out;
 }
 
-/* Grid Multi-View Mode (Side-by-side simultaneous cards) */
+/* Grid Multi-View Mode (Side-by-side simultaneous cards in Desktop Screen Ratio) */
 .botlab-iframe-wrap.grid-mode {
   display: grid !important;
-  grid-template-columns: repeat(auto-fit, minmax(360px, 1fr)) !important;
-  gap: 14px !important;
-  padding: 14px !important;
+  grid-template-columns: repeat(auto-fit, minmax(480px, 1fr)) !important;
+  gap: 16px !important;
+  padding: 16px !important;
   overflow-y: auto !important;
   align-content: start !important;
   background: #f1f5f9 !important;
@@ -2750,7 +2750,7 @@ input[type="password"]::-ms-clear {
   top: auto !important;
   left: auto !important;
   width: 100% !important;
-  height: 520px !important;
+  height: 380px !important; /* 16:10 Desktop Landscape Monitor Ratio */
   opacity: 1 !important;
   visibility: visible !important;
   pointer-events: auto !important;
@@ -2759,7 +2759,7 @@ input[type="password"]::-ms-clear {
   border-radius: 12px;
   border: 1px solid #e2e8f0;
   background: #ffffff;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.06);
   overflow: hidden;
   transition: border-color 0.2s, box-shadow 0.2s;
 }
@@ -2901,6 +2901,40 @@ input[type="password"]::-ms-clear {
   overflow: hidden;
 }
 .botlab-ai-panel.collapsed { display: none; }
+
+/* Floating AI Restore Button (appears when AI panel is collapsed) */
+.botlab-ai-float-btn {
+  position: absolute;
+  right: 20px;
+  bottom: 24px;
+  z-index: 60;
+  display: none;
+  align-items: center;
+  gap: 8px;
+  background: linear-gradient(135deg, #6366f1, #4f46e5);
+  color: #ffffff;
+  border: none;
+  border-radius: 9999px;
+  padding: 10px 18px;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 4px 16px rgba(99, 102, 241, 0.4);
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s ease;
+  animation: floatPulse 3s infinite;
+}
+.botlab-ai-float-btn:hover {
+  transform: translateY(-2px) scale(1.03);
+  box-shadow: 0 8px 24px rgba(99, 102, 241, 0.55);
+}
+.botlab-ai-float-btn.show {
+  display: flex !important;
+}
+@keyframes floatPulse {
+  0% { box-shadow: 0 4px 16px rgba(99, 102, 241, 0.4); }
+  50% { box-shadow: 0 4px 24px rgba(99, 102, 241, 0.7); }
+  100% { box-shadow: 0 4px 16px rgba(99, 102, 241, 0.4); }
+}
 
 .botlab-ai-header {
   display: flex;

@@ -6160,7 +6160,14 @@ window.addEventListener('message', function(event) {
   // ── AI Panel Toggle ────────────────────────────────────────
   window.toggleBotlabAI = function () {
     var panel = document.getElementById("botlab-ai-panel");
-    if (panel) panel.classList.toggle("collapsed");
+    var floatBtn = document.getElementById("botlab-ai-float-btn");
+    var barBtn = document.getElementById("botlab-ai-bar-btn");
+    if (panel) {
+      panel.classList.toggle("collapsed");
+      var isCollapsed = panel.classList.contains("collapsed");
+      if (floatBtn) floatBtn.classList.toggle("show", isCollapsed);
+      if (barBtn) barBtn.classList.toggle("active", !isCollapsed);
+    }
   };
 
   // ── Dry Run Mode Toggle ────────────────────────────────────
