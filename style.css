@@ -2372,16 +2372,22 @@ input[type="password"]::-ms-clear {
     position: relative !important;
   }
 
+  /* Full Bleed Iframe Tabs - Scaled to 75% Density on Desktop */
   #tab-content-ops iframe,
   #tab-content-allo iframe,
   #tab-content-bhmc iframe,
   #tab-content-medibuddy iframe,
   #tab-content-challan iframe {
-    width: 100% !important;
-    height: 100% !important;
+    width: 133.333333% !important;
+    height: 133.333333% !important;
+    min-width: 133.333333% !important;
+    min-height: 133.333333% !important;
+    transform: scale(0.75) !important;
+    transform-origin: 0 0 !important;
     border: none !important;
     flex: 1 !important;
     display: block !important;
+    flex-shrink: 0 !important;
   }
 }
 
@@ -2459,6 +2465,20 @@ input[type="password"]::-ms-clear {
 
   .main-content-wrapper {
     padding-bottom: 76px !important;
+  }
+
+  /* Reset iframes on mobile devices */
+  #tab-content-ops iframe,
+  #tab-content-allo iframe,
+  #tab-content-bhmc iframe,
+  #tab-content-medibuddy iframe,
+  #tab-content-challan iframe,
+  .botlab-iframe-wrap:not(.grid-mode) .botlab-iframe {
+    width: 100% !important;
+    height: 100% !important;
+    min-width: 100% !important;
+    min-height: 100% !important;
+    transform: none !important;
   }
 }
 
@@ -2747,7 +2767,10 @@ input[type="password"]::-ms-clear {
 .botlab-iframe {
   position: absolute;
   top: 0; left: 0;
-  width: 100%; height: 100%;
+  width: 133.333333% !important;
+  height: 133.333333% !important;
+  transform: scale(0.75) !important;
+  transform-origin: 0 0 !important;
   border: none;
   background: #fff;
   transition: all 0.2s ease-out;
