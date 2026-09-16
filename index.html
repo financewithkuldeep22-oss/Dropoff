@@ -203,7 +203,7 @@
   </style>
 
   <!-- CSS Style Overrides -->
-  <link rel="stylesheet" href="style.css?v=11">
+  <link rel="stylesheet" href="style.css?v=12">
   <!-- GSAP Animation Library -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
 </head>
@@ -662,56 +662,40 @@
           <div class="flex-1 flex flex-row gap-0 overflow-hidden card-elevated rounded-[16px] border border-slate-200/60 shadow-[0_4px_24px_rgba(15,23,42,0.04)] bg-white/90 backdrop-blur-xl h-full" id="allo-qc-review-panel" style="display:none;">
             
             <!-- LEFT COLUMN: Patient Info + Tubes + Actions -->
-            <div class="w-[240px] xl:w-[260px] shrink-0 flex flex-col overflow-y-auto border-r border-outline-variant/30 bg-white">
+            <div class="w-[210px] shrink-0 flex flex-col overflow-y-auto border-r border-outline-variant/30 bg-white">
               
-              <!-- Patient Header -->
-              <div class="p-3 border-b border-outline-variant/20">
-                <div class="flex justify-between items-start mb-2">
-                  <div>
-                    <h2 class="font-headline-md text-base text-navy font-black tracking-tight" id="qc-active-patient-name">-</h2>
-                    <div class="flex items-center gap-1 text-[11px] text-outline mt-0.5">
-                      <span class="material-symbols-outlined text-[13px]">location_on</span>
-                      <span id="qc-active-patient-location" class="text-slate-500">-</span>
-                    </div>
-                  </div>
+              <!-- Hidden compatibility hooks for JS -->
+              <span id="qc-active-patient-name" class="hidden"></span>
+              <span id="qc-active-patient-location" class="hidden"></span>
+              <span id="qc-active-patient-bid" class="hidden"></span>
+
+              <!-- Patient Meta & Time -->
+              <div class="p-2.5 border-b border-outline-variant/20 bg-slate-50/60">
+                <div class="flex items-center justify-between">
+                  <span class="text-navy font-bold text-xs" id="qc-active-patient-age">-</span>
                   <span class="px-2 py-0.5 bg-primary text-white text-[10px] font-bold rounded-full" id="qc-active-patient-row-badge">Row -</span>
                 </div>
-              </div>
-              
-              <!-- Booking Details Grid -->
-              <div class="p-3 border-b border-outline-variant/20">
-                <div class="grid grid-cols-2 gap-2">
-                  <div>
-                    <span class="text-[9px] text-outline font-bold uppercase tracking-widest block mb-0.5">Booking ID</span>
-                    <span class="text-navy font-bold text-xs" id="qc-active-patient-bid">-</span>
-                  </div>
-                  <div>
-                    <span class="text-[9px] text-outline font-bold uppercase tracking-widest block mb-0.5">Age / Sex</span>
-                    <span class="text-navy font-bold text-xs" id="qc-active-patient-age">-</span>
-                  </div>
-                </div>
-                
-                <div class="mt-2">
-                  <span class="text-[9px] text-outline font-bold uppercase tracking-widest block mb-0.5">Collection Date</span>
-                  <span class="text-navy font-bold text-xs" id="qc-active-patient-date">-</span>
+                <div class="mt-1 text-[10px] text-slate-500 font-medium flex items-center gap-1">
+                  <span class="material-symbols-outlined text-[13px] text-slate-400">schedule</span>
+                  <span id="qc-active-patient-date">-</span>
                 </div>
               </div>
               
               <!-- Ordered Tests -->
-              <div class="p-3 border-b border-outline-variant/20">
+              <div class="p-2.5 border-b border-outline-variant/20">
                 <span class="text-[9px] text-outline font-bold uppercase tracking-widest block mb-1">Ordered Test(s)</span>
                 <p class="text-navy font-bold text-xs leading-snug" id="qc-active-patient-tests">-</p>
-                <div class="mt-2">
-                  <span class="text-[9px] text-outline font-bold uppercase tracking-widest block mb-0.5">Sample Vials</span>
+                <div class="mt-1.5 flex items-center justify-between">
+                  <span class="text-[9px] text-outline font-bold uppercase tracking-widest">Vials:</span>
                   <span class="text-navy font-bold text-xs" id="qc-active-patient-vials">-</span>
                 </div>
               </div>
               
               <!-- Required Tubes Checklist -->
-              <div class="p-3 border-b border-outline-variant/20">
+              <div class="p-2.5 border-b border-outline-variant/20">
                 <div class="flex items-center gap-1.5 mb-2">
                   <span class="material-symbols-outlined text-primary text-[15px]">vaccines</span>
-                  <span class="font-bold text-navy text-[11px] uppercase tracking-wide">Required Tube Helper</span>
+                  <span class="font-bold text-navy text-[11px] uppercase tracking-wide">Tube Helper</span>
                 </div>
                 <div id="qc-tubes-helper-box" class="flex flex-col gap-1.5">
                   <!-- Dynamically populated by JS -->
@@ -719,17 +703,13 @@
               </div>
               
               <!-- Partner Portal Action -->
-              <div class="p-3">
-                <div class="flex items-center gap-1.5 mb-2">
-                  <span class="material-symbols-outlined text-primary text-[15px]">open_in_new</span>
-                  <span class="font-bold text-navy text-[11px] uppercase tracking-wide">Partner Portal</span>
-                </div>
-                <div class="flex items-center gap-2">
-                  <button class="flex-1 flex items-center justify-center gap-1.5 py-1.5 bg-emerald-500 hover:bg-emerald-600 text-white rounded-lg font-bold text-[11px] cursor-pointer transition-colors shadow-sm" onclick="window.openPartnerBookingView()">
-                    <span class="material-symbols-outlined text-[14px]">visibility</span> View
+              <div class="p-2.5 mt-auto">
+                <div class="flex items-center gap-1.5">
+                  <button class="flex-1 flex items-center justify-center gap-1 py-1.5 bg-emerald-500 hover:bg-emerald-600 text-white rounded-lg font-bold text-[11px] cursor-pointer transition-colors shadow-sm" onclick="window.openPartnerBookingView()">
+                    <span class="material-symbols-outlined text-[13px]">visibility</span> View
                   </button>
-                  <button class="flex-1 flex items-center justify-center gap-1.5 py-1.5 bg-rose-500 hover:bg-rose-600 text-white rounded-lg font-bold text-[11px] cursor-pointer transition-colors shadow-sm" onclick="window.copyActiveBookingId()">
-                    <span class="material-symbols-outlined text-[14px]">inventory_2</span> Copy ID
+                  <button class="flex-1 flex items-center justify-center gap-1 py-1.5 bg-rose-500 hover:bg-rose-600 text-white rounded-lg font-bold text-[11px] cursor-pointer transition-colors shadow-sm" onclick="window.copyActiveBookingId()">
+                    <span class="material-symbols-outlined text-[13px]">inventory_2</span> Copy ID
                   </button>
                 </div>
               </div>
@@ -2098,7 +2078,7 @@
   <script src="offline-game.js"></script>
   <script src="auth.js?v=6"></script>
   <script src="api_v2.js?v=4"></script>
-  <script src="app.js?v=19"></script>
+  <script src="app.js?v=20"></script>
   <!-- <script src="challan.js?v=6"></script> -->
 </body>
 </html>

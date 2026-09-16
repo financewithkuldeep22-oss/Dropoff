@@ -2382,30 +2382,19 @@ if(syncBtnEl && !syncBtnEl.dataset.fix) {
       const s = document.createElement("div");
       s.className = "qc-queue-card " + (vr && vr.rowNum === item.rowNum ? "active" : "");
       s.onclick = () => window.selectAlloQCBooking(item, true);
-      let r = item.colTime || "";
-      if (r.includes("GMT")) {
-        const match = r.match(/(\d{1,2}):(\d{2})/);
-        if (match) {
-          const t = parseInt(match[1]);
-          r = (t % 12 || 12) + ":" + match[2] + " " + (t >= 12 ? "PM" : "AM");
-        }
-      }
-      const o = item.testName
-        ? item.testName.split(/[,\n]/)[0].replace(/^\s*[-*â€¢\d+]+[\s.)\]-]+\s*/, "").trim()
-        : "Blood Test";
+      const locStr = item.location || item.city || "Mumbai";
       s.innerHTML = `
-        <div class="flex justify-between items-start w-full">
-          <span class="font-bold text-slate-800 dark:text-slate-200 text-[13px] leading-tight">${item.patientName || "N/A"}</span>
-          <span class="text-[10px] font-semibold text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 rounded shrink-0 ml-2">${r || "N/A"}</span>
-        </div>
-        <div class="text-[11px] text-slate-500 dark:text-slate-400 font-mono tracking-tight">
-          ID: ${item.bookingId || "N/A"} &bull; ${o}
-        </div>
-        <div class="flex items-center justify-between mt-1">
-          <span class="text-[10px] font-semibold px-2 py-0.5 rounded bg-rose-50 text-rose-700 dark:bg-rose-950/40 dark:text-rose-300 inline-flex items-center gap-1 border border-rose-200/50">
-            <span class="material-symbols-outlined text-[11px] font-bold">warning</span> Review Required
-          </span>
-          <span class="text-[10.5px] font-semibold text-slate-500 dark:text-slate-400">Row ${item.rowNum}</span>
+        <div class="flex flex-col gap-0.5 w-full">
+          <div class="font-extrabold text-slate-900 dark:text-slate-100 text-xs truncate leading-snug" title="${item.patientName || 'N/A'}">
+            ${item.patientName || "N/A"}
+          </div>
+          <div class="text-[11px] font-bold text-sky-700 dark:text-sky-400 font-mono tracking-tight">
+            ID: ${item.bookingId || "N/A"}
+          </div>
+          <div class="text-[10px] text-slate-500 dark:text-slate-400 flex items-center gap-0.5 truncate mt-0.5" title="${locStr}">
+            <span class="material-symbols-outlined text-[12px] text-slate-400 shrink-0">location_on</span>
+            <span class="truncate">${locStr}</span>
+          </div>
         </div>
       `;
       t.appendChild(s);
@@ -5107,7 +5096,7 @@ window.togglePasswordVisibility = function(e) {
 
     // Table Header Row (Clean 4-column layout without hardcoded status)
     const headerRow = document.createElement("div");
-    headerRow.className = "hidden lg:grid grid-cols-12 gap-3 px-5 py-2.5 bg-sky-50/70 dark:bg-slate-800/60 border-b border-slate-200/80 dark:border-slate-800 text-[10.5px] font-black uppercase tracking-wider text-slate-500 dark:text-slate-400 select-none";
+    headerRow.className = "hidden lg:grid grid-cols-12 gap-3 lg:gap-4 px-5 sm:px-6 py-3 bg-sky-50/70 dark:bg-slate-800/60 border-b border-slate-200/80 dark:border-slate-800 text-[10.5px] font-black uppercase tracking-wider text-slate-500 dark:text-slate-400 select-none";
     headerRow.innerHTML = `
       <div class="col-span-2">DATE / LOC</div>
       <div class="col-span-3">IDS (BKG / REQ)</div>
@@ -5158,15 +5147,15 @@ window.togglePasswordVisibility = function(e) {
       rowBlock.dataset.reqId = item.reqId || "";
 
       rowBlock.innerHTML = `
-        <!-- COLLAPSED TABLE ROW (Slim Compact 4-column Grid + EXP) -->
-        <div class="grid grid-cols-1 lg:grid-cols-12 gap-2 lg:gap-3 px-4 sm:px-5 py-2 sm:py-2.5 items-center bg-white dark:bg-slate-900 hover:bg-sky-50/30 dark:hover:bg-slate-800/40 transition-colors cursor-pointer select-none" onclick="window.toggleInspectorRow('${cleanKey}', event)">
+        <!-- COLLAPSED TABLE ROW (Spacious 12-column Grid + EXP) -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-3 lg:gap-4 px-5 sm:px-6 py-3 sm:py-3.5 items-center bg-white dark:bg-slate-900 hover:bg-sky-50/40 dark:hover:bg-slate-800/50 transition-colors cursor-pointer select-none" onclick="window.toggleInspectorRow('${cleanKey}', event)">
           
           <!-- Column 1: DATE / LOC -->
-          <div class="col-span-1 lg:col-span-2 flex flex-col gap-0.2">
-            <span class="text-xs font-bold text-sky-600 dark:text-sky-400 tracking-tight leading-tight truncate">
+          <div class="col-span-1 lg:col-span-2 flex flex-col gap-0.5">
+            <span class="text-xs font-bold text-sky-700 dark:text-sky-400 tracking-tight leading-tight truncate">
               ${item.location || item.sheetName || 'Delhi NCR'}
             </span>
-            <div class="text-[10px] text-slate-400 dark:text-slate-500 font-semibold flex items-center gap-1 mt-0.5">
+            <div class="text-[10.5px] text-slate-400 dark:text-slate-500 font-semibold flex items-center gap-1">
               <i class="fa-regular fa-calendar text-[9px]"></i> ${item.date || 'Today'} &bull; Row #${item.rowNum}
             </div>
           </div>
@@ -5188,8 +5177,8 @@ window.togglePasswordVisibility = function(e) {
                 <!-- Hidden Inline Edit Input -->
                 <div id="edit-bid-box-${cleanKey}" class="hidden items-center gap-1" onclick="event.stopPropagation()">
                   <input type="text" id="input-edit-bid-${cleanKey}" value="${safeBid}" class="w-24 px-1.5 py-0.5 text-xs font-bold border border-indigo-500 rounded bg-white dark:bg-slate-950 text-slate-900 dark:text-white outline-none" onkeydown="if(event.key==='Enter') window.saveInlineEditBookingId(event, '${safeClient}', '${safeSheet}', ${item.rowNum}, '${safeName}', '${cleanKey}')" />
-                  <button type="button" class="px-1.5 py-0.5 bg-emerald-600 text-white rounded text-[9.5px] font-bold hover:bg-emerald-700" onclick="window.saveInlineEditBookingId(event, '${safeClient}', '${safeSheet}', ${item.rowNum}, '${safeName}', '${cleanKey}')" title="Save to Sheet">Save</button>
-                  <button type="button" class="px-1.5 py-0.5 bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-200 rounded text-[9.5px] font-semibold hover:bg-slate-300" onclick="window.cancelInlineEditBookingId('${cleanKey}')" title="Cancel">X</button>
+                  <button type="button" class="px-2 py-0.5 bg-emerald-600 text-white rounded text-[10px] font-bold hover:bg-emerald-700" onclick="window.saveInlineEditBookingId(event, '${safeClient}', '${safeSheet}', ${item.rowNum}, '${safeName}', '${cleanKey}')" title="Save to Sheet">Save</button>
+                  <button type="button" class="px-2 py-0.5 bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-200 rounded text-[10px] font-semibold hover:bg-slate-300" onclick="window.cancelInlineEditBookingId('${cleanKey}')" title="Cancel">X</button>
                 </div>
 
                 <div class="flex items-center gap-1">
@@ -5209,8 +5198,8 @@ window.togglePasswordVisibility = function(e) {
                 </div>
               ` : ''}
             ` : `
-              <span class="px-2 py-0.5 rounded bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-400 text-[10px] font-black border border-amber-200/60 dark:border-amber-800/60 self-start">
-                <i class="fa-solid fa-clock mr-1 text-[9px]"></i>Pending Creation
+              <span class="px-2.5 py-1 rounded-md bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-400 text-[10.5px] font-black border border-amber-200/60 dark:border-amber-800/60 inline-flex items-center gap-1 self-start shadow-2xs">
+                <i class="fa-solid fa-clock text-[9px]"></i>Pending Creation
               </span>
             `}
           </div>
@@ -5232,7 +5221,7 @@ window.togglePasswordVisibility = function(e) {
                 </span>
               ` : ''}
             </div>
-            <div class="text-[10px] font-medium text-slate-400 dark:text-slate-500 truncate max-w-md" title="${item.test || 'N/A'}">
+            <div class="text-[10.5px] font-medium text-slate-500 dark:text-slate-400 truncate max-w-md mt-0.5" title="${item.test || 'N/A'}">
               ${item.test || "Standard Blood Profile"}
             </div>
           </div>
@@ -5242,20 +5231,20 @@ window.togglePasswordVisibility = function(e) {
             ${!isPending && bookingIdVal ? `
               <div>
                 <!-- Quick Edit Button -->
-                <button type="button" class="px-2 py-0.5 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-indigo-50 dark:hover:bg-indigo-950/50 hover:text-indigo-600 text-slate-700 dark:text-slate-300 text-[10.5px] font-bold border border-slate-200/80 dark:border-slate-700/80 transition active:scale-95 cursor-pointer flex items-center gap-1 shadow-2xs" onclick="window.startInlineEditBookingId('${cleanKey}')" title="Edit Booking ID in Sheet">
+                <button type="button" class="px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-indigo-50 dark:hover:bg-indigo-950/50 hover:text-indigo-600 text-slate-700 dark:text-slate-300 text-[10.5px] font-bold border border-slate-200/80 dark:border-slate-700/80 transition active:scale-95 cursor-pointer flex items-center gap-1 shadow-2xs" onclick="window.startInlineEditBookingId('${cleanKey}')" title="Edit Booking ID in Sheet">
                   <i class="fa-solid fa-pen text-[9px]"></i> Edit ID
                 </button>
               </div>
             ` : `
               <!-- Inline Quick Write-Back for Pending -->
-              <div class="flex items-center bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 focus-within:border-emerald-500 rounded p-0.5 shadow-2xs">
+              <div class="flex items-center bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 focus-within:border-emerald-500 rounded-lg p-0.5 shadow-2xs w-full max-w-[210px]">
                 <input type="text" 
                   id="input-bid-${cleanKey}" 
                   placeholder="Booking ID..." 
-                  class="bg-transparent border-0 px-1.5 py-0.5 text-xs font-bold text-slate-900 dark:text-white placeholder:text-slate-400 outline-none w-20 tracking-wide"
+                  class="bg-transparent border-0 px-2 py-0.5 text-xs font-bold text-slate-900 dark:text-white placeholder:text-slate-400 outline-none w-full min-w-0 tracking-wide"
                   onkeydown="if(event.key==='Enter') window.saveBookingIdToSheet(event, '${safeClient}', '${safeSheet}', ${item.rowNum}, '${safeName}', '${cleanKey}')"
                 />
-                <button class="px-2 py-0.5 bg-emerald-600 hover:bg-emerald-700 text-white text-[10px] font-extrabold rounded shadow-xs transition active:scale-95 cursor-pointer shrink-0"
+                <button class="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-700 text-white text-[10px] font-extrabold rounded-md shadow-xs transition active:scale-95 cursor-pointer shrink-0 ml-1"
                   onclick="window.saveBookingIdToSheet(event, '${safeClient}', '${safeSheet}', ${item.rowNum}, '${safeName}', '${cleanKey}')"
                   title="Update Sheet">
                   Save
@@ -5266,7 +5255,7 @@ window.togglePasswordVisibility = function(e) {
 
           <!-- Column 5: EXP Dropdown Chevron -->
           <div class="col-span-1 flex justify-end items-center">
-            <button type="button" class="w-6 h-6 rounded bg-transparent hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 flex items-center justify-center transition-transform duration-200 shrink-0" id="insp-chev-${cleanKey}" style="transform: ${isExpanded ? 'rotate(180deg)' : 'rotate(0deg)'};" title="Toggle detailed view">
+            <button type="button" class="w-7 h-7 rounded-lg bg-transparent hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 flex items-center justify-center transition-transform duration-200 shrink-0" id="insp-chev-${cleanKey}" style="transform: ${isExpanded ? 'rotate(180deg)' : 'rotate(0deg)'};" title="Toggle detailed view">
               <i class="fa-solid fa-caret-down text-xs"></i>
             </button>
           </div>

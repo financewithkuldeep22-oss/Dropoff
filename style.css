@@ -2383,17 +2383,17 @@ input[type="password"]::-ms-clear {
     position: relative !important;
   }
 
-  /* Full Bleed Iframe Tabs - Scaled to 75% Density with 100% Crisp Vector Sharpness (Zero Blurriness) */
+  /* Full Bleed Iframe Tabs - 100% Full Viewport (Never Cut Off, 100% Crisp) */
   #tab-content-ops iframe,
   #tab-content-allo iframe,
   #tab-content-bhmc iframe,
   #tab-content-medibuddy iframe,
   #tab-content-challan iframe {
-    width: 133.333333% !important;
-    height: 133.333333% !important;
-    min-width: 133.333333% !important;
-    min-height: 133.333333% !important;
-    zoom: 0.75 !important;
+    width: 100% !important;
+    height: 100% !important;
+    min-width: 100% !important;
+    min-height: 100% !important;
+    zoom: 1 !important;
     transform: none !important;
     -webkit-font-smoothing: antialiased !important;
     border: none !important;
@@ -2785,9 +2785,9 @@ input[type="password"]::-ms-clear {
 .botlab-iframe {
   position: absolute;
   top: 0; left: 0;
-  width: 133.333333% !important;
-  height: 133.333333% !important;
-  zoom: 0.75 !important;
+  width: 100% !important;
+  height: 100% !important;
+  zoom: 1 !important;
   transform: none !important;
   -webkit-font-smoothing: antialiased !important;
   border: none;
