@@ -6006,12 +6006,20 @@ window.addEventListener('message', function(event) {
   window.botlabReloadTab = function (id) {
     var iframe = document.getElementById("botlab-iframe-" + id);
     if (iframe) {
-      var loader = document.getElementById("botlab-iframe-loader");
-      if (loader) loader.classList.add("show");
-      var src = iframe.src;
-      iframe.src = "about:blank";
-      setTimeout(function () { iframe.src = src; }, 50);
+      iframe.src = iframe.src;
     }
+  };
+
+  // ── Stop All Automation ──
+  window.botlabStopAllTabs = function () {
+    _bl.tabs.forEach(function (tab) {
+      if (tab.url && tab.url.indexOf("botAutoRun=true") !== -1) {
+        tab.url = tab.url.replace(/([?&])botAutoRun=true&?/g, "$1").replace(/&$/, "").replace(/\?$/, "");
+        var iframe = document.getElementById("botlab-iframe-" + tab.id);
+        if (iframe) iframe.src = tab.url;
+      }
+    });
+    _addMsg("bot", "Automation stopped on all active tabs.");
   };
 
   window.botlabFocusTab = function (id) {
@@ -6128,12 +6136,8 @@ window.addEventListener('message', function(event) {
         var tab = _bl.tabs.find(function (t) { return t.id === _bl.active; });
         if (tab) {
           try {
-            var u = new URL(event.data.url);
-            tab.title = u.pathname.split("/").filter(Boolean).pop() || u.hostname;
+            // ONLY update URL, do NOT overwrite the custom tab title 
             tab.url = event.data.url;
-            var titleEl = document.getElementById("botlab-card-title-" + tab.id);
-            if (titleEl) titleEl.textContent = tab.title;
-            _renderTabs();
           } catch (e) {}
         }
       }
@@ -6254,7 +6258,10 @@ window.addEventListener('message', function(event) {
     var filterLabel = (filter === "all" || !filter) ? "all clients" : filter;
 
     // Check if dashboard data is available
-    var hasValidData = window.Qs && Array.isArray(window.Qs.logs) && window.Qs.logs.length > 0;
+    var hasValidData = false;
+    try {
+      hasValidData = typeof Qs !== "undefined" && Qs && Array.isArray(Qs.logs) && Qs.logs.length > 0;
+    } catch(e) {}
 
     if (forceSync || !hasValidData) {
       _addMsg("bot", "Fetching real-time data from Google Sheets for " + filterLabel + "...");
@@ -6262,6 +6269,7 @@ window.addEventListener('message', function(event) {
         google.script.run
           .withSuccessHandler(function (res) {
             if (res && res.status === "success") {
+              if (typeof Qs !== "undefined") Qs = res;
               window.Qs = res;
               if (typeof window.updateNavBadges === "function") window.updateNavBadges();
               _processBotAIQuery(filter);
@@ -6289,7 +6297,11 @@ window.addEventListener('message', function(event) {
 
     var allLogs = [];
     try {
-      if (window.Qs && Array.isArray(window.Qs.logs)) allLogs = window.Qs.logs;
+      if (typeof Qs !== "undefined" && Qs && Array.isArray(Qs.logs)) {
+        allLogs = Qs.logs;
+      } else if (window.Qs && Array.isArray(window.Qs.logs)) {
+        allLogs = window.Qs.logs;
+      }
     } catch (e) {}
 
     var pending = allLogs.filter(function (log) { return log.isPending === true; });
@@ -6337,7 +6349,11 @@ window.addEventListener('message', function(event) {
   window.botlabLaunchSinglePending = function (rowNum, clientName) {
     var allLogs = [];
     try {
-      if (window.Qs && Array.isArray(window.Qs.logs)) allLogs = window.Qs.logs;
+      if (typeof Qs !== "undefined" && Qs && Array.isArray(Qs.logs)) {
+        allLogs = Qs.logs;
+      } else if (window.Qs && Array.isArray(window.Qs.logs)) {
+        allLogs = window.Qs.logs;
+      }
     } catch (e) {}
     var b = allLogs.find(function (l) { return l.rowNum == rowNum && (!clientName || l.client == clientName); });
     if (!b) return;
@@ -6361,7 +6377,11 @@ window.addEventListener('message', function(event) {
   window.botlabLaunchPendingTabs = function (filter) {
     var allLogs = [];
     try {
-      if (window.Qs && Array.isArray(window.Qs.logs)) allLogs = window.Qs.logs;
+      if (typeof Qs !== "undefined" && Qs && Array.isArray(Qs.logs)) {
+        allLogs = Qs.logs;
+      } else if (window.Qs && Array.isArray(window.Qs.logs)) {
+        allLogs = window.Qs.logs;
+      }
     } catch (e) {}
 
     var pending = allLogs.filter(function (log) { return log.isPending === true; });

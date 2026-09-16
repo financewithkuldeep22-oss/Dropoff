@@ -2688,34 +2688,36 @@ input[type="password"]::-ms-clear {
 .botlab-tab-card:not(.active) {
   display: flex !important; /* CRITICAL: Never use display:none or Chromium reloads the iframe! */
   position: absolute !important;
-  top: -99999px !important;
-  left: -99999px !important;
-  width: 1px !important;
-  height: 1px !important;
-  opacity: 0 !important;
-  visibility: hidden !important;
+  top: 0 !important;
+  left: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+  opacity: 0.001 !important; /* Prevents throttling vs opacity: 0 */
+  visibility: visible !important;
   pointer-events: none !important;
   z-index: -1 !important;
 }
 .botlab-tab-card .botlab-card-header {
   display: none; /* Hidden in single view for full-bleed browser experience */
+  padding: 8px 12px;
+  background: #f8fafc;
+  border-bottom: 1px solid #e2e8f0;
+  align-items: center;
+  justify-content: space-between;
 }
 .botlab-card-frame-wrap {
-  position: relative;
   flex: 1;
-  width: 100%;
-  height: 100%;
-  background: #fff;
+  position: relative;
   overflow: hidden;
+  background: #f1f5f9;
 }
 .botlab-iframe {
   position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
   border: none;
-  display: block;
   background: #fff;
+  transition: all 0.2s ease-out;
 }
 
 /* Grid Multi-View Mode (Side-by-side simultaneous cards) */
@@ -2748,20 +2750,49 @@ input[type="password"]::-ms-clear {
   transition: border-color 0.2s, box-shadow 0.2s;
 }
 .botlab-iframe-wrap.grid-mode .botlab-tab-card:hover {
-  border-color: #818cf8;
-  box-shadow: 0 6px 20px rgba(99, 102, 241, 0.12);
+  border-color: #cbd5e1;
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.08);
 }
 .botlab-iframe-wrap.grid-mode .botlab-tab-card.active {
   border-color: #6366f1;
   box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.25);
 }
 .botlab-iframe-wrap.grid-mode .botlab-card-header {
-  display: flex !important;
+  display: flex;
+}
+.botlab-card-actions {
+  display: flex;
+  gap: 6px;
   align-items: center;
-  justify-content: space-between;
-  padding: 8px 12px;
-  background: #f8fafc;
-  border-bottom: 1px solid #e2e8f0;
+}
+.botlab-card-actions .botlab-card-btn {
+  background: transparent;
+  border: none;
+  color: #64748b;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s, color 0.15s;
+}
+.botlab-card-actions .botlab-card-btn:hover {
+  background: #e2e8f0;
+  color: #0f172a;
+}
+.botlab-card-actions .botlab-card-btn:last-child:hover {
+  background: #fee2e2;
+  color: #ef4444;
+}
+.botlab-card-title {
+  font-size: 12px;
+  font-weight: 700;
+  color: #334155;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 140px;
   user-select: none;
   flex-shrink: 0;
 }
@@ -2770,14 +2801,13 @@ input[type="password"]::-ms-clear {
   position: absolute !important;
   top: 0 !important;
   left: 0 !important;
-  width: 153.85% !important;
-  height: 153.85% !important;
-  transform: scale(0.65) !important;
+  width: 200% !important; /* Emulates a wider screen */
+  height: 200% !important;
+  transform: scale(0.5) !important;
   transform-origin: top left !important;
   border: none !important;
   background: #fff !important;
 }
-.botlab-card-title {
   font-size: 12px;
   font-weight: 700;
   color: #1e293b;

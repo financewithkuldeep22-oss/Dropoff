@@ -203,7 +203,7 @@
   </style>
 
   <!-- CSS Style Overrides -->
-  <link rel="stylesheet" href="style.css?v=4">
+  <link rel="stylesheet" href="style.css?v=5">
   <!-- GSAP Animation Library -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
 </head>
@@ -1063,6 +1063,9 @@
                 <span class="botlab-mode-dot" id="botlab-mode-dot"></span>
                 <span class="botlab-mode-label" id="botlab-mode-label">DRY RUN</span>
               </div>
+              <button class="botlab-view-toggle" style="background:#fee2e2; color:#ef4444; border-color:#fca5a5; margin-left: 8px;" onclick="window.botlabStopAllTabs()" title="Stop Bot">
+                <span class="material-symbols-outlined" style="font-size:14px;">stop_circle</span> <span class="botlab-view-label">Stop Bot</span>
+              </button>
             </div>
 
             <!-- Iframe Container (Single & Grid Multi-View) -->
@@ -2071,7 +2074,7 @@
   <script src="offline-game.js"></script>
   <script src="auth.js?v=6"></script>
   <script src="api_v2.js?v=4"></script>
-  <script src="app.js?v=15"></script>
+  <script src="app.js?v=16"></script>
   <!-- <script src="challan.js?v=6"></script> -->
 </body>
 </html>
