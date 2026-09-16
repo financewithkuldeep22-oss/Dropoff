@@ -48,16 +48,27 @@
   padding: 0;
 }
 
+html {
+  font-size: 13px !important;
+  -webkit-text-size-adjust: 100%;
+}
+
 body {
+  zoom: 0.78 !important; /* 78% Density Scale: Delivers authentic 75% compact dashboard feel on 100% monitor resolution */
   background-color: var(--canvas);
   color: var(--text-primary);
   font-family: var(--font-body);
-  font-size: 14px;
-  line-height: 1.55;
+  font-size: 13px;
+  line-height: 1.45;
   letter-spacing: -0.006em;
   font-feature-settings: "cv11" 1, "ss01" 1;
   -webkit-font-smoothing: antialiased;
   min-height: 100vh;
+}
+
+/* Crisp scaled SVGs and Icons across all modules */
+svg {
+  max-width: 100%;
 }
 
     /* Glassmorphism Classes */

@@ -6404,6 +6404,7 @@ window.addEventListener('message', function(event) {
   // ── Helper: Build Partner Auto-Fill Booking URL ─────────────
   function _getBotPartnerParam(clientName) {
     var c = (clientName || "").toLowerCase();
+    if (c.indexOf("hcl") !== -1) return "HCL";
     if (c.indexOf("flebo") !== -1) return "Flebo.in";
     if (c.indexOf("medibuddy") !== -1) return "Medibuddy Drop-Off";
     if (c.indexOf("tatva") !== -1) return "Tatvacare";
@@ -6411,6 +6412,20 @@ window.addEventListener('message', function(event) {
     if (c.indexOf("tghs") !== -1) return "TGHS";
     if (c.indexOf("betacura") !== -1) return "Betacura";
     if (c.indexOf("allohealth") !== -1 || c.indexOf("allo heath") !== -1) return "Allohealth";
+    if (c.indexOf("bharath") !== -1) return "Bharath Home Medicare";
+    return clientName || "Flebo.in";
+  }
+
+  function _getBotCenterParam(clientName) {
+    var c = (clientName || "").toLowerCase();
+    if (c.indexOf("hcl") !== -1) return "HCL - Sample drop";
+    if (c.indexOf("medibuddy") !== -1) return "Medibuddy Drop-off";
+    if (c.indexOf("flebo") !== -1) return "Flebo.in";
+    if (c.indexOf("tatva") !== -1) return "Tatvacare";
+    if (c.indexOf("morepen") !== -1) return "Dr. Morepen Labs";
+    if (c.indexOf("tghs") !== -1) return "TGHS";
+    if (c.indexOf("betacura") !== -1) return "Betacura";
+    if (c.indexOf("allo") !== -1) return "Allohealth";
     if (c.indexOf("bharath") !== -1) return "Bharath Home Medicare";
     return clientName || "Flebo.in";
   }
@@ -6425,15 +6440,28 @@ window.addEventListener('message', function(event) {
     return b.location || "";
   }
 
-  function _buildBotBookingUrl(b) {
+  function _buildBotBookingUrl(b, delayMs) {
     var partnerParam = _getBotPartnerParam(b.client || b.clientName);
+    var centerParam = _getBotCenterParam(b.client || b.clientName);
     var cityParam = _getBotCityParam(b, partnerParam);
     var rowNum = b.rowNum || "";
     var p = new URLSearchParams();
     p.set("botAutoRun", "true");
     p.set("botPartner", partnerParam);
+    p.set("botCenter", centerParam);
     if (rowNum) p.set("botRow", String(rowNum));
     if (cityParam) p.set("botCity", String(cityParam));
+    if (delayMs) p.set("botDelay", String(delayMs));
+
+    // Direct Patient Payload (Immune to GAS rate limits, network timeouts, or schema mismatches)
+    if (b.name) p.set("botPatientName", b.name);
+    if (b.age) p.set("botAge", String(b.age));
+    if (b.gender) p.set("botGender", b.gender);
+    if (b.phone) p.set("botPhone", String(b.phone));
+    if (b.test) p.set("botTest", b.test);
+    if (b.location) p.set("botLocation", b.location);
+    if (b.address) p.set("botAddress", b.address);
+
     return "https://partner.redcliffelabs.com/dashboard/corpclientadmin/booking?" + p.toString();
   }
 
@@ -6786,10 +6814,11 @@ window.addEventListener('message', function(event) {
     toLaunch.forEach(function (b, idx) {
       var pName = b.name || "Patient";
       var cli = b.client || "Client";
-      var targetUrl = _buildBotBookingUrl(b);
+      var delayMs = idx * 3000;
+      var targetUrl = _buildBotBookingUrl(b, delayMs);
       var tabTitle = pName + " (" + (b.rowNum ? "R" + b.rowNum : cli) + ")";
 
-      // Stagger creation by 400ms to eliminate server/browser race conditions
+      // Stagger creation by 500ms to allow smooth network loading
       setTimeout(function () {
         // If initial tab is blank or Google home, reuse it for the first pending booking
         if (idx === 0 && _bl.tabs.length === 1 && (!_bl.tabs[0].url || _bl.tabs[0].url === "about:blank" || _bl.tabs[0].url.indexOf("google.com") !== -1)) {
@@ -6801,7 +6830,7 @@ window.addEventListener('message', function(event) {
         } else {
           window.botlabCreateTab(targetUrl, tabTitle);
         }
-      }, idx * 400);
+      }, idx * 500);
     });
   };
 
