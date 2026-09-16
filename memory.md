@@ -573,3 +573,21 @@ Initializes dashboard data sync
 - **Dependencies**: Relies heavily on the local Chrome Extension (Bisht Ji Ultimate Bot v10.2) to strip X-Frame-Options via declarativeNetRequest and inject form-filling scripts (edcliffe.js) into partner.redcliffelabs.com iframes.
 - **Data Flow**: Reads Qs.logs -> user confirms -> opens multiple iframes with ?botAutoRun=true -> extension fills form -> extension sends edcliffeBookingSuccess postMessage back -> dashboard updates sheets.
 
+8. **Morepen Labs Partner Booking Automation & Extension Integration:**
+   - Problem:
+     - When clicking [ Auto-Create Bot ] for Morepen Labs rows (e.g. Morepen Labs - Order History - VIT Bhopal), the browser opened the partner portal with botPartner=Morepen%20Labs%20-%20Order%20History%20-%20VIT%20Bhopal.
+     - The partner portal prompted an alert: 'Select partner portal.' and failed to start the automated booking process.
+   - Root Causes:
+     1. Partner Name Discrepancy: In Redcliffe_Bot/redcliffe.js, the partner configuration key is 'Dr. Morepen Labs'. Passing 'Morepen Labs - Order History - VIT Bhopal' caused #bisht-sheet-select.value = partnerName to fail to match any option, evaluating to empty string, and causing startBookingHandler to trip the 'Select partner portal.' guard.
+     2. Missing Address Mapping: ADDRESS_MAP in redcliffe.js only had 'Dr. Morepen Labs' (Gurugram). The 'VIT Bhopal' branch had no address mapping.
+     3. Strict Select Assignment: redcliffe.js attempted direct assignment to #bisht-sheet-select without case-insensitive or fuzzy option matching.
+   - Solutions Implemented:
+     - In drop-off dashboard/app.js and clever-volta/app.js:
+       - window.launchRedcliffeBot normalizes partner names containing 'morepen' to 'Dr. Morepen Labs', and extracts botCity from sheet tab name if not explicitly passed.
+       - Also normalizes other partner aliases (Medibuddy, Tatvacare, Flebo.in, TGHS, Betacura, Allohealth, Bharath Home Medicare).
+       - Removed mojibake characters in notifications.
+     - In Redcliffe_Bot/redcliffe.js:
+       - Added pre-seeded fallback tabs for 'Dr. Morepen Labs' ('Order History - VIT Bhopal', 'Order History - Sec 83, GGN').
+       - Enhanced botAutoRun handler to normalize botPartner, parse botCity, and perform fuzzy option matching before dispatching change events via selectPartner.
+       - Added address entries to ADDRESS_MAP: 'Dr. Morepen Labs_Order History - VIT Bhopal', 'Dr. Morepen Labs_VIT Bhopal', 'Dr. Morepen Labs_Order History - Sec 83, GGN', and 'Bhopal'.
+       - Updated address resolution in startBookingHandler to dynamically check 'Dr. Morepen Labs_' + (citySuffix || currentTabName) with fallback to city and main office.
