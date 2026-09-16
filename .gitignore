@@ -8,6 +8,45 @@ dist/
 build/
 target/
 
+# Local helper & scratch scripts
+check_*.js
+test_*.js
+patch_*.js
+find_*.js
+inspect_*.js
+mock_*.js
+debug_*.js
+scratch_*.js
+update_*.js
+sync_ops_*.js
+copy_*.js
+clean_*.js
+fix_*.js
+extract_*.js
+apply_*.js
+build_ops_*.js
+merge_*.js
+move_*.js
+print_*.js
+read_*.js
+run_*.js
+save_*.js
+trace_*.js
+append_*.js
+compare_*.js
+count_*.js
+duplicate_*.js
+generate_*.js
+get_*.js
+guard_*.js
+integrate_*.js
+list_*.js
+extract.js
+*.patch
+*.txt
+dashboard_data.json
+user_prompt_*
+
 # Dependencies
 .venv/
 venv/

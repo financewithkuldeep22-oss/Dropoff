@@ -1,0 +1,3628 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>AlloHealth Logistics Tracker</title>
+<link rel="icon" type="image/svg+xml" href="favicon.svg?v=2">
+<link rel="shortcut icon" type="image/svg+xml" href="favicon.svg?v=2">
+<link rel="apple-touch-icon" href="favicon.svg?v=2">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,500;0,600;0,700;1,500;1,600&family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@500;600;700;800&display=swap" rel="stylesheet">
+<meta name="theme-color" content="#003B73">
+<link rel="stylesheet" href="allo-style.min.css?v=1">
+<style>
+/* ==========================================================================
+   CLEAN MODERN ENTERPRISE UI SYSTEM (LINEAR / STRIPE STYLE)
+   Crisp borders · Subtle elevation · Crystal clear active states · Fast & readable
+   ========================================================================== */
+:root {
+  --font-sans: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-serif: 'Lora', Georgia, "Times New Roman", serif;
+  --font-mono: 'JetBrains Mono', "SF Mono", "Cascadia Code", monospace;
+  --color-bg: #f8fafc;
+  --color-surface: #ffffff;
+  --color-surface-hover: #f1f5f9;
+  --color-surface-alt: #f8fafc;
+  --color-text: #0f172a;
+  --color-text-secondary: #475569;
+  --color-text-muted: #64748b;
+  --color-primary: #003B73;
+  --color-primary-hover: #002855;
+  --color-primary-light: #dbeafe;
+  --color-primary-lighter: #eff6ff;
+  --color-accent: #0284c7;
+  --color-border: #e2e8f0;
+  --color-border-strong: #cbd5e1;
+  --color-success: #10b981;
+  --color-success-hover: #059669;
+  --color-success-bg: #ecfdf5;
+  --color-success-border: #a7f3d0;
+  --color-warning: #f59e0b;
+  --color-warning-bg: #fffbeb;
+  --color-warning-border: #fde68a;
+  --color-danger: #ef4444;
+  --color-danger-bg: #fef2f2;
+  --color-danger-border: #fecaca;
+  --color-info: #2563eb;
+  --color-info-bg: #eff6ff;
+  --color-info-border: #bfdbfe;
+  --shadow-xs: 0 1px 2px 0 rgba(15, 23, 42, 0.04);
+  --shadow-sm: 0 1px 3px 0 rgba(15, 23, 42, 0.05), 0 1px 2px -1px rgba(15, 23, 42, 0.04);
+  --shadow-md: 0 4px 6px -1px rgba(15, 23, 42, 0.06), 0 2px 4px -2px rgba(15, 23, 42, 0.04);
+  --shadow-lg: 0 10px 15px -3px rgba(15, 23, 42, 0.08), 0 4px 6px -4px rgba(15, 23, 42, 0.03);
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+}
+
+body {
+  font-family: var(--font-sans);
+  letter-spacing: -0.01em;
+  background-color: var(--color-bg) !important;
+  background-image: none !important;
+  color: var(--color-text);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Editorial Serif Headings */
+h1, h2, h3, .heading-serif, #onboarding h1, .modal-header h2, .modal-title {
+  font-family: var(--font-serif) !important;
+  font-weight: 700 !important;
+  letter-spacing: -0.02em !important;
+  color: var(--color-primary) !important;
+}
+
+button, input, select, textarea, .btn, .chip-pill, .seg-btn, .badge, .field__label, .stat-card__label {
+  font-family: var(--font-sans) !important;
+}
+
+/* ══════════════════════════════════════════════════
+   ENTERPRISE CARD SYSTEM (TILES & ROWS VIEW)
+   ══════════════════════════════════════════════════ */
+.card, .stat-card, .chip-tile, .sample-content-row, .expandable-row {
+  background: #ffffff !important;
+  border: 1px solid #e2e8f0 !important;
+  box-shadow: var(--shadow-sm) !important;
+  border-radius: 12px !important;
+  transition: box-shadow 0.15s ease, transform 0.15s ease, border-color 0.15s ease !important;
+}
+
+.ops-grid .card:hover {
+  box-shadow: var(--shadow-md) !important;
+  transform: translateY(-2px) !important;
+  border-color: var(--color-border-strong) !important;
+}
+
+.card:hover, .stat-card--clickable:hover, .chip-tile:hover, .sample-content-row:hover, .expandable-row:hover {
+  box-shadow: var(--shadow-md) !important;
+  border-color: var(--color-border-strong) !important;
+}
+
+.ops-grid .card:active {
+  transform: translateY(0) scale(0.98) !important;
+  box-shadow: var(--shadow-xs) !important;
+}
+
+.card:active, .stat-card--clickable:active {
+  box-shadow: var(--shadow-xs) !important;
+}
+
+/* ══════════════════════════════════════════════════
+   CARD SELECTION & CHECKBOX INTERACTION SYSTEM
+   ══════════════════════════════════════════════════ */
+.card-clinic-name {
+  color: var(--color-primary) !important;
+  font-weight: 800 !important;
+  font-size: 11px !important;
+  letter-spacing: -0.01em !important;
+}
+[data-theme="dark"] .card-clinic-name {
+  color: #38bdf8 !important;
+}
+
+.card-select-target {
+  max-width: 0 !important;
+  width: auto !important;
+  opacity: 0 !important;
+  overflow: hidden !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  pointer-events: none !important;
+  transform: scale(0.7) !important;
+  border-radius: 4px !important;
+  cursor: pointer !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  flex-shrink: 0 !important;
+  transition: max-width 0.2s cubic-bezier(0.16, 1, 0.3, 1), 
+              opacity 0.15s ease, 
+              transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), 
+              margin 0.15s ease, 
+              padding 0.15s ease, 
+              background 0.15s ease !important;
+}
+
+/* ONLY when hovered over the card: expand space smoothly to the LEFT of eye button! */
+.card:hover .card-select-target,
+.ops-grid .card:hover .card-select-target,
+.expandable-row:hover .card-select-target,
+.sample-content-row:hover .card-select-target {
+  max-width: 22px !important;
+  opacity: 1 !important;
+  margin-right: 4px !important;
+  margin-left: 0 !important;
+  padding: 1px !important;
+  pointer-events: auto !important;
+  transform: scale(1) !important;
+}
+
+/* Stay expanded & visible on selected cards OR when multi-selection mode is active */
+.card.card--selected .card-select-target,
+.ops-grid .card.card--selected .card-select-target,
+.expandable-row.sample-row--selected .card-select-target,
+.sample-content-row.sample-content-row--selected .card-select-target,
+body.has-card-selection .card-select-target {
+  max-width: 22px !important;
+  opacity: 1 !important;
+  margin-right: 4px !important;
+  margin-left: 0 !important;
+  padding: 1px !important;
+  pointer-events: auto !important;
+  transform: scale(1) !important;
+}
+
+.card-select-target:hover {
+  background: #e0f2fe !important;
+  opacity: 1 !important;
+}
+.card-select-target:hover .card-checkbox {
+  transform: scale(1.12) !important;
+}
+.card-select-target:active {
+  transform: scale(0.92) !important;
+}
+.card-checkbox {
+  width: 15px !important;
+  height: 15px !important;
+  cursor: pointer !important;
+  accent-color: var(--color-primary) !important;
+  border-radius: 3px !important;
+  margin: 0 !important;
+  flex-shrink: 0 !important;
+  pointer-events: none !important;
+  transition: transform 0.12s ease !important;
+}
+
+/* Clear, high-contrast selected card state */
+.card.card--selected,
+.ops-grid .card.card--selected,
+.sample-content-row.sample-content-row--selected,
+.expandable-row.sample-row--selected {
+  border-color: #003B73 !important;
+  border-width: 2px !important;
+  background: #f0f9ff !important;
+  box-shadow: 0 0 0 2px rgba(0, 59, 115, 0.22), 0 4px 14px rgba(0, 59, 115, 0.12) !important;
+  transform: translateY(-2px) !important;
+}
+.card.card--selected .card-select-target {
+  background: rgba(0, 59, 115, 0.12) !important;
+}
+[data-theme="dark"] .card.card--selected,
+[data-theme="dark"] .ops-grid .card.card--selected {
+  border-color: #38bdf8 !important;
+  background: rgba(56, 189, 248, 0.15) !important;
+  box-shadow: 0 0 0 2px rgba(56, 189, 248, 0.25), 0 4px 14px rgba(0, 0, 0, 0.4) !important;
+}
+[data-theme="dark"] .card-select-target:hover {
+  background: rgba(255, 255, 255, 0.1) !important;
+}
+
+/* Semi-transparent syncing state to eliminate race condition flicker */
+.card.card--optimistic-syncing,
+.ops-grid .card.card--optimistic-syncing,
+.expandable-row.sample-row--optimistic-syncing,
+.sample-content-row.sample-content-row--optimistic-syncing {
+  opacity: 0.45 !important;
+  filter: grayscale(40%) !important;
+  pointer-events: none !important;
+  transition: opacity 0.3s ease, filter 0.3s ease !important;
+}
+
+/* Rows / Table View Specific Styling */
+.expandable-row, .sample-row, .sample-content-row {
+  margin-bottom: 6px !important;
+}
+.expandable-row__header {
+  background: #ffffff !important;
+  padding: 8px 12px !important;
+}
+.expandable-row__content {
+  background: #f8fafc !important;
+  border-top: 1px solid #e2e8f0 !important;
+}
+
+/* ══════════════════════════════════════════════════
+   SAMPLE TILE CARDS — Image Frames
+   ══════════════════════════════════════════════════ */
+.ops-grid .card {
+  padding: 0 !important;
+  overflow: hidden !important;
+  border-radius: 12px !important;
+}
+
+.ops-grid .card > div:first-child img,
+.ops-grid .card img[style*="object-fit"] {
+  border-radius: 8px !important;
+  margin: 6px !important;
+  width: calc(100% - 12px) !important;
+  box-shadow: none !important;
+  border: 1px solid #f1f5f9 !important;
+}
+
+.ops-grid .card > div:last-child {
+  padding: 6px 10px 8px !important;
+}
+
+/* Booking ID chip */
+.booking-id-chip {
+  font-family: var(--font-mono) !important;
+  font-size: 11px !important;
+  font-weight: 700 !important;
+  background: #f1f5f9 !important;
+  padding: 2.5px 7px !important;
+  border-radius: 6px !important;
+  border: 1px solid #e2e8f0 !important;
+  color: #0f172a !important;
+  letter-spacing: 0.3px !important;
+}
+
+/* ══════════════════════════════════════════════════
+   STATUS BADGES
+   ══════════════════════════════════════════════════ */
+.badge {
+  padding: 3px 8px !important;
+  border-radius: 9999px !important;
+  font-size: 9.5px !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.4px !important;
+  text-transform: uppercase !important;
+  box-shadow: none !important;
+}
+
+.badge--pending {
+  background: #fef3c7 !important;
+  color: #92400e !important;
+  border: 1px solid #fde68a !important;
+}
+
+.badge--dispatched {
+  background: #dbeafe !important;
+  color: #1e40af !important;
+  border: 1px solid #bfdbfe !important;
+}
+
+.badge--picked-up {
+  background: #d1fae5 !important;
+  color: #065f46 !important;
+  border: 1px solid #a7f3d0 !important;
+}
+
+.badge--overdue {
+  background: #fee2e2 !important;
+  color: #991b1b !important;
+  border: 1px solid #fecaca !important;
+}
+
+.badge--count {
+  background: #003B73 !important;
+  color: #ffffff !important;
+  border: none !important;
+  min-width: 20px !important;
+}
+
+/* ══════════════════════════════════════════════════
+   BUTTONS
+   ══════════════════════════════════════════════════ */
+.btn {
+  border-radius: 8px !important;
+  border: 1px solid #cbd5e1 !important;
+  box-shadow: var(--shadow-xs) !important;
+  font-weight: 600 !important;
+  background: #ffffff !important;
+  color: #0f172a !important;
+}
+.btn:hover {
+  background: #f8fafc !important;
+  border-color: #94a3b8 !important;
+}
+
+.btn--primary {
+  background: #003B73 !important;
+  color: #ffffff !important;
+  border: 1px solid #003B73 !important;
+  box-shadow: 0 1px 3px rgba(0, 59, 115, 0.25) !important;
+}
+.btn--primary:hover {
+  background: #002855 !important;
+}
+
+.btn--success {
+  background: #10b981 !important;
+  color: #ffffff !important;
+  border: 1px solid #10b981 !important;
+  box-shadow: 0 1px 3px rgba(16, 185, 129, 0.25) !important;
+}
+
+/* ══════════════════════════════════════════════════
+   HEADER — Clean Enterprise Bar
+   ══════════════════════════════════════════════════ */
+.header {
+  padding: 8px 16px;
+  min-height: 48px;
+  flex-shrink: 0 !important;
+  background: #ffffff !important;
+  border-bottom: 1px solid #e2e8f0 !important;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04) !important;
+  z-index: 100 !important;
+  position: relative !important;
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+}
+
+/* ══════════════════════════════════════════════════
+   STATE DROPDOWN — Centered Anchor & Clean Menu
+   ══════════════════════════════════════════════════ */
+@media (min-width: 769px) {
+  #header-region-container {
+    position: absolute !important;
+    left: 50% !important;
+    top: 50% !important;
+    transform: translate(-50%, -50%) !important;
+  }
+}
+
+#btn-ops-state-filter {
+  padding: 5px 14px !important;
+  font-size: 12px !important;
+  font-weight: 700 !important;
+  border-radius: 9999px !important;
+  background: #ffffff !important;
+  border: 1px solid #cbd5e1 !important;
+  color: #0f172a !important;
+  box-shadow: var(--shadow-xs) !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+  cursor: pointer !important;
+  white-space: nowrap !important;
+}
+
+#btn-ops-state-filter:hover {
+  background: #f8fafc !important;
+  border-color: #003B73 !important;
+  color: #003B73 !important;
+}
+
+#btn-ops-state-filter.btn--state-active {
+  background: #003B73 !important;
+  border: 1px solid #003B73 !important;
+  color: #ffffff !important;
+  box-shadow: 0 2px 6px rgba(0, 59, 115, 0.25) !important;
+}
+
+#ops-state-menu {
+  position: absolute !important;
+  top: calc(100% + 6px) !important;
+  left: 50% !important;
+  transform: translateX(-50%) !important;
+  width: 250px !important;
+  z-index: 1000 !important;
+  padding: 8px !important;
+  border-radius: 12px !important;
+  background: #ffffff !important;
+  border: 1px solid #e2e8f0 !important;
+  box-shadow: var(--shadow-lg) !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 4px !important;
+}
+
+#ops-state-menu.hidden {
+  display: none !important;
+}
+
+.ops-state-dropdown-item {
+  border-radius: 6px !important;
+  padding: 6px 10px !important;
+  border: none !important;
+}
+.ops-state-dropdown-item:hover {
+  background: #eff6ff !important;
+  color: #003B73 !important;
+}
+
+/* Operator & Sync Buttons */
+#header-operator-name-chip, #btn-refresh {
+  background: #ffffff !important;
+  border: 1px solid #cbd5e1 !important;
+  box-shadow: var(--shadow-xs) !important;
+  font-weight: 600 !important;
+}
+#header-operator-name-chip:hover {
+  background: #f8fafc !important;
+  color: #003B73 !important;
+  border-color: #94a3b8 !important;
+}
+#btn-refresh:hover {
+  background: #f0fdf4 !important;
+  border-color: #10b981 !important;
+  color: #059669 !important;
+}
+
+/* ══════════════════════════════════════════════════
+   SIDEBAR KPI SECTION — Enterprise Cards
+   ══════════════════════════════════════════════════ */
+#kpi-card-pending-main {
+  background: linear-gradient(135deg, #003B73 0%, #0369a1 100%) !important;
+  border-radius: 14px !important;
+  border: 1px solid #002855 !important;
+  box-shadow: 0 4px 14px rgba(0, 59, 115, 0.25) !important;
+  padding: 14px 16px !important;
+  color: #ffffff !important;
+}
+#kpi-card-pending-main * {
+  color: #ffffff !important;
+}
+#kpi-badge-old, #kpi-badge-today {
+  background: rgba(255, 255, 255, 0.18) !important;
+  border: 1px solid rgba(255, 255, 255, 0.3) !important;
+  border-radius: 9999px !important;
+  color: #ffffff !important;
+  font-weight: 700 !important;
+}
+
+.stat-card,
+.stat-card--clickable,
+.stat-card--clickable *,
+.stat-card__value,
+.stat-card__label,
+#kpi-card-pending-main,
+#kpi-card-pending-main * {
+  cursor: pointer !important;
+  user-select: none !important;
+  -webkit-user-select: none !important;
+}
+
+.stat-card__value {
+  font-family: var(--font-sans) !important;
+  font-feature-settings: "tnum" 1;
+  font-variant-numeric: tabular-nums;
+  font-size: 22px !important;
+  font-weight: 800 !important;
+  letter-spacing: -0.02em !important;
+  color: #0f172a !important;
+  cursor: pointer !important;
+  user-select: none !important;
+}
+.stat-card__label {
+  font-size: 9.5px !important;
+  font-weight: 700 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.6px !important;
+  color: #64748b !important;
+  cursor: pointer !important;
+  user-select: none !important;
+}
+
+.stat-card--active {
+  background: #eff6ff !important;
+  border: 2px solid #003B73 !important;
+  box-shadow: 0 0 0 2px rgba(0, 59, 115, 0.15), var(--shadow-sm) !important;
+}
+
+/* City Summary */
+#ops-city-summary {
+  background: #ffffff !important;
+  border-radius: 12px !important;
+  border: 1px solid #e2e8f0 !important;
+  box-shadow: var(--shadow-xs) !important;
+  padding: 10px !important;
+}
+
+#ops-city-summary .chip-tile {
+  background: #f8fafc !important;
+  border: 1px solid #e2e8f0 !important;
+  border-radius: 8px !important;
+  box-shadow: none !important;
+  font-weight: 600 !important;
+  padding: 7px 10px !important;
+}
+#ops-city-summary .chip-tile:hover {
+  background: #eff6ff !important;
+  border-color: #bfdbfe !important;
+  color: #003B73 !important;
+}
+
+/* Sidebar Reconcile Navigation Pill */
+.sidebar-reconcile-pill {
+  width: 100% !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  padding: 8px 10px !important;
+  background: #ffffff !important;
+  border: 1px solid #cbd5e1 !important;
+  border-radius: 8px !important;
+  color: #1e293b !important;
+  font-size: 11.5px !important;
+  font-weight: 700 !important;
+  cursor: pointer !important;
+  transition: all 0.15s cubic-bezier(0.16, 1, 0.3, 1) !important;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03) !important;
+}
+.sidebar-reconcile-pill:hover {
+  background: #eff6ff !important;
+  border-color: #003B73 !important;
+  color: #003B73 !important;
+  transform: translateY(-1px) !important;
+  box-shadow: 0 3px 8px rgba(0, 59, 115, 0.08) !important;
+}
+.sidebar-reconcile-pill:active {
+  transform: scale(0.98) !important;
+}
+
+/* Global Drag & Drop Overlay (GSAP Powered & Modern Glassmorphism) */
+.global-drag-overlay {
+  position: fixed !important;
+  inset: 0 !important;
+  z-index: 999999 !important;
+  background: radial-gradient(circle at 50% 45%, rgba(0, 59, 115, 0.45) 0%, rgba(10, 15, 29, 0.88) 100%) !important;
+  backdrop-filter: blur(16px) saturate(180%) !important;
+  -webkit-backdrop-filter: blur(16px) saturate(180%) !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  pointer-events: none !important;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+.global-drag-overlay.hidden {
+  display: none !important;
+}
+.global-drag-box {
+  background: #ffffff !important;
+  border: 2.5px dashed #0284c7 !important;
+  border-radius: 24px !important;
+  padding: 38px 44px !important;
+  text-align: center !important;
+  max-width: 520px !important;
+  width: 90% !important;
+  box-shadow: 0 35px 80px -15px rgba(0, 0, 0, 0.55), 0 0 0 1.5px rgba(255, 255, 255, 0.2) !important;
+  transform-origin: center center !important;
+  pointer-events: none !important;
+}
+.global-drag-icon {
+  width: 68px !important;
+  height: 68px !important;
+  margin: 0 auto 16px !important;
+  border-radius: 20px !important;
+  background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%) !important;
+  color: #003B73 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  box-shadow: 0 8px 20px -4px rgba(0, 59, 115, 0.25) !important;
+}
+.global-drag-title {
+  font-size: clamp(19px, 2.5vw, 23px) !important;
+  font-weight: 800 !important;
+  color: #0f172a !important;
+  letter-spacing: -0.02em !important;
+}
+.global-drag-sub {
+  font-size: 13px !important;
+  color: #64748b !important;
+  margin-top: 6px !important;
+  line-height: 1.45 !important;
+  font-weight: 500 !important;
+}
+.global-drag-pills {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 8px !important;
+  margin-top: 18px !important;
+  flex-wrap: wrap !important;
+}
+.global-drag-pill {
+  font-size: 11px !important;
+  font-weight: 700 !important;
+  color: #0369a1 !important;
+  background: #f0f9ff !important;
+  border: 1px solid #bae6fd !important;
+  padding: 4px 10px !important;
+  border-radius: 9999px !important;
+}
+
+/* ══════════════════════════════════════════════════
+   LAB RECONCILIATION PAGE — MODERN ENTERPRISE COMMAND CENTER
+   Unified Command Deck · Tabular Symmetry · High Density Hub Dispatch
+   ══════════════════════════════════════════════════ */
+.reconcile-shell {
+  max-width: 1140px;
+  margin: 0 auto;
+  padding: 0 12px 56px;
+}
+
+/* 1. Unified Command Deck: Holds Nav, Titles, File Status & Metrics */
+.rec-command-deck {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03), 0 6px 16px -4px rgba(0, 0, 0, 0.02);
+  margin-bottom: 16px;
+  overflow: hidden;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+/* Upper Tier: Navigation, Titles, File Chip, and Master CTAs */
+.rec-deck-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 14px 18px;
+  border-bottom: 1px solid #f1f5f9;
+  flex-wrap: wrap;
+}
+.rec-deck-left {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-width: 0;
+  flex-wrap: wrap;
+}
+.rec-back-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: #f8fafc;
+  border: 1px solid #cbd5e1;
+  border-radius: 7px;
+  padding: 5px 11px;
+  font-size: 12px;
+  font-weight: 700;
+  color: #334155;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02);
+  flex-shrink: 0;
+}
+.rec-back-btn:hover {
+  background: #ffffff;
+  border-color: #003B73;
+  color: #003B73;
+  transform: translateX(-1px);
+}
+.rec-back-btn:active {
+  transform: scale(0.97);
+}
+.rec-header-divider {
+  width: 1px;
+  height: 26px;
+  background: #e2e8f0;
+  flex-shrink: 0;
+}
+.rec-deck-title-group {
+  text-align: left;
+}
+.rec-deck-title-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.rec-deck-title {
+  font-size: clamp(16px, 1.8vw, 19px);
+  font-weight: 800;
+  color: #0f172a;
+  margin: 0;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+}
+.rec-live-badge {
+  font-size: 10px;
+  font-weight: 700;
+  color: #059669;
+  background: #ecfdf5;
+  border: 1px solid #a7f3d0;
+  padding: 1px 7px;
+  border-radius: 9999px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+.rec-live-dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: #10b981;
+  box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.25);
+}
+.rec-deck-sub {
+  font-size: 11.5px;
+  color: #64748b;
+  margin: 2px 0 0;
+  font-weight: 500;
+}
+
+/* Header Right: Active File Chip + Master Action */
+.rec-deck-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.rec-file-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  background: #f8fafc;
+  border: 1px solid #cbd5e1;
+  border-radius: 7px;
+  padding: 5px 10px;
+  font-size: 11px;
+  color: #475569;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  max-width: 280px;
+}
+.rec-file-chip:hover {
+  background: #eff6ff;
+  border-color: #93c5fd;
+  color: #1d4ed8;
+}
+.rec-file-chip-name {
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 180px;
+}
+.rec-file-chip-action {
+  font-size: 10px;
+  font-weight: 700;
+  color: #003B73;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  flex-shrink: 0;
+}
+
+.rec-copy-all-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: #059669;
+  color: #ffffff;
+  border: 1px solid #047857;
+  border-radius: 7px;
+  padding: 6px 13px;
+  font-size: 11.5px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  box-shadow: 0 1px 3px rgba(5, 150, 105, 0.25);
+  flex-shrink: 0;
+}
+.rec-copy-all-btn:hover {
+  background: #047857;
+  box-shadow: 0 3px 8px rgba(5, 150, 105, 0.35);
+  transform: translateY(-1px);
+}
+.rec-copy-all-btn:active {
+  transform: scale(0.97);
+}
+.rec-copy-all-btn.copied {
+  background: #065f46;
+}
+
+/* Lower Tier: Unified Connected Key Metrics Strip (Hairline Separators) */
+.rec-metrics-strip {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  background: #ffffff;
+}
+.rec-metric-cell {
+  padding: 12px 18px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  border-right: 1px solid #f1f5f9;
+  transition: background 0.15s ease;
+}
+.rec-metric-cell:last-child {
+  border-right: none;
+}
+.rec-metric-cell:hover {
+  background: #fafafa;
+}
+.rec-metric-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 2px;
+}
+.rec-metric-label {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: #64748b;
+}
+.rec-metric-val {
+  font-family: 'JetBrains Mono', monospace, sans-serif;
+  font-size: 24px;
+  font-weight: 800;
+  color: #0f172a;
+  line-height: 1.1;
+  font-variant-numeric: tabular-nums;
+}
+.rec-metric-cell--inlab .rec-metric-val {
+  color: #7c3aed;
+}
+.rec-metric-cell--synced .rec-metric-val {
+  color: #059669;
+}
+.rec-metric-cell--unpicked .rec-metric-val {
+  color: #dc2626;
+}
+.rec-metric-hint {
+  font-size: 10.5px;
+  color: #94a3b8;
+  margin-top: 3px;
+  font-weight: 500;
+}
+.rec-metric-tag-green {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 9.5px;
+  font-weight: 700;
+  color: #059669;
+  background: #ecfdf5;
+  padding: 1px 6px;
+  border-radius: 9999px;
+  width: fit-content;
+}
+.rec-metric-tag-red {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 9.5px;
+  font-weight: 700;
+  color: #dc2626;
+  background: #fef2f2;
+  padding: 1px 6px;
+  border-radius: 9999px;
+  width: fit-content;
+}
+
+/* Sync Alert Strip (integrated inside deck) */
+.rec-deck-alert {
+  padding: 8px 18px;
+  background: #f0fdf4;
+  border-top: 1px solid #bbf7d0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 12px;
+  color: #065f46;
+}
+.rec-deck-alert-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.rec-deck-alert-dot {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #10b981;
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+/* Empty State / Initial Drop Hero */
+.rec-drop-hero {
+  background: #ffffff;
+  border: 2px dashed #cbd5e1;
+  border-radius: 12px;
+  padding: 36px 20px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  margin-bottom: 20px;
+}
+.rec-drop-hero:hover {
+  border-color: #003B73;
+  background: #f8fafc;
+}
+.rec-drop-hero.dragover {
+  border-color: #10b981 !important;
+  background: #f0fdf4 !important;
+  transform: scale(1.005);
+}
+.rec-drop-hero-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
+  background: #eff6ff;
+  color: #003B73;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 10px;
+}
+.rec-drop-hero-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: #0f172a;
+}
+.rec-drop-hero-sub {
+  font-size: 12px;
+  color: #64748b;
+  margin-top: 4px;
+}
+
+/* 2. Hub Filter Bar (Segmented Tabs / Pills) */
+.rec-filter-section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+.rec-filter-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 2px;
+}
+.rec-filter-title {
+  font-size: 13px;
+  font-weight: 800;
+  color: #0f172a;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  letter-spacing: -0.01em;
+}
+.rec-filter-sub {
+  font-size: 11.5px;
+  color: #64748b;
+  font-weight: 500;
+}
+.rec-hub-pills-bar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  overflow-x: auto;
+  padding: 2px 2px 6px;
+  -webkit-overflow-scrolling: touch;
+}
+.rec-hub-pills-bar::-webkit-scrollbar {
+  height: 4px;
+}
+.rec-hub-pills-bar::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 4px;
+}
+.rec-hub-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 9999px;
+  padding: 5px 12px;
+  font-size: 11.5px;
+  font-weight: 600;
+  color: #475569;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.15s ease;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.02);
+  flex-shrink: 0;
+}
+.rec-hub-pill:hover {
+  background: #f8fafc;
+  border-color: #cbd5e1;
+  color: #0f172a;
+}
+.rec-hub-pill:active {
+  transform: scale(0.97);
+}
+.rec-hub-pill.active {
+  background: #003B73;
+  border-color: #003B73;
+  color: #ffffff;
+  box-shadow: 0 2px 6px rgba(0, 59, 115, 0.25);
+}
+.rec-hub-pill-count {
+  font-size: 10px;
+  font-weight: 700;
+  padding: 1px 6px;
+  border-radius: 9999px;
+  background: #f1f5f9;
+  color: #475569;
+}
+.rec-hub-pill.active .rec-hub-pill-count {
+  background: rgba(255, 255, 255, 0.25);
+  color: #ffffff;
+}
+
+/* 3. "All Hubs" Mode: Balanced 2-Column Card Grid */
+.rec-wa-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(460px, 1fr));
+  gap: 12px;
+  align-items: stretch;
+}
+@media (max-width: 640px) {
+  .rec-wa-grid {
+    grid-template-columns: 1fr;
+  }
+}
+.rec-wa-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 12px 14px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
+  display: flex;
+  flex-direction: column;
+  transition: all 0.15s ease;
+}
+.rec-wa-card:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
+  border-color: #cbd5e1;
+}
+.rec-wa-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #f1f5f9;
+  gap: 8px;
+}
+.rec-wa-hub-title {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  flex: 1;
+}
+.rec-wa-hub-name {
+  font-size: 13.5px;
+  font-weight: 800;
+  color: #0f172a;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  letter-spacing: -0.01em;
+}
+.rec-wa-hub-badge {
+  font-size: 10px;
+  font-weight: 700;
+  background: #fff1f2;
+  color: #e11d48;
+  border: 1px solid #fecdd3;
+  padding: 1px 6px;
+  border-radius: 9999px;
+  flex-shrink: 0;
+}
+.rec-wa-hub-view-btn {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 5px;
+  padding: 3px 7px;
+  font-size: 10.5px;
+  font-weight: 600;
+  color: #475569;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  flex-shrink: 0;
+}
+.rec-wa-hub-view-btn:hover {
+  background: #eff6ff;
+  border-color: #bfdbfe;
+  color: #1d4ed8;
+}
+.rec-wa-copy-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: #f0fdf4;
+  color: #15803d;
+  border: 1px solid #bbf7d0;
+  border-radius: 6px;
+  padding: 4px 9px;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: all 0.15s ease;
+}
+.rec-wa-copy-btn:hover {
+  background: #16a34a;
+  color: #ffffff;
+  border-color: #16a34a;
+  box-shadow: 0 2px 6px rgba(22, 163, 74, 0.25);
+  transform: translateY(-1px);
+}
+.rec-wa-copy-btn:active {
+  transform: scale(0.96);
+}
+.rec-wa-copy-btn.copied {
+  background: #047857;
+  color: #ffffff;
+  border-color: #047857;
+}
+
+.rec-wa-list {
+  display: flex;
+  flex-direction: column;
+  max-height: 270px;
+  overflow-y: auto;
+  padding-right: 2px;
+  flex: 1;
+}
+.rec-wa-list::-webkit-scrollbar {
+  width: 3px;
+}
+.rec-wa-list::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 3px;
+}
+
+.rec-sample-row {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 6px 6px;
+  border-bottom: 1px solid #f1f5f9;
+  border-radius: 4px;
+  transition: background 0.12s ease;
+}
+.rec-sample-row:last-child {
+  border-bottom: none;
+}
+.rec-sample-row:hover {
+  background: #f8fafc;
+}
+.rec-sample-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  min-width: 0;
+}
+.rec-sample-id-wrap {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  min-width: 0;
+  flex: 1;
+  overflow: hidden;
+}
+.rec-sample-num {
+  font-size: 10px;
+  font-weight: 700;
+  color: #94a3b8;
+  width: 14px;
+  flex-shrink: 0;
+}
+.rec-sample-id {
+  font-family: 'JetBrains Mono', monospace, sans-serif;
+  font-weight: 800;
+  font-size: 11.5px;
+  color: #003B73;
+  flex-shrink: 0;
+  cursor: pointer;
+}
+.rec-sample-id:hover {
+  text-decoration: underline;
+}
+.rec-sample-dot {
+  color: #cbd5e1;
+  font-size: 10px;
+  flex-shrink: 0;
+}
+.rec-sample-patient {
+  font-weight: 600;
+  font-size: 11px;
+  color: #1e293b;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.rec-sample-time-badge {
+  font-size: 9.5px;
+  font-weight: 700;
+  color: #0284c7;
+  background: #f0f9ff;
+  border: 1px solid #bae6fd;
+  padding: 1px 5px;
+  border-radius: 4px;
+  flex-shrink: 0;
+  font-variant-numeric: tabular-nums;
+}
+.rec-sample-bottom {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding-left: 19px;
+  font-size: 10px;
+  color: #64748b;
+  min-width: 0;
+}
+.rec-sample-loc {
+  font-weight: 700;
+  color: #003B73;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.rec-sample-date {
+  color: #64748b;
+  font-size: 9.5px;
+  flex-shrink: 0;
+}
+
+.rec-card-footer {
+  margin-top: 6px;
+  padding-top: 6px;
+  border-top: 1px solid #f1f5f9;
+  text-align: center;
+  font-size: 11px;
+  font-weight: 700;
+  color: #003B73;
+  cursor: pointer;
+  transition: color 0.15s ease;
+}
+.rec-card-footer:hover {
+  color: #0284c7;
+  text-decoration: underline;
+}
+
+/* 4. Single Hub Focus Mode: Full-Width Dispatch Center */
+.rec-hub-focus-deck {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+}
+.rec-hub-focus-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 18px;
+  border-bottom: 1px solid #f1f5f9;
+  gap: 16px;
+  flex-wrap: wrap;
+  background: #fafafa;
+}
+.rec-hub-focus-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+.rec-hub-back-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  padding: 5px 10px;
+  font-size: 11.5px;
+  font-weight: 700;
+  color: #334155;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+.rec-hub-back-btn:hover {
+  background: #f1f5f9;
+  color: #0f172a;
+}
+.rec-hub-focus-title {
+  font-size: 16px;
+  font-weight: 800;
+  color: #0f172a;
+  margin: 0;
+}
+.rec-hub-focus-count {
+  font-size: 10.5px;
+  font-weight: 700;
+  background: #fff1f2;
+  color: #e11d48;
+  border: 1px solid #fecdd3;
+  padding: 1px 7px;
+  border-radius: 9999px;
+}
+.rec-hub-focus-desc {
+  font-size: 11px;
+  color: #64748b;
+  margin: 2px 0 0;
+}
+.rec-wa-copy-btn--lg {
+  padding: 7px 14px;
+  font-size: 12px;
+  border-radius: 7px;
+}
+
+.rec-table-wrap {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+.rec-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+  font-size: 12px;
+}
+.rec-table thead th {
+  background: #f8fafc;
+  color: #64748b;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 8px 14px;
+  border-bottom: 1px solid #e2e8f0;
+}
+.rec-table tbody tr {
+  border-bottom: 1px solid #f1f5f9;
+  transition: background 0.12s ease;
+}
+.rec-table tbody tr:last-child {
+  border-bottom: none;
+}
+.rec-table tbody tr:hover {
+  background: #f8fafc;
+}
+.rec-table tbody td {
+  padding: 10px 14px;
+  vertical-align: middle;
+}
+.rec-tbl-mono {
+  font-family: 'JetBrains Mono', monospace, sans-serif;
+  font-weight: 800;
+  font-size: 12px;
+  color: #003B73;
+  cursor: pointer;
+}
+.rec-tbl-mono:hover {
+  text-decoration: underline;
+}
+.rec-tbl-name {
+  font-weight: 700;
+  color: #0f172a;
+}
+.rec-tbl-clinic {
+  font-weight: 700;
+  color: #003B73;
+}
+.rec-tbl-city {
+  font-size: 10.5px;
+  color: #64748b;
+}
+
+/* WhatsApp Message Preview Drawer */
+.rec-preview-box {
+  margin: 14px 18px 18px;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  background: #ffffff;
+  overflow: hidden;
+}
+.rec-preview-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 9px 12px;
+  background: #f8fafc;
+  user-select: none;
+  transition: background 0.12s ease;
+}
+.rec-preview-header:hover {
+  background: #f1f5f9;
+}
+.rec-preview-chevron {
+  transition: transform 0.2s ease;
+  color: #64748b;
+}
+.rec-preview-chevron.rotated {
+  transform: rotate(180deg);
+}
+.rec-preview-text {
+  margin: 0;
+  padding: 12px 14px;
+  font-family: 'JetBrains Mono', monospace, sans-serif;
+  font-size: 11px;
+  line-height: 1.5;
+  color: #1e293b;
+  background: #ffffff;
+  border-top: 1px solid #e2e8f0;
+  white-space: pre-wrap;
+  word-break: break-word;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .rec-deck-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+  .rec-deck-right {
+    width: 100%;
+    justify-content: space-between;
+  }
+  .rec-file-chip {
+    max-width: 100%;
+    flex: 1;
+  }
+  .rec-metrics-strip {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .rec-metric-cell:nth-child(2) {
+    border-right: none;
+  }
+  .rec-metric-cell:nth-child(1),
+  .rec-metric-cell:nth-child(2) {
+    border-bottom: 1px solid #f1f5f9;
+  }
+  .rec-hub-focus-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .rec-hub-focus-actions {
+    width: 100%;
+  }
+  .rec-wa-copy-btn--lg {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+/* Dark Mode Overrides for Reconciliation */
+[data-theme="dark"] .rec-command-deck,
+[data-theme="dark"] .rec-hub-focus-deck,
+[data-theme="dark"] .rec-wa-card,
+[data-theme="dark"] .rec-drop-hero,
+[data-theme="dark"] .rec-preview-box {
+  background: #131b2e !important;
+  border-color: rgba(255, 255, 255, 0.08) !important;
+}
+[data-theme="dark"] .rec-deck-header,
+[data-theme="dark"] .rec-metric-cell,
+[data-theme="dark"] .rec-wa-card-header,
+[data-theme="dark"] .rec-hub-focus-header,
+[data-theme="dark"] .rec-table thead th,
+[data-theme="dark"] .rec-table tbody tr,
+[data-theme="dark"] .rec-preview-header,
+[data-theme="dark"] .rec-preview-text,
+[data-theme="dark"] .rec-card-footer {
+  border-color: rgba(255, 255, 255, 0.06) !important;
+}
+[data-theme="dark"] .rec-deck-header,
+[data-theme="dark"] .rec-metrics-strip,
+[data-theme="dark"] .rec-table thead th,
+[data-theme="dark"] .rec-preview-header {
+  background: #0f172a !important;
+}
+[data-theme="dark"] .rec-back-btn,
+[data-theme="dark"] .rec-hub-back-btn,
+[data-theme="dark"] .rec-file-chip,
+[data-theme="dark"] .rec-hub-view-btn,
+[data-theme="dark"] .rec-hub-pill {
+  background: rgba(255, 255, 255, 0.04) !important;
+  border-color: rgba(255, 255, 255, 0.12) !important;
+  color: #e2e8f0 !important;
+}
+[data-theme="dark"] .rec-hub-pill.active {
+  background: #0284c7 !important;
+  border-color: #0284c7 !important;
+  color: #ffffff !important;
+}
+[data-theme="dark"] .rec-deck-title,
+[data-theme="dark"] .rec-metric-val,
+[data-theme="dark"] .rec-wa-hub-name,
+[data-theme="dark"] .rec-hub-focus-title,
+[data-theme="dark"] .rec-tbl-name,
+[data-theme="dark"] .rec-filter-title {
+  color: #f8fafc !important;
+}
+[data-theme="dark"] .rec-tbl-mono,
+[data-theme="dark"] .rec-sample-id,
+[data-theme="dark"] .rec-tbl-clinic,
+[data-theme="dark"] .rec-sample-loc {
+  color: #38bdf8 !important;
+}
+[data-theme="dark"] .rec-sample-patient {
+  color: #e2e8f0 !important;
+}
+[data-theme="dark"] .rec-table tbody tr:hover,
+[data-theme="dark"] .rec-sample-row:hover,
+[data-theme="dark"] .rec-metric-cell:hover {
+  background: rgba(255, 255, 255, 0.03) !important;
+}
+[data-theme="dark"] .rec-deck-alert {
+  background: rgba(16, 185, 129, 0.1) !important;
+  border-top-color: rgba(16, 185, 129, 0.25) !important;
+  color: #34d399 !important;
+}
+
+/* ══════════════════════════════════════════════════
+   STATUS TABS — Segmented Control
+   ══════════════════════════════════════════════════ */
+#ops-status-tabs {
+  background: #f1f5f9 !important;
+  border-radius: 9999px !important;
+  padding: 2px !important;
+  border: 1px solid #e2e8f0 !important;
+  box-shadow: inset 0 1px 2px rgba(0,0,0,0.03) !important;
+}
+#ops-status-tabs .seg-btn {
+  background: transparent !important;
+  border-radius: 9999px !important;
+  border: none !important;
+  box-shadow: none !important;
+  font-weight: 600 !important;
+  color: #64748b !important;
+  padding: 3px 9px !important;
+  font-size: 10.5px !important;
+}
+#ops-status-tabs .seg-btn:hover {
+  color: #0f172a !important;
+  background: #ffffff !important;
+}
+#ops-status-tabs .seg-btn--active {
+  background: #003B73 !important;
+  color: #ffffff !important;
+  font-weight: 700 !important;
+  box-shadow: 0 2px 6px rgba(0, 59, 115, 0.25) !important;
+}
+
+
+/* ══════════════════════════════════════════════════
+   DATE FILTER & VIEW DROPDOWN
+   ══════════════════════════════════════════════════ */
+#ops-date-from, #ops-date-to, #ops-search-input, .field__input, select.field__input {
+  background: #ffffff !important;
+  border: 1px solid #cbd5e1 !important;
+  border-radius: 8px !important;
+  padding: 5px 10px !important;
+  font-weight: 600 !important;
+  box-shadow: var(--shadow-xs) !important;
+}
+#ops-date-from:focus, #ops-date-to:focus, #ops-search-input:focus, .field__input:focus {
+  border-color: #003B73 !important;
+  outline: 2px solid rgba(0, 59, 115, 0.15) !important;
+}
+
+#btn-ops-view-mode, #btn-clinic-view-mode {
+  background: #ffffff !important;
+  border: 1px solid #cbd5e1 !important;
+  border-radius: 8px !important;
+  box-shadow: var(--shadow-xs) !important;
+  font-weight: 600 !important;
+  font-size: 11.5px !important;
+}
+#btn-ops-view-mode:hover, #btn-clinic-view-mode:hover {
+  background: #f8fafc !important;
+  border-color: #94a3b8 !important;
+}
+
+.view-dropdown-menu {
+  background: #ffffff !important;
+  border: 1px solid #e2e8f0 !important;
+  border-radius: 10px !important;
+  box-shadow: 0 10px 25px -3px rgba(15, 23, 42, 0.12), 0 4px 6px -4px rgba(15, 23, 42, 0.05) !important;
+  padding: 4px !important;
+}
+.view-menu-item {
+  width: 100% !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  padding: 7px 10px !important;
+  border-radius: 6px !important;
+  font-size: 11.5px !important;
+  font-weight: 600 !important;
+  cursor: pointer !important;
+  border: none !important;
+  background: transparent !important;
+  color: #0f172a !important;
+}
+.view-menu-item:hover {
+  background: #f1f5f9 !important;
+}
+.view-menu-item--active {
+  background: #eff6ff !important;
+  color: #003B73 !important;
+  font-weight: 700 !important;
+}
+
+/* ══════════════════════════════════════════════════
+   BOTTOM TABS (DESKTOP HIDDEN, MOBILE STYLED)
+   ══════════════════════════════════════════════════ */
+@media (min-width: 769px) {
+  .bottom-tabs, #bottom-tabs {
+    display: none !important;
+  }
+}
+@media (max-width: 768px) {
+  .bottom-tabs, #bottom-tabs {
+    position: fixed !important;
+    bottom: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    height: calc(52px + env(safe-area-inset-bottom, 0px)) !important;
+    padding-bottom: env(safe-area-inset-bottom, 0px) !important;
+    background: #ffffff !important;
+    border-top: 1px solid #e2e8f0 !important;
+    display: flex !important;
+    z-index: 50 !important;
+    box-shadow: 0 -1px 3px rgba(0,0,0,0.04) !important;
+  }
+  .main-content {
+    padding-bottom: calc(72px + env(safe-area-inset-bottom, 0px)) !important;
+  }
+  .tab {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    flex: 1;
+    gap: 1px;
+    color: #64748b;
+    border: none;
+    background: none;
+    font-size: 9.5px;
+    font-weight: 700;
+  }
+  .tab.hidden, .bottom-tabs .tab.hidden, .bottom-tabs .tab.nav-clinic-only.hidden, .nav-clinic-only.hidden, .nav-ops-only.hidden {
+    display: none !important;
+  }
+  .tab svg {
+    width: 18px !important;
+    height: 18px !important;
+  }
+  .tab--active {
+    color: #003B73 !important;
+    background: #eff6ff !important;
+  }
+}
+
+/* ══════════════════════════════════════════════════
+   URGENCY BAND HEADERS — Clean Dividers
+   ══════════════════════════════════════════════════ */
+.urgency-band__header {
+  background: transparent !important;
+  border-radius: 0 !important;
+  padding: 4px 0 !important;
+  border: none !important;
+  box-shadow: none !important;
+  font-family: var(--font-sans) !important;
+  font-size: 11px !important;
+  font-weight: 700 !important;
+  color: #475569 !important;
+  letter-spacing: 0.05em !important;
+  text-transform: uppercase !important;
+  margin-bottom: 8px !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+}
+.urgency-band__header::after {
+  content: "" !important;
+  flex: 1 !important;
+  height: 1px !important;
+  background: #e2e8f0 !important;
+  margin-left: 4px !important;
+}
+
+/* ══════════════════════════════════════════════════
+   MODAL
+   ══════════════════════════════════════════════════ */
+.modal-content {
+  background: #ffffff !important;
+  border: 1px solid #e2e8f0 !important;
+  border-radius: 16px !important;
+  box-shadow: var(--shadow-lg) !important;
+}
+
+/* ══════════════════════════════════════════════════
+   SIDEBAR LAYOUT
+   ══════════════════════════════════════════════════ */
+body.dashboard-sidebar--collapsed .dashboard-sidebar {
+  display: none !important;
+}
+body.dashboard-sidebar--collapsed .dashboard-layout {
+  grid-template-columns: 1fr !important;
+}
+
+/* Anti-FOUC Session display rules */
+html.has-session #onboarding:not(.is-auth-active) {
+  display: none !important;
+}
+html.has-session #app.app-shell:not(.hidden) {
+  display: flex !important;
+  flex-direction: column !important;
+  height: 100vh !important;
+  height: 100dvh !important;
+  width: 100% !important;
+  overflow: hidden !important;
+}
+
+.main-wrapper {
+  display: flex !important;
+  flex: 1 1 0% !important;
+  min-height: 0 !important;
+  height: 100% !important;
+  overflow: hidden !important;
+  width: 100%;
+}
+
+.main-content {
+  flex: 1 1 0% !important;
+  min-height: 0 !important;
+  height: 100% !important;
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+  -webkit-overflow-scrolling: touch;
+  padding: 10px 16px 60px 16px;
+}
+
+.main-content::-webkit-scrollbar {
+  width: 6px;
+}
+.main-content::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 6px;
+}
+.main-content::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+
+.dashboard-layout {
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: flex-start !important;
+  gap: 16px !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
+}
+.dashboard-sidebar {
+  width: 240px !important;
+  min-width: 240px !important;
+  max-width: 240px !important;
+  flex: 0 0 240px !important;
+  position: sticky !important;
+  top: 0 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 10px !important;
+  max-height: calc(100vh - 70px) !important;
+  overflow-y: auto !important;
+  padding-right: 2px !important;
+  box-sizing: border-box !important;
+}
+.dashboard-sidebar::-webkit-scrollbar {
+  width: 4px;
+}
+.dashboard-sidebar::-webkit-scrollbar-thumb {
+  background: var(--color-border);
+  border-radius: 4px;
+}
+.dashboard-main {
+  flex: 1 1 0% !important;
+  min-width: 0 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 12px !important;
+  box-sizing: border-box !important;
+  user-select: none;
+  -webkit-user-select: none;
+}
+.ops-grid {
+  display: grid !important;
+  grid-template-columns: repeat(auto-fill, minmax(195px, 1fr)) !important;
+  gap: 10px !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
+}
+.stat-card {
+  padding: 8px 10px !important;
+}
+.stat-card__value {
+  font-size: 22px !important;
+}
+.stat-card__label {
+  font-size: 10px !important;
+}
+.card {
+  padding: 8px 10px !important;
+}
+
+/* Prevent native text selection during lasso / drag */
+.no-text-select, .no-text-select * {
+  user-select: none !important;
+  -webkit-user-select: none !important;
+  -moz-user-select: none !important;
+}
+.card, .sample-row, .sample-content-row, .ops-grid {
+  user-select: none;
+  -webkit-user-select: none;
+}
+.booking-id-chip {
+  user-select: text;
+}
+.lims-eye-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  border-radius: 4px;
+  background: #eff6ff;
+  border: 1px solid #bfdbfe;
+  color: #2563eb;
+  flex-shrink: 0;
+  text-decoration: none;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  vertical-align: middle;
+}
+.lims-eye-btn:hover {
+  background: #dbeafe !important;
+  border-color: #93c5fd !important;
+  color: #1d4ed8 !important;
+  transform: scale(1.08);
+}
+
+/* Clinic Pills Styling */
+.chip-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: #ffffff;
+  border: 1px solid var(--color-border);
+  color: var(--color-text-secondary);
+  font-size: 11px;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 9999px;
+  cursor: pointer;
+  white-space: nowrap;
+  box-shadow: var(--shadow-xs);
+  user-select: none;
+}
+.chip-pill:hover {
+  background: #f8fafc;
+  border-color: #cbd5e1;
+  color: #0f172a;
+}
+.chip-pill--active {
+  background: #003B73;
+  color: #ffffff;
+  border-color: #003B73;
+  box-shadow: 0 2px 6px rgba(0, 59, 115, 0.2);
+  font-weight: 700;
+}
+.chip-pill--active strong {
+  color: #ffffff;
+}
+@media (max-width: 900px) {
+  .dashboard-layout {
+    flex-direction: column !important;
+    gap: 12px !important;
+  }
+  .dashboard-sidebar {
+    width: 100% !important;
+    min-width: 100% !important;
+    max-width: 100% !important;
+    flex: 0 0 auto !important;
+    position: static !important;
+    max-height: none !important;
+  }
+  .dashboard-main {
+    width: 100% !important;
+  }
+}
+
+  @keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+  }
+  .animate-spin {
+    animation: spin 1s linear infinite;
+  }
+
+@media (max-width: 768px) {
+  /* ── HEADER: Clean 2-row mobile layout ── */
+  .header {
+    flex-wrap: wrap !important;
+    height: auto !important;
+    padding: 8px 12px !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    gap: 6px !important;
+    border-radius: 0 !important;
+    margin: 0 !important;
+    border-bottom: 1px solid #e2e8f0 !important;
+  }
+
+  /* Row 1 Left: Logos */
+  .header__brand {
+    width: auto !important;
+    flex: 0 0 auto !important;
+    justify-content: flex-start !important;
+    order: 1 !important;
+    gap: 4px !important;
+  }
+  .header__brand > div img {
+    height: 18px !important;
+  }
+  /* Hide × separator on mobile */
+  .header__brand > span {
+    font-size: 12px !important;
+    margin: 0 1px !important;
+  }
+
+  /* Row 1 Right: Actions - compact */
+  .header__actions {
+    flex: 0 0 auto !important;
+    justify-content: flex-end !important;
+    order: 2 !important;
+    gap: 5px !important;
+  }
+
+  /* Sync button: icon-only pill on mobile */
+  #btn-refresh {
+    font-size: 0px !important;
+    padding: 5px 8px !important;
+    min-width: 0 !important;
+    gap: 0 !important;
+  }
+  #btn-refresh svg {
+    width: 13px !important;
+    height: 13px !important;
+  }
+
+  /* Operator name chip: shrink */
+  #header-operator-name-chip {
+    height: 26px !important;
+    padding: 0 8px !important;
+    font-size: 10px !important;
+    max-width: 110px !important;
+    gap: 4px !important;
+  }
+  #header-operator-name-chip svg {
+    width: 11px !important;
+    height: 11px !important;
+  }
+
+  /* Hide fullscreen + settings on mobile */
+  #btn-settings-gear,
+  #btn-fullscreen {
+    display: none !important;
+  }
+  #header-mode-badge {
+    display: none !important;
+  }
+
+  /* Row 2: State dropdown - own row, full width */
+  #header-region-container {
+    order: 10 !important;
+    flex: 1 1 100% !important;
+    margin-top: 0 !important;
+    padding: 0 !important;
+    display: flex !important;
+    justify-content: center !important;
+  }
+  #header-region-container > div {
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+  #ops-filter-region {
+    width: 100% !important;
+    max-width: 100% !important;
+    height: 28px !important;
+    font-size: 11px !important;
+    font-weight: 700 !important;
+    border-radius: 6px !important;
+    text-align: center !important;
+    padding: 0 24px 0 12px !important;
+    background: #f1f5f9 !important;
+    border: 1px solid #cbd5e1 !important;
+    color: #0f172a !important;
+  }
+
+  /* ── KPI / DASHBOARD ── */
+  .dashboard-sidebar > div:first-child {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 8px !important;
+    padding: 4px 12px 12px 12px !important;
+  }
+  .dashboard-sidebar > div:first-child > div {
+    width: 100% !important;
+    min-width: 0 !important;
+  }
+  .dashboard-sidebar > div:first-child > div:nth-child(2) {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr !important;
+    gap: 6px !important;
+  }
+  .stat-card--medibuddy {
+    padding: 10px 8px !important;
+  }
+  .stat-card__value {
+    font-size: 22px !important;
+  }
+
+  /* ── SIDEBAR / CITY SUMMARY ── */
+  .dashboard-sidebar button[onclick="CsvReconcile.open()"],
+  #ops-city-summary,
+  #ops-city-summary-container,
+  .dashboard-sidebar > .card {
+    display: none !important;
+  }
+
+  /* ── SEARCH BAR ── */
+  #ops-search-container {
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+    flex: 1 1 100% !important;
+    max-width: 100% !important;
+    margin-top: 8px !important;
+  }
+
+  /* ── FILTER BAR ── */
+  .quick-select-bar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .filter-bar__row {
+    flex-direction: column;
+    min-width: 100%;
+  }
+  .quick-select-bar > div:first-child,
+  .seg-btn-group {
+    width: 100%;
+    max-width: 100%;
+    justify-content: flex-start;
+    overflow-x: auto;
+    white-space: nowrap;
+    flex-wrap: nowrap;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 4px;
+  }
+}
+
+/* Issue 1: Header Row Spacing */
+.header__brand {
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+/* Issue 2: Stat Card Overflow & Stroke */
+.dashboard-sidebar > div:first-child {
+  padding: 8px 12px;
+}
+.stat-card--active {
+  outline: none;
+  background: #eff6ff !important;
+  border: 2px solid #003B73 !important;
+  box-shadow: 0 0 0 2px rgba(0, 59, 115, 0.15) !important;
+}
+
+/* Issue 6: Bottom Navigation Visuals */
+.tab {
+  gap: 4px;
+}
+.tab--active {
+  background: #eff6ff !important;
+  border-radius: 6px;
+  color: #003B73 !important;
+  font-weight: 700 !important;
+}
+
+
+
+/* ══════════════════════════════════════════════════
+   RESAMPLE & LAB REPORT STATUS STYLES (/ui-ux-fixer)
+   Unified color-coding · Precision borders · High legibility
+   ══════════════════════════════════════════════════ */
+
+/* ── 1. Resample Indicator (Amber Accent) ── */
+.card--resample,
+.sample-row--resample,
+.sample-content-row--resample {
+  border-left: 4px solid #f59e0b !important;
+  background: linear-gradient(90deg, rgba(245, 158, 11, 0.05) 0%, rgba(255, 255, 255, 0.98) 45%) !important;
+}
+[data-theme="dark"] .card--resample,
+[data-theme="dark"] .sample-row--resample,
+[data-theme="dark"] .sample-content-row--resample {
+  border-left: 4px solid #f59e0b !important;
+  background: linear-gradient(90deg, rgba(245, 158, 11, 0.12) 0%, rgba(30, 41, 59, 0.98) 45%) !important;
+}
+
+.resample-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 8.5px;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+  padding: 1.5px 5px;
+  border-radius: 4px;
+  color: #92400e;
+  background: #fef3c7;
+  border: 1px solid #fcd34d;
+  text-transform: uppercase;
+  white-space: nowrap;
+  flex-shrink: 0;
+  line-height: 1.2;
+}
+[data-theme="dark"] .resample-badge {
+  color: #fde68a;
+  background: rgba(245, 158, 11, 0.2);
+  border-color: rgba(245, 158, 11, 0.4);
+}
+
+.resample-badge--original {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  font-size: 8px;
+  font-weight: 600;
+  padding: 1px 4px;
+  border-radius: 4px;
+  color: #475569;
+  background: #f1f5f9;
+  border: 1px solid #cbd5e1;
+  white-space: nowrap;
+  flex-shrink: 0;
+  line-height: 1.2;
+}
+[data-theme="dark"] .resample-badge--original {
+  color: #94a3b8;
+  background: #1e293b;
+  border-color: #334155;
+}
+
+/* ── Unified Resample Card (Dual Draw Comparison) ── */
+.ops-grid .card.card--resample-unified,
+.card--resample-unified {
+  grid-column: span 2 !important;
+  border: 2px solid #f59e0b !important;
+  border-top: 2px solid #f59e0b !important;
+  background: #fffdfa !important;
+  box-shadow: 0 2px 8px rgba(245, 158, 11, 0.08) !important;
+  transition: transform 0.15s ease, box-shadow 0.15s ease !important;
+}
+.ops-grid .card.card--resample-unified:hover,
+.card--resample-unified:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(245, 158, 11, 0.16) !important;
+}
+[data-theme="dark"] .ops-grid .card.card--resample-unified,
+[data-theme="dark"] .card--resample-unified {
+  background: #1c1917 !important;
+  border-color: #d97706 !important;
+  border-top-color: #d97706 !important;
+}
+.resample-subcard {
+  transition: all 0.15s ease-in-out !important;
+}
+.resample-subcard:hover {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06) !important;
+  transform: translateY(-1px);
+}
+.resample-subcard--draw1 {
+  background: #f8fafc !important;
+  border: 1px solid #e2e8f0 !important;
+}
+.resample-subcard--draw1:hover {
+  border-color: #3b82f6 !important;
+  background: #eff6ff !important;
+  box-shadow: 0 2px 6px rgba(59, 130, 246, 0.15) !important;
+}
+.resample-subcard--draw2 {
+  background: #fffbeb !important;
+  border: 1px solid #fde68a !important;
+}
+.resample-subcard--draw2:hover {
+  border-color: #f59e0b !important;
+  background: #fef3c7 !important;
+  box-shadow: 0 2px 6px rgba(245, 158, 11, 0.15) !important;
+}
+@media (max-width: 768px) {
+  .ops-grid .card.card--resample-unified,
+  .card--resample-unified {
+    grid-column: span 1 !important;
+  }
+}
+
+.resample-micro-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  font-size: 8px;
+  font-weight: 800;
+  padding: 1px 4px;
+  border-radius: 3px;
+  color: #b45309;
+  background: #fef3c7;
+  border: 1px solid #fde68a;
+  white-space: nowrap;
+  flex-shrink: 0;
+  line-height: 1.2;
+}
+[data-theme="dark"] .resample-micro-pill {
+  color: #fde68a;
+  background: rgba(245, 158, 11, 0.2);
+  border-color: rgba(245, 158, 11, 0.4);
+}
+
+/* ── 2. Lab Report Status Color Coding (Clean Top Accent & Status Dot) ── */
+.ops-grid .card.card--lab-none {
+  border-top: 1px solid var(--color-border) !important; /* Neutral: No lab report needed / pending clinic pickup */
+}
+.ops-grid .card.card--lab-pending {
+  border-top: 4px solid #ca8a04 !important; /* Yellow: Pending / In Lab */
+}
+.ops-grid .card.card--lab-partial {
+  border-top: 4px solid #a855f7 !important; /* Purple: Partial Reports */
+}
+.ops-grid .card.card--lab-consolidate {
+  border-top: 4px solid #22c55e !important; /* Green: Consolidate / Ready */
+}
+.ops-grid .card.card--lab-dismissed {
+  border-top: 4px solid #64748b !important; /* Slate: Dismissed / Cancelled */
+}
+
+/* List views (Rows & Content views) */
+.sample-row--lab-none,
+.sample-content-row--lab-none {
+  border-left: 3.5px solid transparent !important;
+}
+.sample-row--lab-pending,
+.sample-content-row--lab-pending {
+  border-left: 3.5px solid #ca8a04 !important;
+}
+.sample-row--lab-partial,
+.sample-content-row--lab-partial {
+  border-left: 3.5px solid #a855f7 !important;
+}
+.sample-row--lab-consolidate,
+.sample-content-row--lab-consolidate {
+  border-left: 3.5px solid #22c55e !important;
+}
+.sample-row--lab-dismissed,
+.sample-content-row--lab-dismissed {
+  border-left: 3.5px solid #64748b !important;
+}
+
+/* Resample overrides border-left on rows so amber indicator is always preserved */
+.sample-row--resample,
+.sample-content-row--resample {
+  border-left: 4px solid #f59e0b !important;
+}
+
+/* ── 3. Micro Status Dot (Next to Booking ID) ── */
+.lab-status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  display: inline-block;
+  flex-shrink: 0;
+  vertical-align: middle;
+}
+.lab-status-dot--none {
+  display: none !important;
+}
+.lab-status-dot--pending {
+  background: #ca8a04;
+  box-shadow: 0 0 0 2px rgba(202, 138, 4, 0.25);
+}
+.lab-status-dot--partial {
+  background: #a855f7;
+  box-shadow: 0 0 0 2px rgba(168, 85, 247, 0.25);
+}
+.lab-status-dot--consolidate {
+  background: #22c55e;
+  box-shadow: 0 0 0 2px rgba(34, 197, 94, 0.25);
+}
+.lab-status-dot--dismissed {
+  background: #64748b;
+  box-shadow: 0 0 0 2px rgba(100, 116, 139, 0.25);
+}
+</style>
+<script>
+  (function(){
+    try {
+      var s = localStorage.getItem('allo-auth-user') || localStorage.getItem('allo_user_profile');
+      if (s) {
+        if (!localStorage.getItem('allo-auth-user')) {
+          localStorage.setItem('allo-auth-user', s);
+          localStorage.removeItem('allo_user_profile');
+        }
+        document.documentElement.classList.add('has-session');
+      }
+    } catch(e) {}
+  })();
+</script>
+</head>
+<body>
+
+<!-- ============================================================
+     AUTHENTICATION & USER PORTAL (LOGIN & SIGN UP)
+     ============================================================ -->
+<div id="onboarding" class="app-shell" style="min-height:100vh; display:flex; align-items:center; justify-content:center; padding:var(--sp-4); background:var(--color-bg);">
+  <div class="onboarding__container" style="max-width: 460px; width:100%; margin:auto;">
+    
+    <div style="text-align:center; margin-bottom:var(--sp-4);">
+      <div style="display:inline-flex; align-items:center; justify-content:center; gap:14px; background:var(--color-surface); border:1px solid var(--color-border); padding:10px 20px; border-radius:var(--radius-lg); box-shadow:var(--shadow-sm); margin-bottom:var(--sp-3);">
+        <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADgAAAA4CAMAAACfWMssAAACglBMVEUAAAAAAAAAAP8AAACAgIAAAABAQECAgL8zMzNmZsyAVaokJCRtbbYgICBgYL8cHBxmZrMXFxd0XbkrKytqar8nJyd2YsQkJCQgICBwYL8eHh5pWsMcHBwoKCgmJiZzZr8kJCRtYcIjIyMgICBqYL8fHx9tZL8jIyNyYcEiIiJvXrsgICBwYL8fHx8mJiZxYrxtX70jIyMiIiIgICAfHx8kJCQkJCQiIiIkJCRtY8EjIyMiIiIiIiIhISEgICAgICAkJCQjIyNuYb0iIiIhISEhISFvY70gICAkJCRsYLsjIyNuX74iIiJxYr8hISFtYr0gICBvYb4jIyNxYL1vYr4kJCQjIyNwYL8iIiIhISFwYb8hISEjIyNvYb8iIiIhISEjIyMjIyMjIyNuYb0hISFwY78hISEjIyNuYr4iIiIiIiIhISFvYb0jIyMiIiJuY7wiIiIiIiIiIiIiIiIhISFvYL4hISFwYb8jIyNuYr4iIiJvYcBwYr0hISFvY70jIyMiIiIiIiJvYL8iIiIiIiIhISFvYL4jIyMjIyMiIiIiIiIiIiJvYb5vYr4jIyMiIiIiIiIiIiIiIiIiIiIiIiIiIiJvYb5wYb4jIyMiIiJuYb0iIiIiIiJvYb5vYb8iIiIjIyNuYb8iIiIiIiIiIiJvYb9vYL9vYb4iIiIiIiJvYb4iIiJvYb8hISFvYb4iIiJwYL8iIiIiIiJxYb4iIiIiIiJvYL5vYb0hISFvYL0iIiJvYb4iIiIiIiJvYb5wYL4hISFvYb5wYb4iIiIiIiIiIiIiIiIhISEiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiL///+rc/SEAAAA1HRSTlMAAQECAgMEBAUFBgcHCAgJCgsLDAwNDQ4QEBEREhMUFBUVFhgYGRwdHR4eICAhIiIjJCUoKSorLTExMzQ1Njc4OTo6PD0+Pj9AQEJDRERGRkdHSU1OT1BQUlRUVVdXWV1eX2BhZGRlZmZpamtsbW9vcXJ3eHp6e3t8fX5+gIODhYaHh4iJioqLjI6PkJGVm5yen6Slpqeoqaqrq6ytra6vsbKztba2t7i7vb2+vr+/wcLDxcXLzMzNztHS09fY2Nnd4uTm6Onq7O3y8/T19/j6+/z9/uUxF4AAAAABYktHRNV+vDsTAAACVElEQVRIx+3WV1cTURQF4A0xthgREEFM7NiwoQKWqAjYBXvBXhlQsQQrFkCwgL2b2FBEUQRFHUVsKHYNEbN/kA8pmpmwksyTD9mPM+ebu+49Z9YMEEggXhKcrIjN3Tl/v7IFD90dpgx2fN9P4R5frgMAtPL7bCpqhgPocq+Hn3Dx7gEVJzacfDHdD7OgF4JX3OoAbH576UhNlu9wivn5h1cH+yLN3A5AJ99hG/PeQd1mP0h+GObn9sYsBYCuj68r7MfWpwph2rvOPtemiuIx4LgoTgKQte9Ge1/hSrISqCYzAFwOmzlYEfQh2pZhSItItarawo83U+6Lz7pLYFRevZVfTNM8uugquhLrDlM/Oa6f0chd63+cBI796bpxPkgG15M8FYsR5TKoqie/50RidBXJJTJYR5oAIKhSCueQ1nHOW09kO7SRCQCAJCksIS/aixLI35ESGE9a1PaONEugidzmqPrmfPrfxJHN9k7ppCueI3fYi9RNZJwEhjSRMwAAGVKYR9bai9LJH7KG3CHrIgD0bpDCRBu5BQBiXjsO0C2TbWSDMGtTo7yPJpK3l6Ubv5LWRPkEFLU4ALo3zuu2jR5GLijXQpJs/CUbOX2Z3X1e7nnK++eWPToraPcUFYY7XuRSUUwCAEw4Wl57ITPyf/qG6lOwCKEFxlC0NQIxE6E3Fq/FQuimeoGxmciHfjuAeaf7YNRqAPnAAQzM9gavGa9Cf0UAStbkuOBhY2G2TyvuilZrioeW+rNixEgYoBUEXc8hGK+KEgQNDIAB4fGBf6hA3PIHFSxWgXK3qtgAAAAASUVORK5CYII=" alt="Allo Health" style="height:26px; width:auto;">
+        <span style="font-size:16px; font-weight:900; color:var(--color-text-muted); opacity:0.6;">&times;</span>
+        <img src="https://staticcdn.redcliffelabs.com/media/gallary-file/None/03414158-3ba9-4dfb-9064-568f1109a7ea.png" alt="Redcliffe Labs" style="height:22px; width:auto;" onerror="this.onerror=null; this.src='https://staticcdn.redcliffelabs.com/media/gallary-file/None/a0f82e2b-5cee-4694-a972-2514e9bd3694.svg';">
+      </div>
+      <h1 style="font-size:var(--text-xl); font-weight:800; color:var(--color-text); margin-bottom:4px;">Operations Management Portal</h1>
+      <p style="font-size:var(--text-xs); color:var(--color-text-muted);">Secure internal portal for authorized personnel</p>
+    </div>
+
+    <div class="card card--elevated" style="padding:var(--sp-5); border-radius:var(--radius-lg); box-shadow:0 10px 25px -5px rgba(0,0,0,0.08);">
+      <div style="display:flex; border-bottom:1px solid var(--color-border); margin-bottom:var(--sp-4);" id="auth-tabs-container">
+        <button type="button" id="tab-auth-login" onclick="Auth.switchTab('login')" style="flex:1; padding:8px 0; font-weight:800; font-size:13px; text-align:center; border-bottom:2px solid var(--color-primary); color:var(--color-primary); background:none; border-top:none; border-left:none; border-right:none; cursor:pointer;">Sign In</button>
+        <button type="button" id="tab-auth-signup" class="hidden" onclick="Auth.switchTab('signup')" style="flex:1; padding:8px 0; font-weight:700; font-size:13px; text-align:center; border-bottom:2px solid transparent; color:var(--color-text-muted); background:none; border-top:none; border-left:none; border-right:none; cursor:pointer;">Create Account</button>
+      </div>
+
+      <button type="button" class="btn btn--secondary btn--full hidden" onclick="Auth.handleGoogleSignIn()" style="height:40px; font-weight:700; font-size:12px; display:flex; align-items:center; justify-content:center; gap:10px; margin-bottom:var(--sp-4); border-color:var(--color-border);">
+        <svg viewBox="0 0 24 24" width="16" height="16"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/></svg>
+        <span id="auth-google-btn-text">Sign in with Google</span>
+      </button>
+
+      
+
+      <form id="form-auth-login" autocomplete="off" onsubmit="event.preventDefault(); Auth.submitLogin();" oninput="Auth.validateLoginForm()">
+        <div class="field" style="margin-bottom:var(--sp-3);">
+          <label class="field__label" for="login-username">Username / Email</label>
+          <input type="text" id="login-username" class="field__input" placeholder="e.g. admin or logistics" required autocomplete="off">
+        </div>
+        <div class="field" style="margin-bottom:var(--sp-4);">
+          <label class="field__label" for="login-password">Password</label>
+          <div style="position:relative;">
+    <input type="password" id="login-password" class="field__input" placeholder="Enter password" required autocomplete="new-password" data-lpignore="true" style="padding-right:36px;">
+    <button type="button" tabindex="-1" onclick="Auth.togglePassword('login-password', this)" style="position:absolute; right:8px; top:50%; transform:translateY(-50%); background:none; border:none; cursor:pointer; color:var(--color-text-muted); padding:4px; display:flex; align-items:center;">
+      <svg class="eye-icon" viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+    </button>
+  </div>
+        </div> <!-- Closing the field div -->
+        <button type="submit" class="btn btn--primary btn--full" id="btn-auth-login-submit" style="height:42px; font-weight:800; font-size:13px;" disabled><span class="btn-text">Sign In</span></button>
+        </form>
+
+      <form id="form-auth-signup" autocomplete="off" class="hidden" onsubmit="event.preventDefault(); Auth.submitSignup();" oninput="Auth.validateSignupForm()">
+        <div class="field" style="margin-bottom:var(--sp-2);">
+          <label class="field__label" for="signup-name">Full Name</label>
+          <input type="text" id="signup-name" class="field__input" placeholder="e.g. Rahul Sharma" required autocomplete="off">
+        </div>
+        <div class="field" style="margin-bottom:var(--sp-2);">
+          <label class="field__label" for="signup-username">Username or Email</label>
+          <input type="text" id="signup-username" class="field__input" placeholder="e.g. user@allohealth.care" required autocomplete="off">
+        </div>
+        <div class="field" style="margin-bottom:var(--sp-3);">
+          <label class="field__label" for="signup-password">Password</label>
+          <div style="position:relative;">
+    <input type="password" id="signup-password" class="field__input" placeholder="Enter password" minlength="4" required autocomplete="new-password" data-lpignore="true" style="padding-right:36px;">
+    <button type="button" tabindex="-1" onclick="Auth.togglePassword('signup-password', this)" style="position:absolute; right:8px; top:50%; transform:translateY(-50%); background:none; border:none; cursor:pointer; color:var(--color-text-muted); padding:4px; display:flex; align-items:center;">
+      <svg class="eye-icon" viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+    </button>
+  </div>
+        </div>
+
+        <div class="field" style="margin-bottom:var(--sp-3);">
+          <label class="field__label">Account Role</label>
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px;">
+            <button type="button" id="role-btn-logistics" class="btn btn--primary btn--sm" onclick="Auth.selectSignupRole('operations'); Auth.validateSignupForm();" style="height:36px; font-size:11px; font-weight:700;"><svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom:-2px; margin-right:4px;"><rect x="1" y="3" width="15" height="13"></rect><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"></polygon><circle cx="5.5" cy="18.5" r="2.5"></circle><circle cx="18.5" cy="18.5" r="2.5"></circle></svg>Logistics Hub</button>
+            <button type="button" id="role-btn-clinic" class="btn btn--secondary btn--sm" onclick="Auth.selectSignupRole('clinic'); Auth.validateSignupForm();" style="height:36px; font-size:11px; font-weight:700;"><svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom:-2px; margin-right:4px;"><path d="M22 12h-4l-3 9L9 3l-3 9H2"></path></svg>Clinic Staff</button>
+          </div>
+          <input type="hidden" id="signup-role" value="operations">
+        </div>
+
+        <div id="signup-clinic-group" class="hidden" style="background:var(--color-surface-hover); padding:10px; border-radius:var(--radius-sm); border:1px solid var(--color-border); margin-bottom:var(--sp-3);">
+          <div class="field" style="margin-bottom:var(--sp-2);">
+            <label class="field__label" for="signup-region">State / Region</label>
+            <input type="text" id="signup-region" class="field__input" placeholder="Type or select state" list="region-list" oninput="Auth.onSignupRegionChange(this.value); Auth.validateSignupForm();">
+              <datalist id="region-list">
+                <option value="Gujarat">
+                <option value="Maharashtra">
+                <option value="Karnataka">
+                <option value="Tamil Nadu">
+                <option value="Telangana & AP">
+                <option value="Jharkhand">
+                <option value="Rajasthan">
+                <option value="Madhya Pradesh">
+                <option value="West Bengal">
+              </datalist>
+          </div>
+          <div class="field" style="margin:0;">
+            <label class="field__label" for="signup-clinic">Assigned Clinic</label>
+            <input type="text" id="signup-clinic" class="field__input" placeholder="Type or select clinic" list="clinic-list" oninput="Auth.validateSignupForm()">
+              <datalist id="clinic-list">
+                <option value="Bhimrad Clinic">
+                <option value="Navrangpura Clinic">
+                <option value="Electronic City Clinic">
+                <option value="HSR Layout Clinic">
+                <option value="Koramangala Clinic">
+                <option value="Jayanagar Clinic">
+                <option value="Velacherry Clinic">
+                <option value="Vaishali Nagar Clinic">
+                <option value="Kondapur Clinic">
+                <option value="Indiranagar Clinic">
+                <option value="Malad Clinic">
+                <option value="Ashok Nagar Clinic">
+                <option value="Vijayanagar Clinic">
+              </datalist>
+          </div>
+        </div>
+
+        <button type="submit" class="btn btn--primary btn--full" id="btn-auth-signup-submit" style="height:42px; font-weight:800; font-size:13px;" disabled><span class="btn-text">Register Account & Sign In</span></button>
+      </form>
+    </div>
+    <div style="text-align:center; margin-top:var(--sp-4); font-size:11px; color:var(--color-text-muted);">
+      <svg viewBox="0 0 24 24" width="12" height="12" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom:-2px; margin-right:4px;"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>Secure Encrypted Connection • Internal Operations Portal
+    </div>
+  </div>
+</div>
+<!-- ============================================================
+     MAIN APP SHELL
+     ============================================================ -->
+<div id="app" class="app-shell hidden">
+  <header class="header" style="display:flex; flex-wrap:wrap; justify-content:space-between; align-items:center; gap:8px; min-height:46px; height:auto; padding:0 14px; background:#ffffff; border-bottom:1px solid #e2e8f0; margin:0; box-shadow:0 1px 2px rgba(0,0,0,0.02);">
+    <!-- LEFT: Logos -->
+    <div class="header__brand" onclick="App.navigateToHome()" style="gap:8px; align-items:center; display:flex; flex:0 0 auto; order:1; cursor:pointer;" title="Return to Home Dashboard">
+
+      <!-- Allo Health Official Logo -->
+      <div style="display:flex; align-items:center; text-decoration:none;" aria-label="Allo Health">
+        <img src="https://cdn.prod.website-files.com/61a4b9739ac56e51853f7bb2/63104b02a54e193fc31e5261_Allo%20Logo.webp" alt="Allo Health" style="height:18px; width:auto; object-fit:contain;" onerror="this.onerror=null; this.src='https://media.allohealth.care/allo-logo-v1.png';">
+      </div>
+      
+      <!-- Lockup separator -->
+      <span style="font-size:14px; font-weight:700; color:#cbd5e1; margin:0 2px; line-height:1;">&times;</span>
+      
+      <!-- Redcliffe Labs Official Logo Lockup -->
+      <div style="display:flex; align-items:center; text-decoration:none;" aria-label="Redcliffe Labs">
+        <img src="https://staticcdn.redcliffelabs.com/media/gallary-file/None/03414158-3ba9-4dfb-9064-568f1109a7ea.png" alt="Redcliffe Labs" style="height:18px; width:auto; object-fit:contain;" onerror="this.onerror=null; this.src='https://staticcdn.redcliffelabs.com/media/gallary-file/None/a0f82e2b-5cee-4694-a972-2514e9bd3694.svg';">
+      </div>
+      
+      <span class="header__mode" id="header-mode-badge" style="margin-left:4px; font-size:8.5px; font-weight:800; padding:2px 6px; border-radius:4px; letter-spacing:0.4px; display:inline-flex; align-items:center; background:#ede9fe; color:#6d28d9; border:1px solid #c4b5fd;">ADMIN</span>
+      <div class="header__subtitle" id="header-subtitle" style="font-size:10px; color:var(--color-text-muted); display:none;"></div>
+    </div>
+
+    <!-- CENTER: Custom State Dropdown (True Dead-Center Anchor) -->
+    <div id="header-region-container" class="header-center dropdown-wrapper">
+      <button type="button" class="btn" id="btn-ops-state-filter" onclick="OpsView.toggleStateMenu(event)" aria-label="Filter by State" title="Select State">
+        <span id="ops-state-filter-label" style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">All States</span>
+        <svg viewBox="0 0 24 24" width="10" height="10" stroke="currentColor" fill="none" stroke-width="2.5" style="flex-shrink:0;"><path d="M6 9l6 6 6-6"/></svg>
+      </button>
+
+      <input type="hidden" id="ops-filter-region" value="ALL">
+
+      <div id="ops-state-menu" class="card view-dropdown-menu hidden">
+        <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1.5px solid #f1f5f9; padding-bottom:6px;">
+          <span style="font-size:10px; font-weight:800; color:#0f172a; text-transform:uppercase; letter-spacing:0.4px;">Select State</span>
+          <span onclick="OpsView.selectState('ALL')" style="font-size:9.5px; font-weight:800; color:#2563eb; cursor:pointer;" onmouseover="this.style.textDecoration='underline'" onmouseout="this.style.textDecoration='none'">Reset All</span>
+        </div>
+        <input type="text" id="ops-state-search-input" placeholder="Search state..." oninput="OpsView.filterStateListInDropdown(this.value)" style="font-size:11px; padding:6px 10px; border-radius:8px; border:1.5px solid #e2e8f0; background:#f8fafc; outline:none; font-weight:600; width:100%; color:#0f172a; box-shadow:inset 1.5px 1.5px 3px rgba(100, 116, 139, 0.1);">
+        <div id="ops-state-dropdown-list" style="max-height:210px; overflow-y:auto; display:flex; flex-direction:column; gap:2px; padding-right:2px;">
+        </div>
+      </div>
+    </div>
+
+    <!-- RIGHT: Actions -->
+    <div class="header__actions" style="gap:6px; align-items:center; display: flex; justify-content: flex-end; flex: 0 0 auto; order: 3;">
+      <!-- Modern Force Sync Button -->
+      <button class="btn" id="btn-refresh" aria-label="Refresh data" style="font-size:10.5px; font-weight:600; background:#ffffff; color:#334155; border:1px solid #cbd5e1; border-radius:6px; padding:2px 10px; height:26px; display:flex; align-items:center; gap:5px; box-shadow:0 1px 2px rgba(0,0,0,0.02); cursor:pointer;">
+        <svg viewBox="0 0 24 24" width="11" height="11" stroke="currentColor" stroke-width="2.2" fill="none"><path d="M21 12a9 9 0 11-9-9c2.52 0 4.93 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/></svg>
+        <span id="btn-refresh-text">Sync Data</span>
+      </button>
+
+      <!-- Full Screen Button -->
+      <button class="btn btn--icon" id="btn-fullscreen" aria-label="Toggle Full Screen" title="Toggle Full Screen" style="background:#ffffff; width:26px; height:26px; border-radius:50%; border:1px solid #cbd5e1; color:#475569; display:flex; align-items:center; justify-content:center;" onclick="if (!document.fullscreenElement) { document.documentElement.requestFullscreen(); this.innerHTML = '<svg viewBox=\'0 0 24 24\' width=\'13\' height=\'13\' stroke=\'currentColor\' stroke-width=\'2\' fill=\'none\'><polyline points=\'8 3 8 8 3 8\'/><polyline points=\'16 3 16 8 21 8\'/><polyline points=\'8 21 8 16 3 16\'/><polyline points=\'16 21 16 16 21 16\'/></svg>'; } else { document.exitFullscreen(); this.innerHTML = '<svg viewBox=\'0 0 24 24\' width=\'13\' height=\'13\' stroke=\'currentColor\' stroke-width=\'2\' fill=\'none\'><polyline points=\'15 3 21 3 21 9\'/><polyline points=\'9 21 3 21 3 15\'/><line x1=\'21\' y1=\'3\' x2=\'14\' y2=\'10\'/><line x1=\'3\' y1=\'21\' x2=\'10\' y2=\'14\'/></svg>'; }">
+        <svg viewBox="0 0 24 24" width="13" height="13" stroke="currentColor" stroke-width="2" fill="none"><polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/></svg>
+      </button>
+
+      <!-- Operator Name Chip & Profile Dropdown -->
+      <div style="position:relative; display:inline-block;">
+        <button class="btn" id="header-operator-name-chip" aria-label="Operator Profile" title="Click to view profile & options" onclick="App.toggleUserMenu(event)" style="background:#ffffff; height:26px; padding:0 8px; border-radius:99px; border:1px solid #cbd5e1; color:#475569; display:inline-flex; align-items:center; gap:4px; font-size:10.5px; font-weight:600; cursor:pointer; max-width:210px; white-space:nowrap;">
+          <svg viewBox="0 0 24 24" width="11" height="11" stroke="currentColor" stroke-width="2.2" fill="none" style="flex-shrink:0;"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+          <span id="header-operator-name-text" style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:110px;">Operator</span>
+          <span id="header-operator-role-badge" style="background:#ede9fe; color:#6d28d9; border:1px solid #c4b5fd; font-size:8px; font-weight:800; padding:1px 5px; border-radius:99px; letter-spacing:0.3px; flex-shrink:0; display:inline-flex;">ADMIN</span>
+          <svg viewBox="0 0 24 24" width="10" height="10" stroke="currentColor" stroke-width="2.5" fill="none" style="flex-shrink:0; opacity:0.6; margin-left:1px;"><polyline points="6 9 12 15 18 9"/></svg>
+        </button>
+
+        <!-- User Profile Dropdown Menu -->
+        <div class="user-profile-menu hidden" id="user-profile-menu" style="position:absolute; top:32px; right:0; width:220px; background:#ffffff; border:1px solid #cbd5e1; border-radius:10px; box-shadow:0 10px 25px -5px rgba(0,0,0,0.1), 0 8px 10px -6px rgba(0,0,0,0.05); z-index:1000; padding:6px;">
+          <div style="padding:8px 10px; border-bottom:1px solid #f1f5f9; margin-bottom:4px;">
+            <div style="display:flex; align-items:center; justify-content:space-between; gap:4px;">
+              <div id="user-menu-name" style="font-weight:700; font-size:12.5px; color:#0f172a; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">Kuldeep Singh Bisht</div>
+              <span id="user-menu-role-badge" style="background:#ede9fe; color:#6d28d9; border:1px solid #c4b5fd; font-size:8px; font-weight:800; padding:1px 5px; border-radius:99px; flex-shrink:0;">ADMIN</span>
+            </div>
+            <div id="user-menu-username" style="font-size:10.5px; color:#64748b; margin-top:2px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">@kuldeep</div>
+          </div>
+
+          <button type="button" class="user-menu-item" onclick="App.toggleUserMenu(false); App.promptOperatorName(true)" style="width:100%; display:flex; align-items:center; gap:8px; padding:7px 10px; border-radius:6px; border:none; background:transparent; font-size:11.5px; font-weight:600; color:#334155; cursor:pointer; text-align:left; transition:background 0.15s;" onmouseover="this.style.background='#f1f5f9'" onmouseout="this.style.background='transparent'">
+            <svg viewBox="0 0 24 24" width="13" height="13" stroke="#2563eb" stroke-width="2" fill="none"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+            <span>Change Name</span>
+          </button>
+
+          <button type="button" class="user-menu-item" onclick="App.toggleUserMenu(false); Auth.logout()" style="width:100%; display:flex; align-items:center; gap:8px; padding:7px 10px; border-radius:6px; border:none; background:transparent; font-size:11.5px; font-weight:600; color:#dc2626; cursor:pointer; text-align:left; margin-top:2px; transition:background 0.15s;" onmouseover="this.style.background='#fef2f2'" onmouseout="this.style.background='transparent'">
+            <svg viewBox="0 0 24 24" width="13" height="13" stroke="#dc2626" stroke-width="2" fill="none"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+            <span>Logout</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Settings Gear -->
+      <button class="btn btn--icon" id="btn-settings-gear" aria-label="Settings" style="background:#ffffff; width:26px; height:26px; border-radius:50%; border:1px solid #cbd5e1; color:#475569; display:flex; align-items:center; justify-content:center;">
+        <svg viewBox="0 0 24 24" width="13" height="13" stroke="currentColor" stroke-width="2" fill="none"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.6 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.6V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+      </button>
+    </div>
+  </header>
+
+  <div class="main-wrapper">
+    <main class="main-content" id="main-content">
+
+      <!-- CLINIC: ENTRY FORM -->
+      <section id="view-entry" class="view-section hidden">
+        <div class="card card--elevated" style="max-width:840px; margin:0 auto; padding:var(--sp-6);">
+          <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom: var(--sp-5); border-bottom: 1px solid var(--color-border); padding-bottom: var(--sp-4); flex-wrap:wrap; gap:10px;">
+            <div style="display:flex; align-items:center; gap: var(--sp-3);">
+              <div style="width:44px; height:44px; border-radius: var(--radius-md); background: var(--color-primary-light); display:flex; align-items:center; justify-content:center; color: var(--color-primary); flex-shrink:0;">
+                <svg viewBox="0 0 24 24" width="22" height="22" stroke="currentColor" stroke-width="2" fill="none"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/></svg>
+              </div>
+              <div>
+                <h2 style="font-weight: 800; font-size: var(--text-xl); color:var(--color-text);">Request New Sample Pickup</h2>
+                <p style="font-size: var(--text-xs); color: var(--color-text-muted); margin-top:2px;">Enter booking details & cold chain requirements for rider dispatch</p>
+              </div>
+            </div>
+          </div>
+
+          <form id="form-entry" novalidate>
+            <!-- Row 1: Core Booking & Patient Details -->
+            <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: var(--sp-3); margin-bottom: var(--sp-3);">
+              <div class="field">
+                <label class="field__label" for="bookingId">Booking ID *</label>
+                <input type="text" id="bookingId" class="field__input" placeholder="e.g. BK18409735" autocomplete="off">
+                <div class="field__error" id="error-bookingId" aria-live="polite"></div>
+              </div>
+              <div class="field">
+                <label class="field__label" for="patientName">Patient Name *</label>
+                <input type="text" id="patientName" class="field__input" placeholder="e.g. John Doe" autocomplete="off">
+                <div class="field__error" id="error-patientName" aria-live="polite"></div>
+              </div>
+              <div class="field">
+                <label class="field__label" for="patientAge">Patient Age</label>
+                <input type="number" id="patientAge" class="field__input" placeholder="e.g. 32" min="1" max="120">
+              </div>
+              <div class="field">
+                <label class="field__label" for="patientGender">Gender</label>
+                <select id="patientGender" class="field__input">
+                  <option value="">Select Gender...</option>
+                  <option value="Male" selected>Male</option>
+                  <option value="Female">Female</option>
+                  <option value="Other">Other</option>
+                </select>
+              </div>
+            </div>
+
+            <!-- Row 2: Test Profile, Collection Time & Cold Chain -->
+            <div style="display:grid; grid-template-columns: 2fr 1fr 1fr; gap: var(--sp-3); margin-bottom: var(--sp-3);">
+              <div class="field">
+                <label class="field__label" for="testName">Test / Sample Profile *</label>
+                <input type="text" id="testName" class="field__input" placeholder="e.g. STI Asymptomatic Package, CBC, KFT" autocomplete="off">
+                <div class="field__error" id="error-testName" aria-live="polite"></div>
+              </div>
+              <div class="field">
+                <label class="field__label" for="collectionTime">Sample Collection Time</label>
+                <input type="time" id="collectionTime" class="field__input">
+              </div>
+              <div class="field">
+                <label class="field__label" for="sampleRefrigerated">Refrigerated (Cold Chain)?</label>
+                <select id="sampleRefrigerated" class="field__input">
+                  <option value="Yes" selected>Yes (In Fridge)</option>
+                  <option value="No">No (Room Temp)</option>
+                </select>
+              </div>
+            </div>
+
+            <!-- Row 3: Remarks / Rider Instructions -->
+            <div class="field" style="margin-bottom: var(--sp-4);">
+              <label class="field__label" for="entryRemarks">Remarks / Special Logistics Instructions</label>
+              <input type="text" id="entryRemarks" class="field__input" placeholder="e.g. Fasting sample, collect before 2 PM, EDTA tube...">
+            </div>
+
+            <button type="submit" class="btn btn--primary btn--full" id="btn-submit-entry" style="height:44px; font-size:var(--text-sm); font-weight:800;">
+              <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2.5" fill="none"><path d="M22 2L11 13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+              Submit Pickup Request
+            </button>
+          </form>
+        </div>
+      </section>
+
+      <!-- CLINIC: PENDING LIST -->
+      <section id="view-pending" class="view-section hidden">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: var(--sp-3);">
+          <div>
+            <h2 style="font-weight: 800; font-size: var(--text-lg);">My Clinic Requests</h2>
+            <div style="font-size: var(--text-xs); color: var(--color-text-muted);">Real-time pickup status for your clinic only</div>
+          </div>
+          <span class="badge badge--count" id="count-pending">0</span>
+        </div>
+
+        <!-- Segmented Filter & View Switcher Bar for Clinic View -->
+        <div style="display:flex; gap:var(--sp-2); margin-bottom:var(--sp-4); align-items:center; justify-content:space-between; flex-wrap:wrap;">
+          <div style="display:flex; background:var(--color-surface-alt); padding:3px; border-radius:var(--radius-md); border:1px solid var(--color-border);">
+            <button class="seg-btn seg-btn--active" id="clinic-filter-pending" onclick="ClinicViews.setFilter('pending')">Pending (<span id="clinic-count-pending">0</span>)</button>
+            <button class="seg-btn" id="clinic-filter-completed" onclick="ClinicViews.setFilter('completed')">Picked Up (<span id="clinic-count-completed">0</span>)</button>
+            <button class="seg-btn" id="clinic-filter-all" onclick="ClinicViews.setFilter('all')">All (<span id="clinic-count-all">0</span>)</button>
+          </div>
+
+          <div style="display:flex; gap:var(--sp-2); align-items:center;">
+            <button class="btn btn--secondary btn--sm" onclick="BulkActions.selectAllPending()" style="font-size:11px; padding:4px 8px;">Select All Pending</button>
+            <button class="btn btn--ghost btn--sm" onclick="BulkActions.clear()" style="font-size:11px; padding:4px 6px;">Clear</button>
+
+            <!-- Windows Explorer View Switcher (Clinic View) -->
+            <div class="dropdown-wrapper" style="position:relative;">
+              <button class="btn btn--secondary btn--sm" id="btn-clinic-view-mode" onclick="ClinicViews.toggleViewMenu(event)" style="font-size:11px; padding:4px 10px; display:flex; align-items:center; gap:6px;">
+                <svg viewBox="0 0 24 24" width="13" height="13" stroke="currentColor" fill="none" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+                <span>View: <strong id="clinic-view-mode-label">Details</strong></span>
+                <svg viewBox="0 0 24 24" width="11" height="11" stroke="currentColor" fill="none"><path d="M6 9l6 6 6-6"/></svg>
+              </button>
+              <div id="clinic-view-menu" class="card view-dropdown-menu hidden" style="position:absolute; top:calc(100% + 4px); right:0; width:170px; z-index:95;">
+                <button class="view-menu-item view-menu-item--active" id="cview-opt-details" onclick="ClinicViews.setViewMode('details')">
+                  <div style="display:flex; align-items:center;">
+                    <svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+                    <span>Details (Rows)</span>
+                  </div>
+                  <span class="view-dot">&bull;</span>
+                </button>
+                <button class="view-menu-item" id="cview-opt-tiles" onclick="ClinicViews.setViewMode('tiles')">
+                  <div style="display:flex; align-items:center;">
+                    <svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+                    <span>Tiles (Cards)</span>
+                  </div>
+                </button>
+                <button class="view-menu-item" id="cview-opt-content" onclick="ClinicViews.setViewMode('content')">
+                  <div style="display:flex; align-items:center;">
+                    <svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/></svg>
+                    <span>Content (List)</span>
+                  </div>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div id="skeleton-pending" class="hidden">
+          <div class="skeleton skeleton--card"></div>
+          <div class="skeleton skeleton--card"></div>
+        </div>
+        <div id="list-pending" class="ops-rows-container"></div>
+      </section>
+
+      <!-- OPS: LOGISTICS DASHBOARD -->
+      <section id="view-dashboard" class="view-section hidden">
+        
+        <div class="dashboard-layout">
+          <!-- Sidebar -->
+          <aside class="dashboard-sidebar">
+            <div style="display:flex; flex-direction:column; gap:6px;">
+              <!-- 1. PRIMARY: PENDING SAMPLES CARD -->
+              <div class="stat-card stat-card--medibuddy stat-card--clickable" id="kpi-card-pending-main" onclick="OpsView.setKpiFilter('PENDING')" title="Click to filter pending pickups" style="padding:10px 8px; text-align:center;">
+                <div class="stat-card__value" id="stat-pending-total" style="font-size:26px; font-weight:900; line-height:1;">0</div>
+                <div class="stat-card__label" style="font-size:9px; font-weight:700; letter-spacing:0.5px; margin:3px 0 6px 0; text-transform:uppercase;">PENDING TO PICKUP</div>
+                <div style="display:flex; justify-content:center; align-items:center; gap:6px;">
+                  <span class="kpi-badge kpi-badge--old" id="kpi-badge-old" onclick="event.stopPropagation(); OpsView.setKpiFilter('PENDING_BACKLOG')" style="border-radius:99px; padding:2px 8px; font-size:9.5px; font-weight:700; cursor:pointer;">Old: <b id="stat-pending-backlog">0</b></span>
+                  <span style="opacity:0.5; font-weight:300;">|</span>
+                  <span class="kpi-badge kpi-badge--today" id="kpi-badge-today" onclick="event.stopPropagation(); OpsView.setKpiFilter('PENDING_TODAY')" style="border-radius:99px; padding:2px 8px; font-size:9.5px; font-weight:700; cursor:pointer;">Tdy: <b id="stat-pending-today">0</b></span>
+                </div>
+              </div>
+
+              <!-- 2. LAB REPORT STATUS & METRICS (Symmetrical 2x3 Grid) -->
+              <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px;">
+                <!-- 1. PENDING (Testing) -->
+                <div class="stat-card stat-card--medibuddy stat-card--clickable" id="kpi-card-lab-pending" onclick="OpsView.setKpiFilter('LAB_PENDING')" title="Click to filter lab pending / testing" style="padding:8px 6px; text-align:center; display:flex; flex-direction:column; justify-content:center; border-top:3px solid #ca8a04;">
+                  <div class="stat-card__value" id="stat-lab-pending" style="color:#ca8a04; font-size:18px; font-weight:800; line-height:1.1;">0</div>
+                  <div class="stat-card__label" style="font-size:9.5px; font-weight:750; letter-spacing:0.3px; margin-top:3px; display:flex; align-items:center; justify-content:center; gap:4px;">
+                    <span style="width:6px; height:6px; border-radius:50%; background:#ca8a04; display:inline-block; flex-shrink:0;"></span> PENDING
+                  </div>
+                </div>
+
+                <!-- 2. PARTIAL -->
+                <div class="stat-card stat-card--medibuddy stat-card--clickable" id="kpi-card-lab-partial" onclick="OpsView.setKpiFilter('LAB_PARTIAL')" title="Click to filter partial reports" style="padding:8px 6px; text-align:center; display:flex; flex-direction:column; justify-content:center; border-top:3px solid #9333ea;">
+                  <div class="stat-card__value" id="stat-lab-partial" style="color:#9333ea; font-size:18px; font-weight:800; line-height:1.1;">0</div>
+                  <div class="stat-card__label" style="font-size:9.5px; font-weight:750; letter-spacing:0.3px; margin-top:3px; display:flex; align-items:center; justify-content:center; gap:4px;">
+                    <span style="width:6px; height:6px; border-radius:50%; background:#9333ea; display:inline-block; flex-shrink:0;"></span> PARTIAL
+                  </div>
+                </div>
+
+                <!-- 3. CONSOLIDATED -->
+                <div class="stat-card stat-card--medibuddy stat-card--clickable" id="kpi-card-lab-consolidate" onclick="OpsView.setKpiFilter('LAB_CONSOLIDATE')" title="Click to filter consolidated / ready reports" style="padding:8px 6px; text-align:center; display:flex; flex-direction:column; justify-content:center; border-top:3px solid #16a34a;">
+                  <div class="stat-card__value" id="stat-lab-consolidate" style="color:#16a34a; font-size:18px; font-weight:800; line-height:1.1;">0</div>
+                  <div class="stat-card__label" style="font-size:9.5px; font-weight:750; letter-spacing:0.3px; margin-top:3px; display:flex; align-items:center; justify-content:center; gap:4px;">
+                    <span style="width:6px; height:6px; border-radius:50%; background:#16a34a; display:inline-block; flex-shrink:0;"></span> CONSOLIDATED
+                  </div>
+                </div>
+
+                <!-- 4. RESAMPLES -->
+                <div class="stat-card stat-card--medibuddy stat-card--clickable" id="kpi-card-resamples" onclick="OpsView.setKpiFilter('RESAMPLES')" title="Click to view duplicate booking / resample cases" style="padding:8px 6px; text-align:center; display:flex; flex-direction:column; justify-content:center; border-top:3px solid #f59e0b;">
+                  <div class="stat-card__value" id="stat-resamples" style="color:#f59e0b; font-size:18px; font-weight:800; line-height:1.1;">0</div>
+                  <div class="stat-card__label" style="font-size:9.5px; font-weight:750; letter-spacing:0.3px; margin-top:3px; display:flex; align-items:center; justify-content:center; gap:3px;">
+                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="flex-shrink:0;"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg> RESAMPLES
+                  </div>
+                </div>
+
+                <!-- 5. LAB DISMISSED -->
+                <div class="stat-card stat-card--medibuddy stat-card--clickable" id="kpi-card-lab-dismissed" onclick="OpsView.setKpiFilter('LAB_DISMISSED')" title="Click to view dismissed / cancelled bookings by lab" style="padding:8px 6px; text-align:center; display:flex; flex-direction:column; justify-content:center; border-top:3px solid #64748b;">
+                  <div class="stat-card__value" id="stat-lab-dismissed" style="color:#64748b; font-size:18px; font-weight:800; line-height:1.1;">0</div>
+                  <div class="stat-card__label" style="font-size:9.5px; font-weight:750; letter-spacing:0.3px; margin-top:3px; display:flex; align-items:center; justify-content:center; gap:4px;">
+                    <span style="width:6px; height:6px; border-radius:50%; background:#64748b; display:inline-block; flex-shrink:0;"></span> DISMISSED
+                  </div>
+                </div>
+
+                <!-- 6. ALL LOGS -->
+                <div class="stat-card stat-card--medibuddy stat-card--clickable" id="kpi-card-all" onclick="OpsView.clearAllFilters()" title="Click to view all monthly logs" style="padding:8px 6px; text-align:center; display:flex; flex-direction:column; justify-content:center; border-top:3px solid #003B73; position:relative;">
+                  <div class="stat-card__value" id="stat-all-logs" style="color:#0f172a; font-size:18px; font-weight:800; line-height:1.1;">0</div>
+                  <div class="stat-card__label" style="font-size:9.5px; font-weight:750; letter-spacing:0.3px; margin-top:3px; display:flex; align-items:center; justify-content:center; gap:4px;">
+                    ALL LOGS
+                  </div>
+                  <div id="sidebar-not-synced-badge" onclick="event.stopPropagation(); OpsView.setKpiFilter('PICKED_NOT_SYNCED');" style="display:none; font-size:8.5px; font-weight:750; padding:1px 5px; border-radius:99px; background:#fff7ed; color:#c2410c; border:1px solid #fdba74; cursor:pointer; margin-top:3px;" title="Click to filter picked up samples not yet synced to lab">
+                    <span id="stat-not-synced">0</span> unsynced
+                  </div>
+                </div>
+              </div>
+
+            <!-- DESKTOP EXTRAS (Hidden on mobile via CSS) -->
+            <div id="ops-city-summary-container" style="margin-top:8px; padding-top:8px; border-top:1px solid #e2e8f0;">
+              <div id="sidebar-summary-title" style="font-size:9px; font-weight:700; color:#334155; text-transform:uppercase; letter-spacing:0.4px; margin-bottom:6px;">State & City Overview</div>
+              <div id="ops-city-summary" style="display:flex; flex-direction:column; gap:3px;"></div>
+            </div>
+            
+            <!-- SIDEBAR LAB RECONCILIATION SHORTCUT -->
+            <div style="margin-top:8px; padding-top:8px; border-top:1px solid #e2e8f0;">
+              <button type="button" class="sidebar-reconcile-pill" id="btn-sidebar-view-reconcile" onclick="CsvReconcile.open()" title="Open Lab Reconciliation & WhatsApp Dispatch">
+                <div style="display:flex; align-items:center; gap:6px;">
+                  <svg viewBox="0 0 24 24" width="13" height="13" stroke="currentColor" fill="none" stroke-width="2.2"><path d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                  <span id="btn-sidebar-view-label">Lab Reconcile</span>
+                </div>
+                <span id="sidebar-csv-badge" class="badge badge--cold" style="display:none; font-size:8.5px; padding:1px 5px;"></span>
+              </button>
+            </div>
+          </div>
+        </aside>
+
+          <!-- Main Content -->
+          <div class="dashboard-main">
+            <!-- Compact Filter Bar -->
+            <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap; margin-bottom:4px;">
+              
+              <div class="seg-btn-group" id="ops-status-tabs" style="flex-shrink:0; background:#f1f5f9; border:1px solid #e2e8f0; padding:2px; border-radius:99px; display:flex; gap:2px; height:28px;">
+                <button class="seg-btn seg-btn--active" id="tab-status-pending" onclick="OpsView.setKpiFilter('PENDING')" style="font-size:10.5px; padding:2px 9px; font-weight:700; border-radius:99px; color:#0f172a;">
+                  Pending to Pickup (<span id="tab-count-pending">0</span>)
+                </button>
+                <button class="seg-btn" id="tab-status-lab-pending" onclick="OpsView.setKpiFilter('LAB_PENDING')" style="font-size:10.5px; padding:2px 9px; font-weight:600; border-radius:99px; color:#64748b; display:inline-flex; align-items:center; gap:4px;">
+                  <span style="width:6px; height:6px; border-radius:50%; background:#ca8a04; display:inline-block; flex-shrink:0;"></span>
+                  Lab Pending (<span id="tab-count-lab-pending">0</span>)
+                </button>
+                <button class="seg-btn" id="tab-status-partial" onclick="OpsView.setKpiFilter('LAB_PARTIAL')" style="font-size:10.5px; padding:2px 9px; font-weight:600; border-radius:99px; color:#64748b; display:inline-flex; align-items:center; gap:4px;">
+                  <span style="width:6px; height:6px; border-radius:50%; background:#a855f7; display:inline-block; flex-shrink:0;"></span>
+                  Partial (<span id="tab-count-partial">0</span>)
+                </button>
+                <button class="seg-btn" id="tab-status-consolidate" onclick="OpsView.setKpiFilter('LAB_CONSOLIDATE')" style="font-size:10.5px; padding:2px 9px; font-weight:600; border-radius:99px; color:#64748b; display:inline-flex; align-items:center; gap:4px;">
+                  <span style="width:6px; height:6px; border-radius:50%; background:#22c55e; display:inline-block; flex-shrink:0;"></span>
+                  Consolidated (<span id="tab-count-consolidate">0</span>)
+                </button>
+                <button class="seg-btn" id="tab-status-dismissed" onclick="OpsView.setKpiFilter('LAB_DISMISSED')" style="font-size:10.5px; padding:2px 9px; font-weight:600; border-radius:99px; color:#64748b; display:inline-flex; align-items:center; gap:4px;">
+                  <span style="width:6px; height:6px; border-radius:50%; background:#64748b; display:inline-block; flex-shrink:0;"></span>
+                  Dismissed (<span id="tab-count-dismissed">0</span>)
+                </button>
+                <button class="seg-btn" id="tab-status-resamples" onclick="OpsView.setKpiFilter('RESAMPLES')" style="font-size:10.5px; padding:2px 9px; font-weight:600; border-radius:99px; color:#64748b; display:inline-flex; align-items:center; gap:4px;">
+                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="vertical-align:-1px; flex-shrink:0;"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+                  Resamples (<span id="tab-count-resamples">0</span>)
+                </button>
+                <button class="seg-btn" id="tab-status-all" onclick="OpsView.clearAllFilters()" style="font-size:10.5px; padding:2px 9px; font-weight:600; border-radius:99px; color:#64748b;">
+                  All Logs (<span id="tab-count-all">0</span>)
+                </button>
+              </div>
+
+              <!-- Search Bar -->
+              <div id="ops-search-container" style="margin-left:auto; flex:0 1 280px; min-width:180px; display:flex; align-items:center; background:#ffffff; border:1px solid #cbd5e1; border-radius:99px; padding:2px 10px; box-shadow:0 1px 2px rgba(0,0,0,0.03); height:28px;">
+                <svg viewBox="0 0 24 24" width="12" height="12" stroke="#64748b" stroke-width="2.2" fill="none" style="margin-right:6px; flex-shrink:0;"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                <input type="text" id="ops-search" placeholder="Search ID, Name, Clinic, City..." style="border:none; background:transparent; width:100%; height:100%; font-size:11px; outline:none; font-weight:500; color:#0f172a;">
+              </div>
+              
+            </div>
+
+
+            <!-- List Actions (Date, Clinic Dropdown, View Switcher) -->
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px; flex-wrap:wrap; gap:6px;">
+              <!-- Left Controls: Date Range Filter + Multi-Select Clinic Filter -->
+              <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
+                <!-- Clean Modern Enterprise Date Range Filter -->
+                <div style="display:inline-flex; align-items:center; background:#ffffff; border:1px solid #cbd5e1; border-radius:8px; padding:0 4px; height:30px; box-shadow:0 1px 2px rgba(15,23,42,0.04); gap:0;">
+                  <div style="display:flex; align-items:center; padding:0 6px; gap:4px;">
+                    <svg viewBox="0 0 24 24" width="12" height="12" stroke="#64748b" stroke-width="2" fill="none" style="flex-shrink:0;"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+                    <input type="date" id="ops-date-from" onchange="OpsView.render()" style="font-size:11px; font-weight:600; color:#0f172a; border:none; background:transparent; outline:none; cursor:pointer; padding:0; width:105px; font-family:var(--font-sans);" title="From Date">
+                  </div>
+                  <div style="width:1px; height:16px; background:#e2e8f0; flex-shrink:0;"></div>
+                  <div style="display:flex; align-items:center; padding:0 6px;">
+                    <input type="date" id="ops-date-to" onchange="OpsView.render()" style="font-size:11px; font-weight:600; color:#0f172a; border:none; background:transparent; outline:none; cursor:pointer; padding:0; width:105px; font-family:var(--font-sans);" title="To Date">
+                  </div>
+                  <button onclick="document.getElementById('ops-date-from').value=''; document.getElementById('ops-date-to').value=''; OpsView.render()" style="background:#f1f5f9; border:1px solid #e2e8f0; width:20px; height:20px; display:flex; align-items:center; justify-content:center; cursor:pointer; color:#64748b; font-size:13px; font-weight:700; line-height:1; padding:0; border-radius:5px; flex-shrink:0;" title="Reset Date Filter">
+                    &times;
+                  </button>
+                </div>
+
+                <!-- Multi-Select Clinic Filter Dropdown -->
+                <div class="dropdown-wrapper" style="position:relative;" id="ops-clinic-filter-wrapper">
+                  <button type="button" class="btn btn--secondary btn--sm" id="btn-ops-clinic-filter" onclick="OpsView.toggleClinicMenu(event)" style="font-size:11px; font-weight:600; padding:2px 10px; height:30px; border-radius:8px; background:#ffffff; border:1px solid #cbd5e1; box-shadow:0 1px 2px rgba(15,23,42,0.04); color:#0f172a; display:flex; align-items:center; gap:5px; cursor:pointer;">
+                    <svg viewBox="0 0 24 24" width="11" height="11" stroke="#64748b" stroke-width="2.2" fill="none" style="flex-shrink:0;"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
+                    <span id="ops-clinic-filter-label" style="max-width:130px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">All Clinics</span>
+                    <svg viewBox="0 0 24 24" width="10" height="10" stroke="currentColor" fill="none" stroke-width="2.5" style="flex-shrink:0;"><path d="M6 9l6 6 6-6"/></svg>
+                  </button>
+
+                  <div id="ops-clinic-menu" class="card view-dropdown-menu hidden" style="position:absolute; top:calc(100% + 4px); left:0; width:260px; z-index:100; padding:8px; border-radius:12px; background:#ffffff; border:1px solid #e2e8f0; box-shadow:0 12px 30px -4px rgba(0,0,0,0.15), 0 0 0 1px rgba(0,0,0,0.03); display:flex; flex-direction:column; gap:6px;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #f1f5f9; padding-bottom:4px;">
+                      <span style="font-size:10px; font-weight:700; color:#0f172a; text-transform:uppercase; letter-spacing:0.3px;">Filter Clinics</span>
+                      <div style="display:flex; gap:6px;">
+                        <span onclick="OpsView.selectAllClinics()" style="font-size:9.5px; font-weight:700; color:#2563eb; cursor:pointer;" onmouseover="this.style.textDecoration='underline'" onmouseout="this.style.textDecoration='none'">Select All</span>
+                        <span style="color:#cbd5e1; font-size:9.5px;">|</span>
+                        <span onclick="OpsView.clearAllClinics()" style="font-size:9.5px; font-weight:700; color:#ef4444; cursor:pointer;" onmouseover="this.style.textDecoration='underline'" onmouseout="this.style.textDecoration='none'">Clear</span>
+                      </div>
+                    </div>
+                    <input type="text" id="ops-clinic-search-input" placeholder="Search clinics..." oninput="OpsView.filterClinicListInDropdown(this.value)" style="font-size:10.5px; padding:4px 8px; border-radius:6px; border:1px solid #e2e8f0; background:#f8fafc; outline:none; font-weight:500; width:100%; color:#0f172a;">
+                    <div id="ops-clinic-dropdown-list" style="max-height:200px; overflow-y:auto; display:flex; flex-direction:column; gap:1px; padding-right:2px;">
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- View Switcher -->
+              <div class="dropdown-wrapper" style="position:relative;">
+                <button class="btn btn--secondary btn--sm" id="btn-ops-view-mode" onclick="OpsView.toggleViewMenu(event)" style="font-size:11px; font-weight:600; padding:2px 10px; height:30px; border-radius:8px; background:#ffffff; border:1px solid #cbd5e1; box-shadow:0 1px 2px rgba(15,23,42,0.04); color:#0f172a; display:flex; align-items:center; gap:5px; cursor:pointer;">
+                  <span>View: <strong id="ops-view-mode-label">Tiles</strong></span>
+                  <svg viewBox="0 0 24 24" width="10" height="10" stroke="currentColor" fill="none" stroke-width="2.5"><path d="M6 9l6 6 6-6"/></svg>
+                </button>
+                <div id="ops-view-menu" class="card view-dropdown-menu hidden" style="position:absolute; top:calc(100% + 4px); right:0; width:140px; z-index:95;">
+                  <button class="view-menu-item" id="oview-opt-details" onclick="OpsView.setViewMode('details')">
+                    <div style="display:flex; align-items:center;">
+                      <svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+                      <span>Expandable Rows</span>
+                    </div>
+                  </button>
+                  <button class="view-menu-item view-menu-item--active" id="oview-opt-tiles" onclick="OpsView.setViewMode('tiles')">
+                    <div style="display:flex; align-items:center;">
+                      <svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+                      <span>Tiles (Cards)</span>
+                    </div>
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Data Container -->
+            <div id="skeleton-ops" class="hidden">
+              <div class="skeleton skeleton--card"></div>
+              <div class="skeleton skeleton--card"></div>
+            </div>
+            <div id="ops-bands-container"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- OPS: FULL-PAGE LAB RECONCILIATION & WHATSAPP GENERATOR -->
+      <section id="view-reconcile" class="view-section hidden">
+        <div class="reconcile-shell">
+          <input type="file" id="reconcile-file-input" accept=".csv,text/csv,.tsv,text/tab-separated-values" style="display:none;" onchange="CsvReconcile.handleFileSelect(event)">
+
+          <!-- UNIFIED COMMAND DECK (Zero Stacked Boxes!) -->
+          <div class="rec-command-deck">
+            <!-- Upper Tier: Nav, Title, Active File Chip & Master CTA -->
+            <div class="rec-deck-header">
+              <div class="rec-deck-left">
+                <button class="rec-back-btn" onclick="App.switchTab('dashboard')" title="Return to Dashboard">
+                  <svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" fill="none" stroke-width="2.5"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+                  <span>Dashboard</span>
+                </button>
+                <div class="rec-header-divider"></div>
+                <div class="rec-deck-title-group">
+                  <div class="rec-deck-title-row">
+                    <h2 class="rec-deck-title">Lab Reconciliation</h2>
+                    <span class="rec-live-badge"><span class="rec-live-dot"></span>Auto-Sync Active</span>
+                  </div>
+                  <p class="rec-deck-sub" id="rec-deck-subtitle">Reconcile Redcliffe drop-offs & dispatch hub-wise WhatsApp escalations</p>
+                </div>
+              </div>
+
+              <div class="rec-deck-right">
+                <!-- Active File Chip (hidden when no file loaded) -->
+                <div id="rec-file-chip" class="rec-file-chip hidden" onclick="document.getElementById('reconcile-file-input').click()" title="Click to replace Redcliffe CSV file">
+                  <svg viewBox="0 0 24 24" width="13" height="13" stroke="currentColor" fill="none" stroke-width="2.2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
+                  <span class="rec-file-chip-name" id="rec-file-chip-name">Redcliffe CSV</span>
+                  <span class="rec-file-chip-action">Replace</span>
+                </div>
+
+                <button class="rec-copy-all-btn" id="btn-copy-all-wa" onclick="CsvReconcile.copyAllWhatsAppMessages(this)" title="Copy WhatsApp message for all hubs in 1 click">
+                  <svg viewBox="0 0 24 24" width="13" height="13" stroke="currentColor" fill="none" stroke-width="2.2"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
+                  <span>Copy All Escalations</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Lower Tier: Hairline Connected Key Metrics Strip -->
+            <div class="rec-metrics-strip" id="rec-metrics-strip">
+              <div class="rec-metric-cell rec-metric-cell--total">
+                <div class="rec-metric-top">
+                  <span class="rec-metric-label">CSV Records</span>
+                </div>
+                <span class="rec-metric-val" id="rec-stat-total">0</span>
+                <span class="rec-metric-hint">Total drop-offs in CSV</span>
+              </div>
+              <div class="rec-metric-cell rec-metric-cell--inlab">
+                <div class="rec-metric-top">
+                  <span class="rec-metric-label">In Machine / Lab</span>
+                </div>
+                <span class="rec-metric-val" id="rec-stat-inlab">0</span>
+                <span class="rec-metric-hint">In testing / processed</span>
+              </div>
+              <div class="rec-metric-cell rec-metric-cell--synced">
+                <div class="rec-metric-top">
+                  <span class="rec-metric-label">Auto-Synced</span>
+                </div>
+                <span class="rec-metric-val" id="rec-stat-matched">0</span>
+                <span class="rec-metric-hint"><span class="rec-metric-tag-green" style="display:inline-flex; align-items:center; gap:2px;"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>Live Tracker</span></span>
+              </div>
+              <div class="rec-metric-cell rec-metric-cell--unpicked">
+                <div class="rec-metric-top">
+                  <span class="rec-metric-label">Unpicked / Delayed</span>
+                </div>
+                <span class="rec-metric-val" id="rec-stat-unpicked">0</span>
+                <span class="rec-metric-hint"><span class="rec-metric-tag-red">Action Required</span></span>
+              </div>
+            </div>
+
+            <!-- Inline 1-Click / Auto-Sync Confirmation Bar -->
+            <div id="rec-apply-strip" class="rec-deck-alert" style="display:none;"></div>
+          </div>
+
+          <!-- Modern Slim Drop Banner / Empty State -->
+          <div id="reconcile-drop-zone" class="rec-drop-hero" onclick="document.getElementById('reconcile-file-input').click()">
+            <div class="rec-drop-hero-icon">
+              <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" fill="none" stroke-width="2.2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M17 8l-5-5-5 5M12 3v12"/></svg>
+            </div>
+            <div class="rec-drop-hero-title">Drop Redcliffe CSV / Excel here</div>
+            <div class="rec-drop-hero-sub">or click to browse from computer. Auto-syncs in-lab samples instantly.</div>
+          </div>
+
+          <!-- Reconciliation Output Area -->
+          <div id="reconcile-results-area" class="hidden">
+            <!-- Hub Switcher Filter Section -->
+            <div class="rec-filter-section">
+              <div class="rec-filter-header">
+                <div class="rec-filter-title">
+                  <svg viewBox="0 0 24 24" width="15" height="15" stroke="#059669" fill="none" stroke-width="2.2"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
+                  <span>Dispatch By Hub</span>
+                </div>
+                <span class="rec-filter-sub" id="rec-hubs-summary-badge">0 Hubs · 0 Samples</span>
+              </div>
+              <div class="rec-hub-pills-bar" id="rec-hub-pills-bar"></div>
+            </div>
+
+            <!-- Container for Hub-Wise WhatsApp Cards OR Focused Table -->
+            <div id="rec-wa-cards-container"></div>
+          </div>
+
+        </div>
+      </section>
+
+      <!-- COMMON: SETTINGS -->
+      <section id="view-settings" class="view-section hidden">
+        <div class="card card--elevated" style="max-width:580px; margin:0 auto;">
+          <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom: var(--sp-5);">
+            <div style="display:flex; align-items:center; gap: var(--sp-3);">
+              <div style="width:44px; height:44px; border-radius: var(--radius-md); background: var(--color-surface-alt); display:flex; align-items:center; justify-content:center; color: var(--color-text-muted);">
+                <svg viewBox="0 0 24 24" width="22" height="22" stroke="currentColor" stroke-width="2" fill="none"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82"/></svg>
+              </div>
+              <h2 style="font-weight: 800; font-size: var(--text-lg);">Settings & Profile</h2>
+            </div>
+            <button class="btn btn--ghost btn--sm" onclick="App.switchTab('dashboard')">
+              &larr; Back to Dashboard
+            </button>
+          </div>
+
+          <!-- THEME & GLASS SKINS PALETTE -->
+          <div style="margin-bottom: var(--sp-5);">
+            <div class="field__label" style="margin-bottom: var(--sp-2);">Theme & Glass Skins (Saved automatically)</div>
+            <div class="card" style="display:flex; flex-direction:column; gap:12px;">
+              <!-- Mode: Light vs Dark -->
+              <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
+                <div>
+                  <div style="font-size:13px; font-weight:800;" id="settings-theme-label">Switch Mode</div>
+                  <div style="font-size:11px; color:var(--color-text-muted);">Toggle between Aurora Light and Obsidian Dark</div>
+                </div>
+                <button class="btn btn--secondary btn--sm" style="border-radius:999px; font-weight:700; padding:6px 14px; display:flex; align-items:center; gap:6px;" onclick="Theme.toggle()">
+                  <svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" stroke-width="2" fill="none"><circle cx="12" cy="12" r="10"/><path d="M12 2a10 10 0 010 20z" fill="currentColor"/></svg>
+                  Toggle Dark / Light
+                </button>
+              </div>
+
+              <div style="width:100%; height:1px; background:rgba(0,0,0,0.06);"></div>
+
+              <!-- Skins / Gradients -->
+              <div>
+                <div style="font-size:11px; font-weight:700; margin-bottom:8px; color:var(--color-text);">Liquid Glass & Enterprise Skins:</div>
+                <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(95px, 1fr)); gap:6px;">
+                  <button class="skin-btn js-skin-btn" data-skin="slate" onclick="ThemeManager.setGlassTheme('slate'); Toast.show('Applied Clean Slate Theme', 'info');">
+                    <span>Clean Slate</span>
+                    <span style="font-size:8.5px; opacity:0.75; font-weight:500;">Default</span>
+                  </button>
+                  <button class="skin-btn js-skin-btn" data-skin="aurora" onclick="ThemeManager.setGlassTheme('aurora'); Toast.show('Applied Aurora Pastel Skin', 'info');">
+                    <span>Aurora</span>
+                    <span style="font-size:8.5px; opacity:0.75; font-weight:500;">Pastel Mesh</span>
+                  </button>
+                  <button class="skin-btn js-skin-btn" data-skin="ocean" onclick="ThemeManager.setGlassTheme('ocean'); Toast.show('Applied Ocean Frost Skin', 'info');">
+                    <span>Ocean</span>
+                    <span style="font-size:8.5px; opacity:0.75; font-weight:500;">Cyan Frost</span>
+                  </button>
+                  <button class="skin-btn js-skin-btn" data-skin="emerald" onclick="ThemeManager.setGlassTheme('emerald'); Toast.show('Applied Emerald Skin', 'info');">
+                    <span>Emerald</span>
+                    <span style="font-size:8.5px; opacity:0.75; font-weight:500;">Mint Green</span>
+                  </button>
+                  <button class="skin-btn js-skin-btn" data-skin="sunset" onclick="ThemeManager.setGlassTheme('sunset'); Toast.show('Applied Sunset Skin', 'info');">
+                    <span>Sunset</span>
+                    <span style="font-size:8.5px; opacity:0.75; font-weight:500;">Amber Rose</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- ACCOUNT & USER INFO -->
+          <div style="margin-bottom: var(--sp-5);">
+            <div class="field__label" style="margin-bottom: var(--sp-2);">Account</div>
+            <div class="card" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:var(--sp-3);">
+              <div style="display:flex; align-items:center; gap:8px;">
+                <div id="header-scope-avatar" style="width:32px; height:32px; border-radius:50%; background:#0ea5e9; color:#fff; display:flex; align-items:center; justify-content:center; font-size:14px; font-weight:800;">
+                  <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                </div>
+                <div>
+                  <div id="header-scope-title" style="font-size:14px; font-weight:700; color:var(--color-text-secondary);">Logistics Hub</div>
+                  <div style="font-size:11px; color:var(--color-text-muted);">Current User</div>
+                </div>
+              </div>
+              <button class="btn btn--secondary btn--sm" style="color:var(--color-danger); border-radius:999px;" onclick="Auth.logout()">
+                Logout
+              </button>
+            </div>
+          </div>
+
+          <!-- OPERATOR ATTRIBUTION PROFILE -->
+          <div style="margin-bottom: var(--sp-5);">
+            <div class="field__label" style="margin-bottom: var(--sp-2);">Operator Name (Attribution)</div>
+            <div class="card" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:var(--sp-3);">
+              <div>
+                <div style="font-weight: 800; font-size: var(--text-base);" id="settings-operator-name">Operations User</div>
+                <div style="font-size: var(--text-xs); color: var(--color-text-muted);">Name recorded on Pickups & CSV Updates</div>
+              </div>
+              <button class="btn btn--secondary btn--sm" onclick="App.promptOperatorName(true)">
+                Edit Name
+              </button>
+            </div>
+          </div>
+
+          <!-- ROLE SWITCHER -->
+          <div style="margin-bottom: var(--sp-5);">
+            <div class="field__label" style="margin-bottom: var(--sp-2);">Active Operating Role</div>
+            <div class="card" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:var(--sp-3);">
+              <div>
+                <div style="font-weight: 800; font-size: var(--text-base);" id="settings-role-title">Clinic Staff View</div>
+                <div style="font-size: var(--text-xs); color: var(--color-text-muted);" id="settings-role-desc">Showing only your clinic's samples</div>
+              </div>
+              <button class="btn btn--secondary btn--sm" id="btn-toggle-role" onclick="App.toggleRole()">
+                Switch to Central Logistics
+              </button>
+            </div>
+          </div>
+          <!-- CLINIC PROFILE SECTION -->
+          <div style="margin-bottom: var(--sp-5);" id="settings-clinic-section">
+            <div class="field__label" style="margin-bottom: var(--sp-2);">Assigned Clinic Profile</div>
+            <div class="card">
+              <div style="font-weight: 800; font-size: var(--text-base); margin-bottom: 2px;" id="settings-clinic-name">-</div>
+              <div style="color: var(--color-text-muted); font-size: var(--text-sm);" id="settings-region-name">-</div>
+            </div>
+            <button class="btn btn--secondary btn--full" id="btn-reset-profile" onclick="App.showChangeClinicModal()" style="margin-top: var(--sp-3);">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+              Change Clinic Hub
+            </button>
+          </div>
+
+          <!-- OPS HOME STATE (OPERATIONS ONLY) -->
+          <div class="nav-ops-only hidden" id="settings-ops-home-section" style="margin-bottom: var(--sp-5);">
+            <div class="field__label" style="margin-bottom: var(--sp-2);">Your Home State</div>
+            <div class="card" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:var(--sp-3);">
+              <div>
+                <div style="font-weight: 800; font-size: var(--text-base);" id="settings-ops-home-region">-</div>
+                <div style="font-size: var(--text-xs); color: var(--color-text-muted);">The dashboard opens scoped to this state by default</div>
+              </div>
+              <button class="btn btn--secondary btn--sm" onclick="App.changeOpsHomeRegion()">Change Home State</button>
+            </div>
+          </div>
+
+          <!-- DATA SYNCHRONIZATION & UTILITIES (OPERATIONS ONLY) -->
+          <div class="nav-ops-only hidden" id="settings-ops-utilities" style="margin-bottom: var(--sp-5);">
+            <div class="field__label" style="margin-bottom: var(--sp-2);">Logistics Sync & Utilities</div>
+
+
+            <div class="card" style="border:1px solid var(--color-border); background:var(--color-surface-hover); margin-bottom:var(--sp-3);">
+              <div style="font-weight: 700; font-size: var(--text-sm); margin-bottom: var(--sp-1);">Sync Form Responses</div>
+              <div style="font-size: var(--text-xs); color: var(--color-text-muted); margin-bottom: var(--sp-3); line-height: 1.5;">
+                Sync recent form submissions from Google Form into master database.
+              </div>
+              <div style="display:flex; gap:var(--sp-2); flex-wrap:wrap;">
+                <button class="btn btn--secondary btn--sm" onclick="App.syncForm()">
+                  Sync Recent Responses
+                </button>
+                <button class="btn btn--secondary btn--sm" id="btn-rebuild-sync" onclick="App.rebuildTracker()">
+                  Clean Rebuild (Current Month)
+                </button>
+                <button class="btn btn--secondary btn--sm" onclick="CsvReconcile.open()">
+                  Import CSV Data
+                </button>
+              </div>
+            </div>
+
+
+          </div>
+
+          <div style="font-size: var(--text-xs); color: var(--color-text-muted); border-top: 1px solid var(--color-border); padding-top: var(--sp-3);">
+            AlloHealth &times; Redcliffe Labs Digital Logistics Platform v2.2
+          </div>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <!-- STICKY FLOATING BULK ACTION BAR -->
+  <div id="bulk-action-bar" class="bulk-bar hidden" role="region" aria-label="Bulk actions">
+    <span class="bulk-bar__badge" id="bulk-selection-count">0 Selected</span>
+    <button class="btn btn--sm" id="btn-bulk-copy-wa" onclick="BulkActions.copySelectedWhatsApp()" title="Copy WhatsApp message for logistics" style="background:#059669; color:#ffffff; font-weight:700; border-color:#059669; gap:5px;">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+      <span class="btn-text">Copy Logistics Msg</span>
+    </button>
+    <button class="btn btn--sm btn--secondary" id="btn-bulk-preview-wa" onclick="BulkActions.openWhatsAppModal()" title="Preview message before copying" style="font-weight:600; gap:4px;">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+      Preview
+    </button>
+    <button class="btn btn--sm" id="btn-bulk-dispatched" onclick="BulkActions.submitBulkStatus('Rider On The Way')">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+      Mark Rider On The Way
+    </button>
+    <button class="btn btn--sm" id="btn-bulk-pickedup" onclick="BulkActions.submitBulkStatus('Picked Up')">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+      Mark Picked Up
+    </button>
+    <button class="btn btn--sm" id="btn-bulk-lab-synced" onclick="BulkActions.submitBulkLabSynced()">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="margin-right:4px;"><polyline points="20 6 9 17 4 12"/></svg>
+      Mark Lab Synced
+    </button>
+    <button class="btn btn--sm nav-ops-only" id="btn-bulk-eta-open" onclick="BulkActions.openBulkEta()">
+      Batch ETA
+    </button>
+    <button class="btn btn--ghost btn--sm" id="btn-bulk-clear" onclick="BulkActions.clear()" title="Clear Selection">
+      Clear
+    </button>
+  </div>
+
+  <!-- BOTTOM TABS (Mobile / Compact Viewports) -->
+  <nav class="bottom-tabs" id="bottom-tabs">
+    <!-- Clinic Mode Tabs -->
+    <button class="tab nav-clinic-only tab--active" data-tab="entry">
+      <svg viewBox="0 0 24 24" stroke="currentColor" fill="none"><path d="M12 5v14M5 12h14"/></svg>
+      <span class="tab__label">New</span>
+    </button>
+    <button class="tab nav-clinic-only" data-tab="pending">
+      <svg viewBox="0 0 24 24" stroke="currentColor" fill="none"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+      <span class="tab__label">Requests</span>
+      <span class="tab__badge hidden" id="tab-badge-pending"></span>
+    </button>
+
+    <!-- Logistics Mode Tabs -->
+    <button class="tab nav-ops-only" data-tab="dashboard">
+      <svg viewBox="0 0 24 24" stroke="currentColor" fill="none"><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
+      <span class="tab__label">Logistics</span>
+    </button>
+    <button class="tab nav-ops-only" data-tab="reconcile">
+      <svg viewBox="0 0 24 24" stroke="currentColor" fill="none"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M17 8l-5-5-5 5M12 3v12"/></svg>
+      <span class="tab__label">Upload CSV</span>
+    </button>
+
+    <!-- Common Tab -->
+    <button class="tab" data-tab="settings">
+      <svg viewBox="0 0 24 24" stroke="currentColor" fill="none"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82"/></svg>
+      <span class="tab__label">Settings</span>
+    </button>
+  </nav>
+</div>
+
+
+
+<!-- GLOBAL DRAG & DROP OVERLAY (GSAP & MODERN GLASSMORPHISM) -->
+<div id="global-drag-overlay" class="global-drag-overlay hidden" aria-hidden="true">
+  <div class="global-drag-box">
+    <div class="global-drag-icon">
+      <svg class="global-drag-icon-svg" viewBox="0 0 24 24" width="34" height="34" stroke="currentColor" fill="none" stroke-width="2.2">
+        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+        <polyline points="17 8 12 3 7 8"></polyline>
+        <line x1="12" y1="3" x2="12" y2="15"></line>
+      </svg>
+    </div>
+    <div class="global-drag-title">Release File Anywhere</div>
+    <div class="global-drag-sub">Drop Redcliffe CSV or Excel export to reconcile & dispatch WhatsApp updates</div>
+    <div class="global-drag-pills">
+      <span class="global-drag-pill"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="vertical-align:-1px; margin-right:3px;"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>Auto-Sync In-Machine</span>
+      <span class="global-drag-pill"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:-1px; margin-right:3px;"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>WhatsApp Dispatch</span>
+      <span class="global-drag-pill"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:-1px; margin-right:3px;"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>Live Sheet Tracking</span>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST CONTAINER -->
+<div id="toast-container" aria-live="polite" style="z-index: 99999;"></div>
+
+<!-- ETA MODAL -->
+<div id="eta-modal" class="modal-overlay hidden">
+  <div class="modal-content" role="dialog" aria-modal="true">
+    <div class="modal-header">
+      <h2 style="font-weight: 800; font-size: var(--text-lg);">Update Logistics Info</h2>
+      <button class="btn btn--ghost btn--icon" id="btn-modal-close" aria-label="Close">
+        <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <form id="form-eta">
+      <input type="hidden" id="modal-sample-id">
+      <div class="field">
+        <label class="field__label" for="modal-eta">Pickup ETA</label>
+        <input type="text" id="modal-eta" class="field__input" placeholder="e.g. 30 mins, 14:00, Tomorrow 9 AM">
+      </div>
+      <div class="field">
+        <label class="field__label" for="modal-remarks">Logistics Remarks</label>
+        <textarea id="modal-remarks" class="field__input" rows="3" placeholder="Add delay reasons or rider notes..."></textarea>
+      </div>
+      <div style="display:flex; gap: var(--sp-2); margin-top: var(--sp-4);">
+        <button type="button" class="btn btn--secondary" id="btn-modal-cancel" style="flex:1;">Cancel</button>
+        <button type="submit" class="btn btn--primary" id="btn-submit-eta" style="flex:1;">Save Update</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- BATCH ETA MODAL -->
+<div id="bulk-eta-modal" class="modal-overlay hidden">
+  <div class="modal-content" role="dialog" aria-modal="true">
+    <div class="modal-header">
+      <div>
+        <h2 style="font-weight: 800; font-size: var(--text-lg);">Batch Logistics Update</h2>
+        <div style="font-size: var(--text-xs); color: var(--color-text-muted);">Updating <span id="modal-bulk-eta-count">0</span> selected samples</div>
+      </div>
+      <button class="btn btn--ghost btn--icon" id="btn-bulk-eta-close" aria-label="Close" onclick="document.getElementById('bulk-eta-modal').classList.add('hidden')">
+        <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <form id="form-bulk-eta" onsubmit="event.preventDefault(); BulkActions.submitBulkEta();">
+      <div class="field">
+        <label class="field__label" for="modal-bulk-eta">Batch Pickup ETA</label>
+        <input type="text" id="modal-bulk-eta" class="field__input" placeholder="e.g. In 45 mins, 3:00 PM">
+      </div>
+      <div class="field">
+        <label class="field__label" for="modal-bulk-remarks">Batch Remarks / Rider Assignment</label>
+        <textarea id="modal-bulk-remarks" class="field__input" rows="3" placeholder="e.g. Assigned to Rider Santosh for bulk clinic pickup..."></textarea>
+      </div>
+      <div style="display:flex; gap: var(--sp-2); margin-top: var(--sp-4);">
+        <button type="button" class="btn btn--secondary" onclick="document.getElementById('bulk-eta-modal').classList.add('hidden')" style="flex:1;">Cancel</button>
+        <button type="submit" class="btn btn--primary" id="btn-submit-bulk-eta" style="flex:1;">Apply to All Selected</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- BULK LOGISTICS WHATSAPP MESSAGE MODAL -->
+<div id="modal-bulk-whatsapp" class="modal-overlay hidden">
+  <div class="modal-content" style="max-width: 580px;" role="dialog" aria-modal="true">
+    <div class="modal-header">
+      <div>
+        <h2 style="font-weight: 800; font-size: var(--text-lg); display:flex; align-items:center; gap:8px;">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2.5"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
+          Logistics Dispatch Message
+        </h2>
+        <div style="font-size: var(--text-xs); color: var(--color-text-muted);">Ready to copy &amp; paste into WhatsApp for logistics / riders</div>
+      </div>
+      <button class="btn btn--ghost btn--icon" aria-label="Close" onclick="document.getElementById('modal-bulk-whatsapp').classList.add('hidden')">
+        <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div>
+      <div style="margin-bottom: 8px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:6px;">
+        <span style="font-size:11px; font-weight:700; color:var(--color-text-muted); text-transform:uppercase;">Message Text (<span id="modal-bulk-wa-count">0</span> Selected Bookings)</span>
+        <div style="display:flex; gap:6px;">
+          <button type="button" class="btn btn--secondary btn--sm" id="btn-wa-fmt-detailed" onclick="BulkActions.switchFormat('detailed')" style="font-size:10.5px; font-weight:700; padding:2px 8px; background:var(--color-primary-lighter); color:var(--color-primary); border-color:var(--color-primary-light);">Detailed Format</button>
+          <button type="button" class="btn btn--secondary btn--sm" id="btn-wa-fmt-compact" onclick="BulkActions.switchFormat('compact')" style="font-size:10.5px; font-weight:700; padding:2px 8px;">1-Line Format</button>
+        </div>
+      </div>
+      <textarea id="modal-bulk-wa-text" class="field__input" style="height:230px; font-family:var(--font-mono); font-size:11.5px; line-height:1.55; resize:vertical; padding:10px;" placeholder="Message preview will appear here..."></textarea>
+      
+      <div style="display:flex; gap: var(--sp-2); margin-top: var(--sp-4); flex-wrap:wrap;">
+        <button type="button" class="btn btn--secondary" onclick="document.getElementById('modal-bulk-whatsapp').classList.add('hidden')" style="flex:1;">Close</button>
+        <button type="button" class="btn btn--primary" id="btn-modal-wa-copy" onclick="BulkActions.copyFromModal(this)" style="flex:1.5; font-weight:700; gap:6px; background:#059669; border-color:#059669;">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+          Copy Message
+        </button>
+        <button type="button" class="btn btn--sm" onclick="BulkActions.shareSelectedWhatsApp()" style="background:#25D366; color:#ffffff; font-weight:700; border-color:#25D366; gap:6px; flex:1.2;">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
+          Share on WhatsApp
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- QC MODAL -->
+<div id="qc-modal" class="modal-overlay hidden">
+  <div class="modal-content" role="dialog" aria-modal="true">
+    <div class="modal-header">
+      <h2 style="font-weight: 800; font-size: var(--text-lg);">Redcliffe QC Status</h2>
+      <button class="btn btn--ghost btn--icon" id="btn-qc-modal-close" aria-label="Close">
+        <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <form id="form-qc">
+      <input type="hidden" id="modal-qc-sample-id">
+      <div class="field">
+        <label class="field__label" for="modal-qc-status">QC Status</label>
+        <select id="modal-qc-status" class="field__input">
+          <option value="">Select QC Outcome...</option>
+          <option value="Accepted">Accepted (QC Pass)</option>
+          <option value="Rejected - Hemolysed">Rejected - Hemolysed</option>
+          <option value="Rejected - Tube Leakage">Rejected - Tube Leakage</option>
+          <option value="Rejected - Quantity Insufficient">Rejected - Quantity Insufficient</option>
+          <option value="Rejected - Temperature Breach">Rejected - Temperature Breach</option>
+          <option value="Under Testing">Under Testing</option>
+        </select>
+      </div>
+      <div class="field">
+        <label class="field__label" for="modal-qc-remarks">Final QC Remarks</label>
+        <textarea id="modal-qc-remarks" class="field__input" rows="3" placeholder="Enter lab technician observations..."></textarea>
+      </div>
+      <div style="display:flex; gap: var(--sp-2); margin-top: var(--sp-4);">
+        <button type="button" class="btn btn--secondary" id="btn-qc-modal-cancel" style="flex:1;">Cancel</button>
+        <button type="submit" class="btn btn--primary" id="btn-submit-qc" style="flex:1;">Save QC</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- BATCH QC MODAL -->
+<div id="bulk-qc-modal" class="modal-overlay hidden">
+  <div class="modal-content" role="dialog" aria-modal="true">
+    <div class="modal-header">
+      <div>
+        <h2 style="font-weight: 800; font-size: var(--text-lg);">Batch QC Outcome</h2>
+        <div style="font-size: var(--text-xs); color: var(--color-text-muted);">Marking QC for <span id="modal-bulk-qc-count">0</span> selected samples</div>
+      </div>
+      <button class="btn btn--ghost btn--icon" id="btn-bulk-qc-close" aria-label="Close" onclick="document.getElementById('bulk-qc-modal').classList.add('hidden')">
+        <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <form id="form-bulk-qc" onsubmit="event.preventDefault(); BulkActions.submitBulkQc();">
+      <div class="field">
+        <label class="field__label" for="modal-bulk-qc-status">Batch QC Status</label>
+        <select id="modal-bulk-qc-status" class="field__input">
+          <option value="Accepted" selected>Accepted (QC Pass - Intact)</option>
+          <option value="Rejected - Hemolysed">Rejected - Hemolysed</option>
+          <option value="Rejected - Tube Leakage">Rejected - Tube Leakage</option>
+          <option value="Rejected - Quantity Insufficient">Rejected - Quantity Insufficient</option>
+          <option value="Rejected - Temperature Breach">Rejected - Temperature Breach</option>
+          <option value="Under Testing">Under Testing</option>
+        </select>
+      </div>
+      <div class="field">
+        <label class="field__label" for="modal-bulk-qc-remarks">Batch QC Remarks</label>
+        <textarea id="modal-bulk-qc-remarks" class="field__input" rows="3" placeholder="e.g. All batch tubes verified and accepted at lab..."></textarea>
+      </div>
+      <div style="display:flex; gap: var(--sp-2); margin-top: var(--sp-4);">
+        <button type="button" class="btn btn--secondary" onclick="document.getElementById('bulk-qc-modal').classList.add('hidden')" style="flex:1;">Cancel</button>
+        <button type="submit" class="btn btn--primary" id="btn-submit-bulk-qc" style="flex:1;">Apply Batch QC</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- FULL SAMPLE DETAIL MODAL -->
+<div id="photo-lightbox" class="lightbox-overlay hidden" onclick="if(event.target===this) Lightbox.close()">
+  <div class="lightbox-box">
+    <div class="lightbox-box__header">
+      <div>
+        <div style="font-weight:800; font-size:var(--text-sm);" id="lightbox-title">Sample Photo</div>
+        <div style="font-size:11px; color:var(--color-text-muted);" id="lightbox-subtitle"></div>
+      </div>
+      <button class="btn btn--icon" id="lightbox-close" onclick="Lightbox.close()" aria-label="Close">
+        <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2" fill="none"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="lightbox-box__img-wrap">
+      <img id="lightbox-img" src="" alt="Sample refrigerator photo" referrerpolicy="no-referrer" loading="lazy">
+    </div>
+    <div class="lightbox-box__footer">
+      <span style="font-size:11px; color:var(--color-text-muted);">For sample verification only — do not screenshot or share outside your team.</span>
+      <a class="btn btn--secondary btn--sm" id="lightbox-drive-link" href="#" target="_blank" rel="noopener">
+        <svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" fill="none" stroke-width="2" style="vertical-align:-2px; margin-right:4px;"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+        Open in Drive
+      </a>
+    </div>
+  </div>
+</div>
+
+<div id="detail-modal" class="modal-overlay hidden">
+  <div class="modal-content" style="max-width: 600px;" role="dialog" aria-modal="true">
+    <div class="modal-header">
+      <div>
+        <h2 style="font-weight: 800; font-size: var(--text-lg);" id="detail-booking-title">Booking Details</h2>
+        <div style="font-size: var(--text-xs); color: var(--color-text-muted);" id="detail-source-subtitle"></div>
+      </div>
+      <button class="btn btn--ghost btn--icon" id="btn-detail-modal-close" aria-label="Close">
+        <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div id="detail-modal-body" style="font-size: var(--text-sm); line-height: 1.6;"></div>
+  </div>
+</div>
+
+
+
+
+
+<!-- ============================================================
+     JAVASCRIPT
+     ============================================================ -->
+<div id="modal-change-clinic" class="modal-overlay hidden">
+  <div class="modal-content" style="max-width: 440px;" role="dialog" aria-modal="true">
+    <div class="modal-header">
+      <h3 style="font-weight: 800; font-size: var(--text-base); margin:0;">Select Your Clinic Location</h3>
+      <button class="btn btn--ghost btn--icon" onclick="document.getElementById('modal-change-clinic').classList.add('hidden')" aria-label="Close">
+        <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2" fill="none"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="field" style="margin-bottom: var(--sp-3);">
+      <label class="field__label" for="change-clinic-region">State / Region</label>
+      <select id="change-clinic-region" class="field__input" onchange="App.populateChangeClinics(this.value)">
+        <option value="">-- Choose State / Region --</option>
+        <option value="Karnataka">Karnataka (Bangalore)</option>
+        <option value="Maharashtra">Maharashtra (Mumbai / Pune / Nagpur)</option>
+        <option value="Gujarat">Gujarat (Ahmedabad / Surat / Vadodara)</option>
+        <option value="Tamil Nadu">Tamil Nadu (Chennai / Coimbatore)</option>
+        <option value="Telangana & AP">Telangana & AP (Hyderabad / Vizag)</option>
+        <option value="Jharkhand">Jharkhand (Ranchi / Jamshedpur)</option>
+        <option value="Rajasthan">Rajasthan (Jaipur / Udaipur)</option>
+        <option value="Madhya Pradesh">Madhya Pradesh (Bhopal / Indore)</option>
+        <option value="West Bengal">West Bengal (Kolkata)</option>
+        <option value="Punjab & Chandigarh">Punjab & Chandigarh</option>
+      </select>
+    </div>
+    <div class="field" style="margin-bottom: var(--sp-4);">
+      <label class="field__label" for="change-clinic-name">Assigned Clinic Hub</label>
+      <select id="change-clinic-name" class="field__input">
+        <option value="">-- First Select State Above --</option>
+      </select>
+    </div>
+    <div style="display:flex; gap: var(--sp-2);">
+      <button type="button" class="btn btn--secondary" style="flex:1;" onclick="document.getElementById('modal-change-clinic').classList.add('hidden')">Cancel</button>
+      <button type="button" class="btn btn--primary" style="flex:1;" onclick="App.submitChangeClinic()">Set Single Clinic View</button>
+    </div>
+  </div>
+</div>
+<div id="modal-change-home-region" class="modal-overlay hidden">
+  <div class="modal-content" style="max-width: 440px;" role="dialog" aria-modal="true">
+    <div class="modal-header">
+      <h3 style="font-weight: 800; font-size: var(--text-base); margin:0;">Set Your Home State</h3>
+      <button class="btn btn--ghost btn--icon" onclick="document.getElementById('modal-change-home-region').classList.add('hidden')" aria-label="Close">
+        <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2" fill="none"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="field" style="margin-bottom: var(--sp-4);">
+      <label class="field__label" for="change-home-region-select">Home State / Region</label>
+      <select id="change-home-region-select" class="field__input">
+        <option value="ALL">All States (Global)</option>
+        <option value="Karnataka">Karnataka (Bangalore)</option>
+        <option value="Maharashtra">Maharashtra (Mumbai / Pune / Nagpur)</option>
+        <option value="Gujarat">Gujarat (Ahmedabad / Surat / Vadodara)</option>
+        <option value="Tamil Nadu">Tamil Nadu (Chennai / Coimbatore)</option>
+        <option value="Telangana & AP">Telangana & AP (Hyderabad / Vizag)</option>
+        <option value="Jharkhand">Jharkhand (Ranchi / Jamshedpur)</option>
+        <option value="Rajasthan">Rajasthan (Jaipur / Udaipur)</option>
+        <option value="Madhya Pradesh">Madhya Pradesh (Bhopal / Indore)</option>
+        <option value="West Bengal">West Bengal (Kolkata)</option>
+        <option value="Punjab & Chandigarh">Punjab & Chandigarh</option>
+      </select>
+    </div>
+    <div style="display:flex; gap: var(--sp-2);">
+      <button type="button" class="btn btn--secondary" style="flex:1;" onclick="document.getElementById('modal-change-home-region').classList.add('hidden')">Cancel</button>
+      <button type="button" class="btn btn--primary" style="flex:1;" onclick="App.submitChangeHomeRegion()">Save Home State</button>
+    </div>
+  </div>
+</div>
+<!-- OPERATOR IDENTIFICATION POPUP -->
+<div id="modal-operator-name" class="modal-overlay hidden" style="z-index: 10000; background:rgba(0,0,0,0.65);">
+  <div class="modal-content" style="max-width: 400px; text-align:center; padding:24px 20px; position:relative;" role="dialog" aria-modal="true">
+    <button type="button" id="modal-operator-name-close-btn" onclick="document.getElementById('modal-operator-name').classList.add('hidden')" style="position:absolute; top:12px; right:12px; border:none; background:transparent; color:#94a3b8; cursor:pointer; padding:4px;" title="Close">
+      <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </button>
+    <div style="width:48px; height:48px; border-radius:50%; background:var(--color-primary-lighter); color:var(--color-primary); display:flex; align-items:center; justify-content:center; margin:0 auto 12px auto;">
+      <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" fill="none" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+    </div>
+    <h3 id="modal-operator-name-title" style="font-weight: 800; font-size: 16px; margin-bottom: 6px; color:var(--color-text);">Operator Profile & Settings</h3>
+    <p id="modal-operator-name-desc" style="font-size: 11px; color:var(--color-text-muted); margin-bottom: 16px; line-height: 1.4;">
+      Update your operator name or logout from your session.
+    </p>
+    <form id="form-operator-name" onsubmit="event.preventDefault(); App.saveOperatorName();">
+      <div class="field" style="text-align:left; margin-bottom: 14px;">
+        <label class="field__label" for="input-operator-name">Your Full Name</label>
+        <input type="text" id="input-operator-name" class="field__input" placeholder="Enter your full name (e.g. Rahul Sharma)" required style="height:38px; font-weight:700;">
+      </div>
+      <button type="submit" class="btn btn--primary btn--full" style="height:38px; font-weight:800; font-size:13px; margin-bottom:8px;">Save Name</button>
+      <div style="display:flex; gap:8px;">
+        <button type="button" id="modal-operator-name-cancel-btn" class="btn btn--secondary" style="flex:1; height:34px; font-size:12px;" onclick="document.getElementById('modal-operator-name').classList.add('hidden')">Cancel</button>
+        <button type="button" class="btn btn--danger" style="flex:1; height:34px; font-size:12px; background:#dc2626; color:#ffffff;" onclick="document.getElementById('modal-operator-name').classList.add('hidden'); Auth.logout();">
+          <svg viewBox="0 0 24 24" width="13" height="13" stroke="currentColor" stroke-width="2" fill="none" style="margin-right:4px;"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+          Logout
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+  <script src="allo-gsap.min.js?v=3.12.5"></script>
+  <script src="allo-app.min.js?v=1"></script>
+</body>
+</html>

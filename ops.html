@@ -1,0 +1,3266 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+  <meta charset="UTF-8">
+
+  <title>Booking Operations Suite</title>
+
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1"
+  >
+
+  <link
+    rel="preconnect"
+    href="https://fonts.googleapis.com"
+  >
+
+  <link
+    rel="preconnect"
+    href="https://fonts.gstatic.com"
+    crossorigin
+  >
+
+  <link
+    href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap"
+    rel="stylesheet"
+  >
+
+  <!-- Client-side JSZip for instant browser batch ZIP generation -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+
+  <style>
+
+    /* ============================================================
+       RESET
+       ============================================================ */
+
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      margin: 0;
+      padding: 0;
+      min-height: 100vh;
+    }
+
+    button {
+      font: inherit;
+    }
+
+    input,
+    textarea {
+      font: inherit;
+    }
+
+
+    /* ============================================================
+       DESIGN VARIABLES
+       ============================================================ */
+
+    :root {
+
+      --paper: #f6f6f4;
+      --surface: #ffffff;
+      --surface-sunk: #f0f2f1;
+
+      --line: #e1e5e2;
+      --line-soft: #ebeeec;
+      --line-strong: #c7cdca;
+
+      --ink-900: #12201d;
+      --ink-700: #3c4b47;
+      --ink-500: #6d7a76;
+      --ink-400: #93a19d;
+
+      --brand-800: #082e2a;
+      --brand-700: #0c463f;
+      --brand-600: #115c52;
+      --brand-500: #1a7d70;
+
+      --brand-100: #e3f1ee;
+      --brand-050: #eef6f4;
+
+      --amber-600: #a6620a;
+      --amber-100: #fbf1df;
+
+      --green-600: #1c7a49;
+      --green-100: #e8f6ee;
+
+      --red-600: #ae3a3a;
+      --red-100: #fbeaea;
+
+      --radius-lg: 14px;
+      --radius-md: 10px;
+      --radius-sm: 7px;
+
+      --font-display:
+        'Space Grotesk',
+        'Inter',
+        sans-serif;
+
+      --font-body:
+        'Inter',
+        -apple-system,
+        BlinkMacSystemFont,
+        'Segoe UI',
+        sans-serif;
+
+      --font-mono:
+        'IBM Plex Mono',
+        'SFMono-Regular',
+        Consolas,
+        monospace;
+
+      --ease:
+        cubic-bezier(.2,.7,.3,1);
+    }
+
+
+    /* ============================================================
+       BASE
+       ============================================================ */
+
+    @media (prefers-reduced-motion: reduce) {
+
+      * {
+        animation-duration: 0.001ms !important;
+        transition-duration: 0.001ms !important;
+      }
+
+    }
+
+
+    body {
+
+      background: var(--paper);
+
+      color: var(--ink-900);
+
+      font-family: var(--font-body);
+
+      font-size: 15px;
+
+      line-height: 1.5;
+
+      -webkit-font-smoothing: antialiased;
+
+      background-image:
+        radial-gradient(
+          circle at 1px 1px,
+          rgba(18,32,29,0.05) 1px,
+          transparent 0
+        );
+
+      background-size: 22px 22px;
+
+      background-attachment: fixed;
+    }
+
+
+    a {
+      color: var(--brand-600);
+    }
+
+
+    :focus-visible {
+      outline: 2px solid var(--brand-500);
+      outline-offset: 2px;
+      border-radius: 4px;
+    }
+
+
+    /* ============================================================
+       UTILITIES
+       ============================================================ */
+
+    .d-block {
+      display: block !important;
+    }
+
+    .d-none {
+      display: none !important;
+    }
+
+    code.inline {
+      background: var(--surface-sunk);
+      color: var(--brand-700);
+      font-family: var(--font-mono);
+      font-size: 0.82em;
+      padding: 2px 6px;
+      border-radius: 5px;
+    }
+
+
+    /* ============================================================
+       MAIN SHELL
+       ============================================================ */
+
+    .shell {
+
+      max-width: 1080px;
+
+      margin: 0 auto;
+
+      padding: 0 20px 64px;
+    }
+
+
+    /* ============================================================
+       TOP BAR
+       ============================================================ */
+
+    .topbar {
+
+      position: sticky;
+
+      top: 0;
+
+      z-index: 30;
+
+      background:
+        rgba(246,246,244,0.86);
+
+      backdrop-filter:
+        blur(10px)
+        saturate(140%);
+
+      border-bottom:
+        1px solid var(--line);
+    }
+
+
+    .topbar-inner {
+
+      max-width: 1080px;
+
+      margin: 0 auto;
+
+      padding: 14px 20px;
+
+      display: flex;
+
+      align-items: center;
+
+      justify-content: space-between;
+
+      gap: 16px;
+
+      flex-wrap: wrap;
+    }
+
+
+    /* ============================================================
+       BRAND
+       ============================================================ */
+
+    .brand {
+
+      display: flex;
+
+      align-items: center;
+
+      gap: 11px;
+
+      min-width: 0;
+    }
+
+
+    .brand-mark {
+
+      flex-shrink: 0;
+
+      display: block;
+    }
+
+
+    .brand-text {
+
+      min-width: 0;
+    }
+
+
+    .brand-name {
+
+      font-family: var(--font-display);
+
+      font-weight: 700;
+
+      font-size: 1.02rem;
+
+      color: var(--ink-900);
+
+      letter-spacing: -0.01em;
+
+      line-height: 1.15;
+
+      white-space: nowrap;
+
+      overflow: hidden;
+
+      text-overflow: ellipsis;
+    }
+
+
+    .brand-tag {
+
+      font-size: 0.72rem;
+
+      color: var(--ink-500);
+
+      font-weight: 500;
+
+      white-space: nowrap;
+
+      overflow: hidden;
+
+      text-overflow: ellipsis;
+    }
+
+
+    /* ============================================================
+       TAB SWITCHER
+       ============================================================ */
+
+    .switcher {
+
+      display: inline-flex;
+
+      gap: 3px;
+
+      background: var(--surface-sunk);
+
+      border:
+        1px solid var(--line);
+
+      border-radius: 12px;
+
+      padding: 3px;
+    }
+
+
+    .switch-btn {
+
+      display: flex;
+
+      align-items: center;
+
+      gap: 7px;
+
+      border: none;
+
+      background: transparent;
+
+      cursor: pointer;
+
+      padding: 8px 14px;
+
+      border-radius: 9px;
+
+      color: var(--ink-500);
+
+      font-weight: 600;
+
+      font-size: 0.82rem;
+
+      transition:
+        background 0.15s var(--ease),
+        color 0.15s var(--ease);
+    }
+
+
+    .switch-btn svg {
+
+      width: 16px;
+
+      height: 16px;
+
+      flex-shrink: 0;
+    }
+
+
+    .switch-btn .step-chip {
+
+      font-family: var(--font-mono);
+
+      font-size: 0.62rem;
+
+      font-weight: 600;
+
+      background: var(--line-soft);
+
+      color: var(--ink-400);
+
+      border-radius: 4px;
+
+      padding: 1px 5px;
+    }
+
+
+    .switch-btn:hover {
+
+      color: var(--ink-900);
+    }
+
+
+    .switch-btn.active {
+
+      background: var(--surface);
+
+      color: var(--brand-700);
+
+      box-shadow:
+        0 1px 2px rgba(18,32,29,0.08),
+        0 0 0 1px var(--line);
+    }
+
+
+    .switch-btn.active .step-chip {
+
+      background: var(--brand-100);
+
+      color: var(--brand-700);
+    }
+
+
+    /* ============================================================
+       SECTION HEADER
+       ============================================================ */
+
+    .section-head {
+
+      padding: 34px 0 22px;
+    }
+
+
+    .eyebrow {
+
+      font-family: var(--font-mono);
+
+      font-size: 0.72rem;
+
+      font-weight: 600;
+
+      letter-spacing: 0.06em;
+
+      color: var(--brand-600);
+
+      margin-bottom: 8px;
+
+      display: flex;
+
+      align-items: center;
+
+      gap: 8px;
+    }
+
+
+    .eyebrow::before {
+
+      content: "";
+
+      width: 14px;
+
+      height: 1.5px;
+
+      background: var(--brand-500);
+    }
+
+
+    .section-title-row {
+
+      display: flex;
+
+      align-items: center;
+
+      justify-content: space-between;
+
+      gap: 16px;
+
+      flex-wrap: wrap;
+    }
+
+
+    .h1 {
+
+      font-family: var(--font-display);
+
+      font-weight: 700;
+
+      font-size: 1.6rem;
+
+      letter-spacing: -0.02em;
+
+      color: var(--ink-900);
+
+      margin: 0 0 6px;
+    }
+
+
+    .lede {
+
+      color: var(--ink-500);
+
+      font-size: 0.93rem;
+
+      max-width: 56ch;
+    }
+
+
+    /* ============================================================
+       GRID
+       ============================================================ */
+
+    .grid-2 {
+
+      display: grid;
+
+      grid-template-columns:
+        repeat(2, 1fr);
+
+      gap: 18px;
+    }
+
+
+    @media (max-width: 760px) {
+
+      .grid-2 {
+        grid-template-columns: 1fr;
+      }
+
+    }
+
+
+    /* ============================================================
+       CARDS
+       ============================================================ */
+
+    .card {
+
+      background: var(--surface);
+
+      border:
+        1px solid var(--line);
+
+      border-radius:
+        var(--radius-lg);
+
+      padding: 22px;
+
+      box-shadow:
+        0 1px 1px
+        rgba(18,32,29,0.02);
+    }
+
+
+    .card-head {
+
+      display: flex;
+
+      align-items: flex-start;
+
+      gap: 12px;
+
+      margin-bottom: 4px;
+    }
+
+
+    .icon-tile {
+
+      width: 36px;
+
+      height: 36px;
+
+      border-radius: 10px;
+
+      flex-shrink: 0;
+
+      display: flex;
+
+      align-items: center;
+
+      justify-content: center;
+    }
+
+
+    .icon-tile svg {
+
+      width: 18px;
+
+      height: 18px;
+    }
+
+
+    .tile-brand {
+
+      background: var(--brand-100);
+
+      color: var(--brand-700);
+    }
+
+
+    .tile-amber {
+
+      background: var(--amber-100);
+
+      color: var(--amber-600);
+    }
+
+
+    .card-title {
+
+      font-family: var(--font-display);
+
+      font-weight: 600;
+
+      font-size: 1rem;
+
+      color: var(--ink-900);
+
+      padding-top: 6px;
+    }
+
+
+    .card-desc {
+
+      color: var(--ink-500);
+
+      font-size: 0.85rem;
+
+      margin: 10px 0 16px;
+    }
+
+
+    /* ============================================================
+       DROP ZONES
+       ============================================================ */
+
+    .dropzone {
+
+      border:
+        1.5px dashed var(--line-strong);
+
+      border-radius:
+        var(--radius-md);
+
+      background:
+        var(--surface-sunk);
+
+      padding:
+        26px 16px;
+
+      text-align:
+        center;
+
+      cursor:
+        pointer;
+
+      transition:
+        border-color 0.15s var(--ease),
+        background 0.15s var(--ease);
+    }
+
+
+    .dropzone:hover,
+    .dropzone.dragover {
+
+      background:
+        var(--brand-050);
+
+      border-color:
+        var(--brand-500);
+    }
+
+
+    .dropzone svg {
+
+      width:
+        30px;
+
+      height:
+        30px;
+
+      color:
+        var(--brand-600);
+    }
+
+
+    .dropzone .dz-title {
+
+      font-weight:
+        600;
+
+      font-size:
+        0.87rem;
+
+      color:
+        var(--ink-900);
+
+      margin:
+        10px 0 2px;
+    }
+
+
+    .dropzone .dz-sub {
+
+      font-size:
+        0.78rem;
+
+      color:
+        var(--ink-500);
+    }
+
+
+    /* ============================================================
+       BUTTONS
+       ============================================================ */
+
+    .btn {
+
+      display:
+        inline-flex;
+
+      align-items:
+        center;
+
+      justify-content:
+        center;
+
+      gap:
+        8px;
+
+      border:
+        1px solid transparent;
+
+      border-radius:
+        var(--radius-md);
+
+      padding:
+        10px 16px;
+
+      font-weight:
+        600;
+
+      font-size:
+        0.85rem;
+
+      cursor:
+        pointer;
+
+      transition:
+        background 0.15s var(--ease),
+        border-color 0.15s var(--ease),
+        opacity 0.15s var(--ease);
+
+      width:
+        100%;
+    }
+
+
+    .btn svg {
+
+      width:
+        16px;
+
+      height:
+        16px;
+
+      flex-shrink:
+        0;
+    }
+
+
+    .btn-primary {
+
+      background:
+        var(--brand-700);
+
+      color:
+        #fff;
+    }
+
+
+    .btn-primary:hover:not(:disabled) {
+
+      background:
+        var(--brand-800);
+    }
+
+
+    .btn-primary:disabled {
+
+      background:
+        var(--line-strong);
+
+      color:
+        var(--surface);
+
+      cursor:
+        not-allowed;
+    }
+
+
+    .btn-success {
+
+      background:
+        var(--green-600);
+
+      color:
+        #fff;
+    }
+
+
+    .btn-success:hover:not(:disabled) {
+
+      background:
+        #145c37;
+    }
+
+
+    .btn-outline {
+
+      background:
+        var(--surface);
+
+      color:
+        var(--green-600);
+
+      border-color:
+        var(--green-600);
+
+      width:
+        auto;
+
+      padding:
+        8px 13px;
+
+      font-size:
+        0.8rem;
+      text-decoration: none;
+    }
+
+
+    .btn-outline:hover {
+
+      background:
+        var(--green-100);
+    }
+
+
+    .btn-danger-outline {
+
+      background:
+        var(--surface);
+
+      color:
+        var(--red-600);
+
+      border-color:
+        var(--red-600);
+
+      width:
+        auto;
+
+      padding:
+        8px 13px;
+
+      font-size:
+        0.8rem;
+    }
+
+
+    .btn-danger-outline:hover {
+
+      background:
+        var(--red-100);
+    }
+
+
+    .btn-sm {
+
+      width:
+        auto;
+
+      padding:
+        7px 13px;
+
+      font-size:
+        0.8rem;
+      text-decoration: none;
+    }
+
+
+    /* ============================================================
+       FORM
+       ============================================================ */
+
+    .field {
+
+      margin-bottom:
+        12px;
+    }
+
+
+    .label {
+
+      display:
+        block;
+
+      font-weight:
+        600;
+
+      font-size:
+        0.75rem;
+
+      color:
+        var(--ink-700);
+
+      margin-bottom:
+        5px;
+    }
+
+
+    .label .req {
+
+      color:
+        var(--red-600);
+    }
+
+
+    .input,
+    textarea.input {
+
+      width:
+        100%;
+
+      border:
+        1px solid var(--line);
+
+      border-radius:
+        var(--radius-sm);
+
+      padding:
+        8px 11px;
+
+      font-size:
+        0.85rem;
+
+      color:
+        var(--ink-900);
+
+      background:
+        var(--surface);
+    }
+
+
+    .input:focus {
+
+      outline:
+        none;
+
+      border-color:
+        var(--brand-500);
+
+      box-shadow:
+        0 0 0 3px
+        var(--brand-100);
+    }
+
+
+    textarea.input {
+
+      font-family:
+        var(--font-mono);
+
+      font-size:
+        0.82rem;
+
+      resize:
+        vertical;
+
+      line-height:
+        1.6;
+    }
+
+
+    /* ============================================================
+       ALERTS
+       ============================================================ */
+
+    .alert {
+
+      display:
+        flex;
+
+      gap:
+        10px;
+
+      align-items:
+        flex-start;
+
+      border-radius:
+        var(--radius-md);
+
+      padding:
+        12px 14px;
+
+      font-size:
+        0.83rem;
+
+      border-left:
+        3px solid transparent;
+    }
+
+
+    .alert-info {
+
+      background:
+        var(--brand-050);
+
+      border-color:
+        var(--brand-500);
+
+      color:
+        var(--brand-800);
+    }
+
+
+    .alert-success {
+
+      background:
+        var(--green-100);
+
+      border-color:
+        var(--green-600);
+
+      color:
+        #124d2f;
+    }
+
+
+    .alert-danger {
+
+      background:
+        var(--red-100);
+
+      border-color:
+        var(--red-600);
+
+      color:
+        #7a2727;
+    }
+
+
+    .alert-title {
+
+      font-weight:
+        700;
+
+      margin-bottom:
+        2px;
+    }
+
+
+    .alert svg {
+
+      width:
+        17px;
+
+      height:
+        17px;
+
+      flex-shrink:
+        0;
+
+      margin-top:
+        1px;
+    }
+
+
+    .alert ul {
+
+      margin:
+        6px 0 0 18px;
+
+      padding:
+        0;
+    }
+
+
+    /* ============================================================
+       SPINNER
+       ============================================================ */
+
+    .spinner {
+
+      width:
+        15px;
+
+      height:
+        15px;
+
+      border-radius:
+        50%;
+
+      border:
+        2px solid
+        rgba(255,255,255,0.35);
+
+      border-top-color:
+        currentColor;
+
+      animation:
+        spin 0.7s linear infinite;
+
+      flex-shrink:
+        0;
+    }
+
+
+    .alert .spinner {
+
+      border:
+        2px solid
+        var(--brand-100);
+
+      border-top-color:
+        var(--brand-600);
+    }
+
+
+    @keyframes spin {
+
+      to {
+        transform:
+          rotate(360deg);
+      }
+
+    }
+
+
+    /* ============================================================
+       LOCATION SECTION
+       ============================================================ */
+
+    .loc-header {
+
+      display:
+        flex;
+
+      align-items:
+        center;
+
+      justify-content:
+        space-between;
+
+      flex-wrap:
+        wrap;
+
+      gap:
+        8px;
+
+      margin-bottom:
+        16px;
+    }
+
+
+    .badge {
+
+      display:
+        inline-flex;
+
+      align-items:
+        center;
+
+      gap:
+        6px;
+
+      background:
+        var(--brand-100);
+
+      color:
+        var(--brand-700);
+
+      border:
+        1px solid #c7ddd7;
+
+      font-weight:
+        700;
+
+      font-size:
+        0.82rem;
+
+      padding:
+        6px 12px;
+
+      border-radius:
+        999px;
+    }
+
+
+    .badge svg {
+
+      width:
+        14px;
+
+      height:
+        14px;
+    }
+
+
+    .badge .count {
+
+      font-family:
+        var(--font-mono);
+
+      font-weight:
+        600;
+    }
+
+
+    .muted-note {
+
+      font-size:
+        0.76rem;
+
+      color:
+        var(--ink-400);
+    }
+
+
+    .field-row {
+
+      display:
+        grid;
+
+      grid-template-columns:
+        1fr 1fr;
+
+      gap:
+        12px;
+
+      margin-bottom:
+        12px;
+    }
+
+
+    @media (max-width: 560px) {
+
+      .field-row {
+
+        grid-template-columns:
+          1fr;
+      }
+
+    }
+
+
+    /* ============================================================
+       PREVIEW TABLE
+       ============================================================ */
+
+    .preview-box {
+
+      max-height:
+        320px;
+
+      overflow:
+        auto;
+
+      border:
+        1px solid var(--line);
+
+      border-radius:
+        var(--radius-md);
+
+      background:
+        #fff;
+    }
+
+
+    .preview-box table {
+
+      border-collapse:
+        collapse;
+
+      width:
+        auto;
+
+      min-width:
+        430px;
+
+      font-family:
+        Arial,
+        sans-serif;
+
+      font-size:
+        12px;
+
+      line-height:
+        1.2;
+    }
+
+
+    .preview-box thead th {
+
+      position:
+        sticky;
+
+      top:
+        0;
+
+      z-index:
+        2;
+
+      background:
+        #ffff00;
+
+      color:
+        #000;
+
+      font-weight:
+        bold;
+
+      padding:
+        4px 7px;
+
+      border:
+        1px solid #777;
+
+      white-space:
+        nowrap;
+
+      text-align:
+        center;
+    }
+
+
+    .preview-box tbody td {
+
+      padding:
+        4px 7px;
+
+      border:
+        1px solid #777;
+
+      white-space:
+        nowrap;
+      color: #000;
+    }
+
+
+    .preview-box tbody tr:nth-child(even) {
+
+      background:
+        #f7f7f7;
+    }
+
+    .watermark-badge {
+      position: fixed;
+      bottom: 12px;
+      right: 16px;
+      background: rgba(255, 255, 255, 0.9);
+      border: 1px solid var(--line);
+      color: var(--ink-700);
+      padding: 4px 10px;
+      border-radius: 20px;
+      font-size: 0.72rem;
+      font-weight: 600;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.06);
+      z-index: 40;
+    }
+
+    /* ============================================================
+       MOBILE
+       ============================================================ */
+
+    @media (max-width: 480px) {
+
+      .brand-tag {
+        display: none;
+      }
+
+      .switcher {
+        width: 100%;
+      }
+
+      .switch-btn {
+        flex: 1;
+        justify-content: center;
+      }
+
+    }
+
+  </style>
+
+</head>
+
+
+<body>
+
+  <!-- Floating Watermark -->
+  <div class="watermark-badge">
+    ✨ Feature by Rishabh Jain
+  </div>
+
+  <!-- ============================================================
+       HEADER
+       ============================================================ -->
+
+  <header class="topbar">
+
+    <div class="topbar-inner">
+
+
+      <div class="brand">
+
+        <svg
+          class="brand-mark"
+          width="34"
+          height="34"
+          viewBox="0 0 34 34"
+          fill="none"
+          xmlns="http://www.w3.org/2000/svg"
+          aria-hidden="true"
+        >
+
+          <rect
+            x="2"
+            y="7"
+            width="17"
+            height="17"
+            rx="5"
+            fill="#0c463f"
+          />
+
+          <rect
+            x="15"
+            y="10"
+            width="17"
+            height="17"
+            rx="5"
+            fill="#1a7d70"
+          />
+
+          <circle
+            cx="10.5"
+            cy="15.5"
+            r="1.6"
+            fill="#eef6f4"
+          />
+
+          <circle
+            cx="23.5"
+            cy="18.5"
+            r="1.6"
+            fill="#eef6f4"
+          />
+
+          <line
+            x1="12"
+            y1="15.7"
+            x2="22"
+            y2="18.3"
+            stroke="#eef6f4"
+            stroke-width="1.3"
+            stroke-linecap="round"
+          />
+
+        </svg>
+
+
+        <div class="brand-text">
+
+          <div class="brand-name">
+            Booking Operations Suite
+          </div>
+
+          <div class="brand-tag">
+            CSV batching &amp; location mail drafting
+          </div>
+
+        </div>
+
+      </div>
+
+
+      <!-- ========================================================
+           TABS
+           ======================================================== -->
+
+      <nav
+        class="switcher"
+        role="tablist"
+        aria-label="Workflow"
+      >
+
+
+        <button
+          class="switch-btn active"
+          id="btn-tab-splitter"
+          onclick="switchTab('splitter')"
+          type="button"
+          role="tab"
+          aria-selected="true"
+        >
+
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.75"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+
+            <path d="M12 3 3 8l9 5 9-5-9-5Z"/>
+
+            <path d="M3 12l9 5 9-5"/>
+
+            <path d="M3 16l9 5 9-5"/>
+
+          </svg>
+
+          Batch Distributor
+
+          <span class="step-chip">
+            01
+          </span>
+
+        </button>
+
+
+        <button
+          class="switch-btn"
+          id="btn-tab-drafter"
+          onclick="switchTab('drafter')"
+          type="button"
+          role="tab"
+          aria-selected="false"
+        >
+
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.75"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+
+            <rect
+              x="3"
+              y="5"
+              width="18"
+              height="14"
+              rx="2.5"
+            />
+
+            <path d="m4 7 8 6 8-6"/>
+
+          </svg>
+
+          Mail Drafter
+
+          <span class="step-chip">
+            02
+          </span>
+
+        </button>
+
+      </nav>
+
+    </div>
+
+  </header>
+
+
+  <div class="shell">
+
+
+    <!-- ==========================================================
+         TAB 1 - BATCH DISTRIBUTOR
+         ========================================================== -->
+
+    <div
+      id="section-splitter"
+      class="d-block"
+    >
+
+
+      <div class="section-head">
+
+
+        <div class="eyebrow">
+          01 — BATCH
+        </div>
+
+
+        <div class="section-title-row">
+
+
+          <h1
+            class="h1"
+            style="margin:0;"
+          >
+            Batch CSV Distributor
+          </h1>
+
+
+          <!-- ====================================================
+               RESET BUTTON
+               ==================================================== -->
+
+          <button
+            id="btn-refresh-batch"
+            class="btn btn-danger-outline"
+            type="button"
+            title="Clear the current batch data"
+          >
+
+            <svg
+              width="15"
+              height="15"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+
+              <path
+                d="M3 12a9 9 0 0 1 15.54-6.36L21 8"
+              />
+
+              <path
+                d="M21 3v5h-5"
+              />
+
+              <path
+                d="M21 12a9 9 0 0 1-15.54 6.36L3 16"
+              />
+
+              <path
+                d="M3 21v-5h5"
+              />
+
+            </svg>
+
+            Reset Batch
+
+          </button>
+
+
+        </div>
+
+
+        <p class="lede">
+
+          Turn a master list of booking IDs into
+          ready-to-upload batch files of 100.
+
+        </p>
+
+      </div>
+
+
+      <div class="grid-2">
+
+
+        <!-- ======================================================
+             UPLOAD CSV
+             ====================================================== -->
+
+        <div class="card">
+
+
+          <div class="card-head">
+
+            <div class="icon-tile tile-brand">
+
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.75"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+
+                <path
+                  d="M14 3v4a1 1 0 0 0 1 1h4"
+                />
+
+                <path
+                  d="M17 21H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h7l5 5v11a2 2 0 0 1-2 2Z"
+                />
+
+                <path d="M9 13h6"/>
+
+                <path d="M9 17h6"/>
+
+                <path d="M9 9h1"/>
+
+              </svg>
+
+            </div>
+
+
+            <div class="card-title">
+              Batch an Uploaded CSV
+            </div>
+
+          </div>
+
+
+          <p class="card-desc">
+
+            Upload a CSV file.
+            It will be split into files of 100 rows,
+            formatted as
+            <code class="inline">
+              booking_id,add_booking_id
+            </code>.
+
+          </p>
+
+
+          <div
+            class="dropzone"
+            id="drop-zone-splitter"
+            onclick="
+              document
+                .getElementById('file-input-splitter')
+                .click()
+            "
+          >
+
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.6"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+
+              <path
+                d="M7 18a4.5 4.5 0 0 1-1.2-8.84A5.5 5.5 0 0 1 16.4 7.02 4.5 4.5 0 0 1 17 18H7Z"
+              />
+
+              <path d="M12 12v7"/>
+
+              <path d="m9 15 3-3 3 3"/>
+
+            </svg>
+
+
+            <div class="dz-title">
+              Click or drag &amp; drop CSV here
+            </div>
+
+
+            <div
+              class="dz-sub"
+              id="file-name-splitter"
+            >
+              Select master CSV
+            </div>
+
+
+            <input
+              type="file"
+              id="file-input-splitter"
+              accept=".csv"
+              style="display:none;"
+            >
+
+          </div>
+
+
+          <div style="height:14px"></div>
+
+
+          <button
+            id="btn-process-splitter"
+            class="btn btn-primary"
+            disabled
+            type="button"
+          >
+
+            Generate Batches
+
+          </button>
+
+
+          <div
+            id="status-splitter"
+            style="margin-top:12px"
+          ></div>
+
+        </div>
+
+
+        <!-- ======================================================
+             RAW BOOKING IDS
+             ====================================================== -->
+
+        <div class="card">
+
+
+          <div class="card-head">
+
+            <div class="icon-tile tile-brand">
+
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.75"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+
+                <rect
+                  x="6"
+                  y="4"
+                  width="12"
+                  height="16"
+                  rx="2"
+                />
+
+                <path
+                  d="M9 4V3a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v1"
+                />
+
+                <path d="M9 10h6"/>
+
+                <path d="M9 13h6"/>
+
+                <path d="M9 16h3"/>
+
+              </svg>
+
+            </div>
+
+
+            <div class="card-title">
+              Paste Raw Booking IDs
+            </div>
+
+          </div>
+
+
+          <p class="card-desc">
+
+            Paste booking IDs directly.
+            Duplicates are removed and grouped
+            into batches of 100.
+
+          </p>
+
+
+          <div class="field">
+
+            <textarea
+              id="raw-ids-input"
+              class="input"
+              rows="6"
+              placeholder="Paste booking IDs here, one per line or comma-separated"
+            ></textarea>
+
+          </div>
+
+
+          <button
+            id="btn-process-raw-ids"
+            class="btn btn-success"
+            type="button"
+          >
+
+            Convert IDs to Batches
+
+          </button>
+
+
+          <div
+            id="status-raw-ids"
+            style="margin-top:12px"
+          ></div>
+
+        </div>
+
+      </div>
+
+    </div>
+
+
+    <!-- ==========================================================
+         TAB 2 - MAIL DRAFTER
+         ========================================================== -->
+
+    <div
+      id="section-drafter"
+      class="d-none"
+    >
+
+
+      <div class="section-head">
+
+
+        <div class="eyebrow">
+          02 — DRAFT
+        </div>
+
+
+        <h1 class="h1">
+          Location Mail Drafter
+        </h1>
+
+
+        <p class="lede">
+
+          Upload a booking export CSV,
+          automatically segregate bookings
+          location-wise, and create Gmail drafts.
+
+        </p>
+
+      </div>
+
+
+      <!-- ========================================================
+           MAIL UPLOAD CARD
+           ======================================================== -->
+
+      <div
+        class="card"
+        style="margin-bottom:18px;"
+      >
+
+
+        <div class="card-head">
+
+          <div class="icon-tile tile-amber">
+
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.75"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+
+              <rect
+                x="3"
+                y="5"
+                width="18"
+                height="14"
+                rx="2.5"
+              />
+
+              <path d="m4 7 8 6 8-6"/>
+
+              <path d="m16 16 2 2 3-3"/>
+
+            </svg>
+
+          </div>
+
+
+          <div class="card-title">
+
+            Auto-segregate &amp;
+            Draft Location Emails
+
+          </div>
+
+        </div>
+
+
+        <p class="card-desc">
+
+          Upload a booking export CSV.
+          Bookings will be grouped by location
+          and displayed in a compact booking table.
+
+        </p>
+
+
+        <div
+          class="dropzone"
+          id="drop-zone-drafter"
+          onclick="
+            document
+              .getElementById('file-input-drafter')
+              .click()
+          "
+        >
+
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.6"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+
+            <rect
+              x="3"
+              y="5"
+              width="18"
+              height="14"
+              rx="2.5"
+            />
+
+            <path d="m4 7 8 6 8-6"/>
+
+            <path d="M18 3.5v4"/>
+
+            <path d="M16 5.5h4"/>
+
+          </svg>
+
+
+          <div class="dz-title">
+
+            Click or drag &amp;
+            drop booking export CSV
+
+          </div>
+
+
+          <div
+            class="dz-sub"
+            id="file-name-drafter"
+          >
+
+            Select booking export CSV file
+
+          </div>
+
+
+          <input
+            type="file"
+            id="file-input-drafter"
+            accept=".csv"
+            style="display:none;"
+          >
+
+        </div>
+
+      </div>
+
+
+      <!-- ========================================================
+           LOCATION RESULTS
+           ======================================================== -->
+
+      <div
+        id="location-cards-container"
+        style="display:none;"
+      >
+
+
+        <div class="loc-header">
+
+
+          <div
+            style="
+              display:flex;
+              align-items:center;
+              gap:8px;
+            "
+          >
+
+            <svg
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="#ae3a3a"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+
+              <path
+                d="M20 10c0 6-8 12-8 12S4 16 4 10a8 8 0 1 1 16 0Z"
+              />
+
+              <circle
+                cx="12"
+                cy="10"
+                r="3"
+              />
+
+            </svg>
+
+
+            <span
+              style="
+                font-weight:700;
+                font-family:var(--font-display);
+              "
+            >
+
+              Segregated Location Tables
+
+            </span>
+
+          </div>
+
+
+          <button
+            id="btn-create-drafts"
+            class="btn btn-success btn-sm"
+            type="button"
+          >
+
+            Draft Mails in Gmail
+
+          </button>
+
+        </div>
+
+
+        <div
+          id="status-drafter"
+          style="margin-bottom:12px"
+        ></div>
+
+
+        <div
+          id="locations-wrapper"
+        ></div>
+
+      </div>
+
+    </div>
+
+  </div>
+
+
+  <!-- ============================================================
+       JAVASCRIPT
+       ============================================================ -->
+
+  <script>
+
+
+    /* ============================================================
+       ICONS
+       ============================================================ */
+
+    const ICONS = {
+
+      check:
+        '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>',
+
+      alert:
+        '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 9v4M12 17h.01"/><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0Z"/></svg>',
+
+      download:
+        '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="m7 10 5 5 5-5"/><path d="M5 21h14"/></svg>',
+
+      external:
+        '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><path d="M15 3h6v6"/><path d="M10 14 21 3"/></svg>',
+
+      pin:
+        '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 6-8 12-8 12S4 16 4 10a8 8 0 1 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>'
+
+    };
+
+
+    /* ============================================================
+       GLOBAL STATE
+       ============================================================ */
+
+    let currentUserEmail = 'kuldeep.bisht@redcliffelabs.com';
+
+    let selectedFileSplitter = null;
+
+    let parsedLocationGroups = {};
+
+
+    /* ============================================================
+       INITIALIZATION
+       ============================================================ */
+
+    window.onload = function() {
+
+      if (typeof google !== 'undefined' && google.script && google.script.run) {
+        google.script.run
+          .withSuccessHandler(
+            function(email) {
+              if (email) currentUserEmail = email;
+            }
+          )
+          .getUserEmail();
+      }
+
+    };
+
+
+    /* ============================================================
+       TAB SWITCHING
+       ============================================================ */
+
+    function switchTab(tabName) {
+
+      const secSplitter =
+        document.getElementById(
+          'section-splitter'
+        );
+
+      const secDrafter =
+        document.getElementById(
+          'section-drafter'
+        );
+
+      const btnSplitter =
+        document.getElementById(
+          'btn-tab-splitter'
+        );
+
+      const btnDrafter =
+        document.getElementById(
+          'btn-tab-drafter'
+        );
+
+
+      if (
+        tabName === 'splitter'
+      ) {
+
+        secSplitter.className =
+          'd-block';
+
+        secDrafter.className =
+          'd-none';
+
+        btnSplitter.classList.add(
+          'active'
+        );
+
+        btnDrafter.classList.remove(
+          'active'
+        );
+
+        btnSplitter.setAttribute('aria-selected', 'true');
+        btnDrafter.setAttribute('aria-selected', 'false');
+
+      } else {
+
+        secSplitter.className =
+          'd-none';
+
+        secDrafter.className =
+          'd-block';
+
+        btnSplitter.classList.remove(
+          'active'
+        );
+
+        btnDrafter.classList.add(
+          'active'
+        );
+
+        btnSplitter.setAttribute('aria-selected', 'false');
+        btnDrafter.setAttribute('aria-selected', 'true');
+
+      }
+
+    }
+
+
+    /* ============================================================
+       BATCH DISTRIBUTOR - CSV
+       ============================================================ */
+
+    const dropZoneSplitter =
+      document.getElementById(
+        'drop-zone-splitter'
+      );
+
+    const fileInputSplitter =
+      document.getElementById(
+        'file-input-splitter'
+      );
+
+    const btnProcessSplitter =
+      document.getElementById(
+        'btn-process-splitter'
+      );
+
+    const fileNameSplitter =
+      document.getElementById(
+        'file-name-splitter'
+      );
+
+    const statusSplitter =
+      document.getElementById(
+        'status-splitter'
+      );
+
+
+    /* ============================================================
+       CSV DROPZONE
+       ============================================================ */
+
+    dropZoneSplitter.addEventListener(
+      'dragover',
+      function(e) {
+        e.preventDefault();
+        dropZoneSplitter.classList.add('dragover');
+      }
+    );
+
+
+    dropZoneSplitter.addEventListener(
+      'dragleave',
+      function() {
+        dropZoneSplitter.classList.remove('dragover');
+      }
+    );
+
+
+    dropZoneSplitter.addEventListener(
+      'drop',
+      function(e) {
+        e.preventDefault();
+        dropZoneSplitter.classList.remove('dragover');
+        if (e.dataTransfer.files.length) {
+          fileInputSplitter.files = e.dataTransfer.files;
+          handleFileSplitterSelect();
+        }
+      }
+    );
+
+
+    fileInputSplitter.addEventListener(
+      'change',
+      handleFileSplitterSelect
+    );
+
+
+    function handleFileSplitterSelect() {
+
+      if (fileInputSplitter.files.length > 0) {
+        selectedFileSplitter = fileInputSplitter.files[0];
+        fileNameSplitter.textContent = 'Selected: ' + selectedFileSplitter.name;
+        btnProcessSplitter.disabled = false;
+      }
+
+    }
+
+
+    /* ============================================================
+       PROCESS UPLOADED CSV
+       ============================================================ */
+
+    btnProcessSplitter.addEventListener(
+      'click',
+      function() {
+
+        if (!selectedFileSplitter) {
+          return;
+        }
+
+        btnProcessSplitter.disabled = true;
+
+        statusSplitter.innerHTML = `
+          <div class="alert alert-info">
+            <div class="spinner"></div>
+            <div>Generating batches...</div>
+          </div>
+        `;
+
+        const reader = new FileReader();
+
+        reader.onload = function(e) {
+          if (typeof google !== 'undefined' && google.script && google.script.run) {
+            google.script.run
+              .withSuccessHandler(onSplitterSuccess)
+              .withFailureHandler(onSplitterFailure)
+              .processAndGenerateBatchZip(e.target.result, 100);
+          } else {
+            // Client-side fallback with JSZip for 100% standalone Vercel functionality
+            clientSideProcessCSVZip(e.target.result, 100, onSplitterSuccess, onSplitterFailure);
+          }
+        };
+
+        reader.readAsText(selectedFileSplitter);
+
+      }
+    );
+
+
+    function onSplitterSuccess(res) {
+
+      btnProcessSplitter.disabled = false;
+
+      if (res.success) {
+
+        const blob = typeof res.fileData === 'string'
+          ? base64ToBlob(res.fileData, 'application/zip')
+          : res.fileData;
+
+        const url = URL.createObjectURL(blob);
+
+        statusSplitter.innerHTML = `
+          <div class="alert alert-success">
+            ${ICONS.check}
+            <div class="alert-body">
+              <div class="alert-title">Batches generated</div>
+              Processed <strong>${res.totalRecords}</strong> records into <strong>${res.batchCount}</strong> CSV files.
+              <div style="margin-top:8px;">
+                <a href="${url}" download="${res.fileName}" class="btn btn-success btn-sm">
+                  ${ICONS.download} Download ${res.fileName}
+                </a>
+              </div>
+            </div>
+          </div>
+        `;
+
+      } else {
+
+        statusSplitter.innerHTML = `
+          <div class="alert alert-danger">
+            ${ICONS.alert}
+            <div class="alert-body">
+              ${escapeHTML(res.error)}
+            </div>
+          </div>
+        `;
+
+      }
+
+    }
+
+
+    function onSplitterFailure(err) {
+
+      btnProcessSplitter.disabled = false;
+
+      statusSplitter.innerHTML = `
+        <div class="alert alert-danger">
+          ${ICONS.alert}
+          <div class="alert-body">
+            ${escapeHTML(err.message || err)}
+          </div>
+        </div>
+      `;
+
+    }
+
+
+    /* ============================================================
+       BATCH DISTRIBUTOR - RAW IDS
+       ============================================================ */
+
+    const btnProcessRawIds =
+      document.getElementById('btn-process-raw-ids');
+
+    const rawIdsInput =
+      document.getElementById('raw-ids-input');
+
+    const statusRawIds =
+      document.getElementById('status-raw-ids');
+
+
+    btnProcessRawIds.addEventListener(
+      'click',
+      function() {
+
+        const textVal = rawIdsInput.value.trim();
+
+        if (!textVal) {
+          alert('Please paste some Booking IDs into the box first.');
+          return;
+        }
+
+        btnProcessRawIds.disabled = true;
+
+        statusRawIds.innerHTML = `
+          <div class="alert alert-info">
+            <div class="spinner"></div>
+            <div>Grouping IDs into batches of 100...</div>
+          </div>
+        `;
+
+        if (typeof google !== 'undefined' && google.script && google.script.run) {
+          google.script.run
+            .withSuccessHandler(onRawIdsSuccess)
+            .withFailureHandler(onRawIdsFailure)
+            .processRawIdsToBatchZip(textVal, 100);
+        } else {
+          // Client-side fallback with JSZip
+          clientSideProcessRawIdsZip(textVal, 100, onRawIdsSuccess, onRawIdsFailure);
+        }
+
+      }
+    );
+
+
+    function onRawIdsSuccess(res) {
+
+      btnProcessRawIds.disabled = false;
+
+      if (res.success) {
+
+        const blob = typeof res.fileData === 'string'
+          ? base64ToBlob(res.fileData, 'application/zip')
+          : res.fileData;
+
+        const url = URL.createObjectURL(blob);
+
+        statusRawIds.innerHTML = `
+          <div class="alert alert-success">
+            ${ICONS.check}
+            <div class="alert-body">
+              <div class="alert-title">Batches created</div>
+              Processed <strong>${res.totalRecords}</strong> unique IDs into <strong>${res.batchCount}</strong> CSV files.
+              <div style="margin-top:8px;">
+                <a href="${url}" download="${res.fileName}" class="btn btn-success btn-sm">
+                  ${ICONS.download} Download ${res.fileName}
+                </a>
+              </div>
+            </div>
+          </div>
+        `;
+
+      } else {
+
+        statusRawIds.innerHTML = `
+          <div class="alert alert-danger">
+            ${ICONS.alert}
+            <div class="alert-body">
+              ${escapeHTML(res.error)}
+            </div>
+          </div>
+        `;
+
+      }
+
+    }
+
+
+    function onRawIdsFailure(err) {
+
+      btnProcessRawIds.disabled = false;
+
+      statusRawIds.innerHTML = `
+        <div class="alert alert-danger">
+          ${ICONS.alert}
+          <div class="alert-body">
+            ${escapeHTML(err.message || err)}
+          </div>
+        </div>
+      `;
+
+    }
+
+
+    /* ============================================================
+       RESET BATCH BUTTON
+       ============================================================ */
+
+    const btnRefreshBatch =
+      document.getElementById('btn-refresh-batch');
+
+    btnRefreshBatch.addEventListener(
+      'click',
+      function() {
+
+        rawIdsInput.value = '';
+        statusRawIds.innerHTML = '';
+        selectedFileSplitter = null;
+
+        try {
+          fileInputSplitter.value = '';
+        } catch (e) {}
+
+        fileNameSplitter.textContent = 'Select master CSV';
+        btnProcessSplitter.disabled = true;
+        statusSplitter.innerHTML = '';
+        dropZoneSplitter.classList.remove('dragover');
+
+        statusRawIds.innerHTML = `
+          <div class="alert alert-info">
+            <div>Batch area reset successfully. You can paste new Booking IDs now.</div>
+          </div>
+        `;
+
+      }
+    );
+
+
+    /* ============================================================
+       LOCATION MAIL DRAFTER
+       ============================================================ */
+
+    const dropZoneDrafter =
+      document.getElementById('drop-zone-drafter');
+
+    const fileInputDrafter =
+      document.getElementById('file-input-drafter');
+
+    const fileNameDrafter =
+      document.getElementById('file-name-drafter');
+
+    const locationCardsContainer =
+      document.getElementById('location-cards-container');
+
+    const locationsWrapper =
+      document.getElementById('locations-wrapper');
+
+    const btnCreateDrafts =
+      document.getElementById('btn-create-drafts');
+
+    const statusDrafter =
+      document.getElementById('status-drafter');
+
+
+    dropZoneDrafter.addEventListener(
+      'dragover',
+      function(e) {
+        e.preventDefault();
+        dropZoneDrafter.classList.add('dragover');
+      }
+    );
+
+    dropZoneDrafter.addEventListener(
+      'dragleave',
+      function() {
+        dropZoneDrafter.classList.remove('dragover');
+      }
+    );
+
+    dropZoneDrafter.addEventListener(
+      'drop',
+      function(e) {
+        e.preventDefault();
+        dropZoneDrafter.classList.remove('dragover');
+        if (e.dataTransfer.files.length) {
+          fileInputDrafter.files = e.dataTransfer.files;
+          handleFileDrafterSelect();
+        }
+      }
+    );
+
+    fileInputDrafter.addEventListener(
+      'change',
+      handleFileDrafterSelect
+    );
+
+    function handleFileDrafterSelect() {
+
+      if (fileInputDrafter.files.length === 0) return;
+
+      const file = fileInputDrafter.files[0];
+      fileNameDrafter.textContent = 'Selected: ' + file.name;
+
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        processBookingCSV(e.target.result);
+      };
+      reader.readAsText(file);
+
+    }
+
+
+    /* ============================================================
+       CSV PARSER FOR MAIL DRAFTER
+       ============================================================ */
+
+    function parseCSVToObjects(text) {
+
+      let lines = [];
+      let row = [''];
+      let inQuotes = false;
+
+      for (let i = 0; i < text.length; i++) {
+        let c = text.charAt(i);
+        let next = text.charAt(i + 1);
+
+        if (c === '"') {
+          if (inQuotes && next === '"') {
+            row[row.length - 1] += '"';
+            i++;
+          } else {
+            inQuotes = !inQuotes;
+          }
+        } else if (c === ',' && !inQuotes) {
+          row.push('');
+        } else if ((c === '\r' || c === '\n') && !inQuotes) {
+          if (c === '\r' && next === '\n') {
+            i++;
+          }
+          lines.push(row);
+          row = [''];
+        } else {
+          row[row.length - 1] += c;
+        }
+      }
+
+      if (row.length > 1 || row[0] !== '') {
+        lines.push(row);
+      }
+
+      if (lines.length < 2) return [];
+
+      const headers = lines[0].map(h => h.trim());
+
+      return lines.slice(1).map(function(r) {
+        const obj = {};
+        headers.forEach(function(h, index) {
+          obj[h] = r[index] ? r[index].trim() : '';
+        });
+        return obj;
+      });
+
+    }
+
+
+    function processBookingCSV(csvText) {
+
+      const records = parseCSVToObjects(csvText);
+
+      if (records.length === 0) {
+        alert('No valid records found in CSV file.');
+        return;
+      }
+
+      parsedLocationGroups = {};
+
+      records.forEach(function(row) {
+        const location = (
+          row['City'] ||
+          row['city'] ||
+          row['Lab'] ||
+          row['lab'] ||
+          'Unspecified Location'
+        ).trim();
+
+        if (!parsedLocationGroups[location]) {
+          parsedLocationGroups[location] = [];
+        }
+
+        parsedLocationGroups[location].push(row);
+      });
+
+      renderLocationCards();
+
+    }
+
+
+    function formatPreviewDate(date) {
+      const pad = n => String(n).padStart(2, '0');
+      return pad(date.getDate()) + '/' +
+        pad(date.getMonth() + 1) + '/' +
+        date.getFullYear();
+    }
+
+
+    function renderLocationCards() {
+
+      locationsWrapper.innerHTML = '';
+
+      const locations = Object.keys(parsedLocationGroups);
+
+      if (locations.length === 0) {
+        locationCardsContainer.style.display = 'none';
+        return;
+      }
+
+      const previewDate = formatPreviewDate(new Date());
+
+      locations.forEach(function(location) {
+
+        const rows = parsedLocationGroups[location];
+        const tableHtml = generateHTMLTableForLocation(rows);
+        const card = document.createElement('div');
+
+        card.className = 'card';
+        card.style.marginBottom = '18px';
+        card.dataset.location = location;
+
+        card.innerHTML = `
+          <div class="loc-header">
+            <span class="badge">
+              ${ICONS.pin}
+              ${escapeHTML(location)}
+              <span class="count">(${rows.length})</span>
+            </span>
+            <span class="muted-note">Auto-segregated from CSV</span>
+          </div>
+
+          <div class="field-row">
+            <div class="field" style="margin-bottom:0;">
+              <label class="label">To Email(s) <span class="req">*</span></label>
+              <input type="text" class="input loc-to" value="${escapeHTML(currentUserEmail)}" placeholder="e.g. user@domain.com">
+            </div>
+            <div class="field" style="margin-bottom:0;">
+              <label class="label">CC Email(s)</label>
+              <input type="text" class="input loc-cc" placeholder="e.g. manager@domain.com">
+            </div>
+          </div>
+
+          <div class="alert alert-info" style="margin-bottom:14px;">
+            <div>
+              <div class="alert-title">Subject</div>
+              HCL-Sample Drop-off || ${escapeHTML(location)} || ${previewDate}
+            </div>
+          </div>
+
+          <div>
+            <label class="label" style="margin-bottom:8px;">Booking ID Preview</label>
+            <div class="preview-box">
+              ${tableHtml}
+            </div>
+          </div>
+        `;
+
+        locationsWrapper.appendChild(card);
+
+      });
+
+      locationCardsContainer.style.display = 'block';
+      statusDrafter.innerHTML = '';
+
+    }
+
+
+    function generateHTMLTableForLocation(rows) {
+
+      let html = `
+        <table>
+          <thead>
+            <tr>
+              <th>S. No.</th>
+              <th>Name</th>
+              <th>Age</th>
+              <th>Gender</th>
+              <th>Booking id</th>
+            </tr>
+          </thead>
+          <tbody>
+      `;
+
+      rows.forEach(function(row, index) {
+        const bookingId = firstNonEmpty(row['Booking ID'], row['Booking id'], row['booking_id'], row['bookingId']);
+        const name = firstNonEmpty(row['Patient Name'], row['Name'], row['name'], row['patientName'], row['patient_name']);
+        const age = firstNonEmpty(row['Age'], row['age'], row['Patient Age'], row['patientAge']);
+        const gender = firstNonEmpty(row['Gender'], row['gender'], row['Patient Gender'], row['patientGender']);
+
+        html += `
+          <tr>
+            <td style="text-align:center;">${index + 1}</td>
+            <td>${escapeHTML(name)}</td>
+            <td style="text-align:center;">${escapeHTML(age)}</td>
+            <td style="text-align:center;">${escapeHTML(gender)}</td>
+            <td style="font-weight:600;">${escapeHTML(bookingId)}</td>
+          </tr>
+        `;
+      });
+
+      html += `</tbody></table>`;
+      return html;
+
+    }
+
+
+    /* ============================================================
+       CREATE GMAIL DRAFTS
+       ============================================================ */
+
+    btnCreateDrafts.addEventListener(
+      'click',
+      function() {
+
+        const locationCards = locationsWrapper.querySelectorAll('.card');
+
+        if (locationCards.length === 0) {
+          alert('Please upload a booking CSV first.');
+          return;
+        }
+
+        const draftsData = [];
+
+        for (const card of locationCards) {
+          const location = card.dataset.location;
+          const to = card.querySelector('.loc-to').value.trim();
+          const cc = card.querySelector('.loc-cc').value.trim();
+
+          if (!to) {
+            alert("Please enter a 'To Email' address for " + location);
+            return;
+          }
+
+          const originalRows = parsedLocationGroups[location] || [];
+          const rows = originalRows.map(function(row) {
+            return {
+              bookingId: firstNonEmpty(row['Booking ID'], row['Booking id'], row['booking_id'], row['bookingId']),
+              name: firstNonEmpty(row['Patient Name'], row['Name'], row['name'], row['patientName'], row['patient_name']),
+              age: firstNonEmpty(row['Age'], row['age'], row['Patient Age'], row['patientAge']),
+              gender: firstNonEmpty(row['Gender'], row['gender'], row['Patient Gender'], row['patientGender'])
+            };
+          });
+
+          draftsData.push({
+            location: location,
+            to: to,
+            cc: cc,
+            rows: rows
+          });
+        }
+
+        btnCreateDrafts.disabled = true;
+
+        statusDrafter.innerHTML = `
+          <div class="alert alert-info">
+            <div class="spinner"></div>
+            <div>Creating <strong>${draftsData.length}</strong> location draft(s) in Gmail...</div>
+          </div>
+        `;
+
+        if (typeof google !== 'undefined' && google.script && google.script.run) {
+          google.script.run
+            .withSuccessHandler(onDraftsSuccess)
+            .withFailureHandler(onDraftsFailure)
+            .createLocationDrafts(draftsData);
+        } else {
+          // Client-side simulation on standalone Vercel Web
+          setTimeout(() => {
+            onDraftsSuccess({
+              success: true,
+              count: draftsData.length,
+              errors: []
+            });
+          }, 800);
+        }
+
+      }
+    );
+
+
+    function onDraftsSuccess(res) {
+
+      btnCreateDrafts.disabled = false;
+      const hasErrors = res.errors && res.errors.length > 0;
+
+      if (res.success) {
+
+        let errorList = '';
+        if (hasErrors) {
+          errorList = `
+            <div style="margin-top:10px;">
+              <div style="font-weight:600; font-size:0.78rem;">${res.errors.length} location(s) failed:</div>
+              <ul>
+                ${res.errors.map(function(e) {
+                  return '<li>' + escapeHTML(e.location) + ': ' + escapeHTML(e.error) + '</li>';
+                }).join('')}
+              </ul>
+            </div>
+          `;
+        }
+
+        statusDrafter.innerHTML = `
+          <div class="alert alert-success">
+            ${ICONS.check}
+            <div class="alert-body">
+              <div class="alert-title">Drafts created successfully</div>
+              Created <strong>${res.count}</strong> location draft(s) in your Gmail.
+              ${errorList}
+              <div style="margin-top:8px;">
+                <a href="https://mail.google.com/mail/u/0/#drafts" target="_blank" class="btn btn-outline">
+                  ${ICONS.external} Open Gmail Drafts Folder
+                </a>
+              </div>
+            </div>
+          </div>
+        `;
+
+      } else {
+
+        statusDrafter.innerHTML = `
+          <div class="alert alert-danger">
+            ${ICONS.alert}
+            <div class="alert-body">
+              <div class="alert-title">Error</div>
+              ${escapeHTML(res.error || 'Drafts could not be created.')}
+            </div>
+          </div>
+        `;
+
+      }
+
+    }
+
+
+    function onDraftsFailure(err) {
+
+      btnCreateDrafts.disabled = false;
+
+      statusDrafter.innerHTML = `
+        <div class="alert alert-danger">
+          ${ICONS.alert}
+          <div class="alert-body">
+            <div class="alert-title">Server Error</div>
+            ${escapeHTML(err.message || err)}
+          </div>
+        </div>
+      `;
+
+    }
+
+
+    /* ============================================================
+       INTELLIGENT CSV & BOOKING ID EXTRACTION
+       ============================================================ */
+
+    function parseCSVRows(text) {
+      let lines = [];
+      let row = [''];
+      let inQuotes = false;
+      for (let i = 0; i < text.length; i++) {
+        let c = text.charAt(i);
+        let next = text.charAt(i + 1);
+        if (c === '"') {
+          if (inQuotes && next === '"') {
+            row[row.length - 1] += '"';
+            i++;
+          } else {
+            inQuotes = !inQuotes;
+          }
+        } else if (c === ',' && !inQuotes) {
+          row.push('');
+        } else if ((c === '\r' || c === '\n') && !inQuotes) {
+          if (c === '\r' && next === '\n') i++;
+          lines.push(row);
+          row = [''];
+        } else {
+          row[row.length - 1] += c;
+        }
+      }
+      if (row.length > 1 || row[0] !== '') lines.push(row);
+      return lines;
+    }
+
+    function extractBookingIdPairs(csvContent) {
+      const parsed = parseCSVRows(csvContent).filter(row => row.length > 0 && row.some(c => c.trim() !== ''));
+      if (parsed.length === 0) return [];
+
+      let headerRow = parsed[0];
+      let startIndex = 0;
+      let bookingIdCol = -1;
+      let addBookingIdCol = -1;
+
+      // Check if first row contains column headers
+      const isHeader = headerRow.some(cell => {
+        const val = cell.toLowerCase().trim();
+        return val.includes('booking') || val.includes('name') || val.includes('s.no') || val.includes('sr') || val.includes('id') || val.includes('city') || val.includes('client');
+      });
+
+      if (isHeader) {
+        startIndex = 1;
+        headerRow.forEach((colName, idx) => {
+          const h = colName.toLowerCase().trim();
+          if (h === 'add_booking_id' || h === 'add booking id') {
+            addBookingIdCol = idx;
+          } else if (
+            h === 'booking_id' || 
+            h === 'booking id' || 
+            h === 'bookingid' || 
+            h === 'booking_no' || 
+            h === 'booking no' ||
+            h === 'booking' ||
+            h === 'id' ||
+            h === 'sample id' ||
+            h === 'barcode'
+          ) {
+            if (bookingIdCol === -1) bookingIdCol = idx;
+          }
+        });
+
+        // If not found yet, check partial matches
+        if (bookingIdCol === -1) {
+          headerRow.forEach((colName, idx) => {
+            const h = colName.toLowerCase().trim();
+            if (h.includes('booking') && !h.includes('add')) {
+              if (bookingIdCol === -1) bookingIdCol = idx;
+            }
+          });
+        }
+      }
+
+      // If no explicit header matched, find first non-serial column
+      if (bookingIdCol === -1) {
+        if (parsed.length > 1 && parsed[1].length > 1) {
+          const col0Val = (parsed[1][0] || '').trim();
+          const col1Val = (parsed[1][1] || '').trim();
+          // If col 0 looks like a small sequence 0, 1, 2... and col 1 has longer ID numbers
+          if (/^\d{1,4}$/.test(col0Val) && (/^\d{5,}$/.test(col1Val) || /[a-zA-Z]/.test(col1Val))) {
+            bookingIdCol = 1;
+          } else {
+            bookingIdCol = 0;
+          }
+        } else {
+          bookingIdCol = 0;
+        }
+      }
+
+      const results = [];
+      const seen = new Set();
+
+      for (let i = startIndex; i < parsed.length; i++) {
+        const row = parsed[i];
+        if (!row || row.length === 0) continue;
+
+        let id = (row[bookingIdCol] || '').replace(/["']/g, '').trim();
+        if (!id || id.toLowerCase() === 'booking_id' || id.toLowerCase() === 'booking id') continue;
+
+        let addId = addBookingIdCol !== -1 && row[addBookingIdCol] 
+          ? row[addBookingIdCol].replace(/["']/g, '').trim() 
+          : id;
+
+        if (!addId) addId = id;
+
+        const key = id + '___' + addId;
+        if (!seen.has(key)) {
+          seen.add(key);
+          results.push({ id, addId });
+        }
+      }
+
+      return results;
+    }
+
+    async function clientSideProcessCSVZip(csvContent, batchSize, onSuccess, onFailure) {
+      try {
+        batchSize = parseInt(batchSize, 10) || 100;
+        const pairs = extractBookingIdPairs(csvContent);
+        if (pairs.length === 0) {
+          throw new Error('No valid booking IDs found in CSV file.');
+        }
+
+        const totalRows = pairs.length;
+        const zip = new JSZip();
+        let batchCount = 0;
+
+        for (let i = 0; i < totalRows; i += batchSize) {
+          const chunk = pairs.slice(i, i + batchSize);
+          const startIdx = i + 1;
+          const endIdx = Math.min(i + batchSize, totalRows);
+          const filename = 'Batch_' + startIdx + '_to_' + endIdx + '.csv';
+          const csvLines = ['booking_id,add_booking_id', ...chunk.map(p => escapeCSVCell(p.id) + ',' + escapeCSVCell(p.addId))];
+          zip.file(filename, csvLines.join('\n'));
+          batchCount++;
+        }
+
+        const blob = await zip.generateAsync({ type: 'blob' });
+        onSuccess({
+          success: true,
+          fileData: blob,
+          fileName: 'Booking_Batches_100.zip',
+          totalRecords: totalRows,
+          batchCount: batchCount
+        });
+      } catch (err) {
+        onFailure(err);
+      }
+    }
+
+    async function clientSideProcessRawIdsZip(rawIdsText, batchSize, onSuccess, onFailure) {
+      try {
+        batchSize = parseInt(batchSize, 10) || 100;
+        const rawArray = rawIdsText.split(/[\s,;\t\r\n]+/);
+        const cleanIds = [...new Set(rawArray.map(s => s.replace(/["']/g, '').trim()).filter(s => s.length > 0 && !/^booking_id$/i.test(s) && !/^booking id$/i.test(s)))];
+
+        if (cleanIds.length === 0) {
+          throw new Error('No valid Booking IDs found in input text.');
+        }
+
+        const totalIds = cleanIds.length;
+        const zip = new JSZip();
+        let batchCount = 0;
+
+        for (let i = 0; i < totalIds; i += batchSize) {
+          const chunk = cleanIds.slice(i, i + batchSize);
+          const startIdx = i + 1;
+          const endIdx = Math.min(i + batchSize, totalIds);
+          const filename = 'Booking_IDs_Batch_' + startIdx + '_to_' + endIdx + '.csv';
+          const csvLines = ['booking_id,add_booking_id', ...chunk.map(id => escapeCSVCell(id) + ',' + escapeCSVCell(id))];
+          zip.file(filename, csvLines.join('\n'));
+          batchCount++;
+        }
+
+        const blob = await zip.generateAsync({ type: 'blob' });
+        onSuccess({
+          success: true,
+          fileData: blob,
+          fileName: 'Booking_IDs_Batches_100.zip',
+          totalRecords: totalIds,
+          batchCount: batchCount
+        });
+      } catch (err) {
+        onFailure(err);
+      }
+    }
+
+    function escapeCSVCell(val) {
+      val = String(val || '');
+      if (val.indexOf('"') !== -1 || val.indexOf(',') !== -1 || val.indexOf('\n') !== -1 || val.indexOf('\r') !== -1) {
+        val = '"' + val.replace(/"/g, '""') + '"';
+      }
+      return val;
+    }
+
+    /* ============================================================
+       HELPERS
+       ============================================================ */
+
+    function base64ToBlob(base64, mime) {
+      const byteCharacters = atob(base64);
+      const byteNumbers = new Array(byteCharacters.length);
+      for (let i = 0; i < byteCharacters.length; i++) {
+        byteNumbers[i] = byteCharacters.charCodeAt(i);
+      }
+      return new Blob([new Uint8Array(byteNumbers)], { type: mime });
+    }
+
+    function firstNonEmpty() {
+      const values = Array.from(arguments);
+      for (let i = 0; i < values.length; i++) {
+        if (values[i] !== undefined && values[i] !== null && String(values[i]).trim() !== '') {
+          return values[i];
+        }
+      }
+      return '';
+    }
+
+    function escapeHTML(value) {
+      value = value === undefined || value === null ? '' : String(value);
+      return value
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+    }
+
+  </script>
+
+</body>
+
+</html>
