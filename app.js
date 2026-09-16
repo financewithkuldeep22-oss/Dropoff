@@ -6167,7 +6167,7 @@ window.addEventListener('message', function(event) {
   }
 
   // ── Chat Message Functions ─────────────────────────────────
-  function _addMsg(type, text) {
+  function _addMsg(type, text, isHtml) {
     var container = document.getElementById("botlab-ai-messages");
     if (!container) return;
     var msgDiv = document.createElement("div");
@@ -6175,7 +6175,7 @@ window.addEventListener('message', function(event) {
     var avatarIcon = type === "user" ? "person" : (type === "success" ? "check_circle" : (type === "error" ? "error" : "smart_toy"));
     msgDiv.innerHTML =
       '<div class="botlab-msg-avatar"><span class="material-symbols-outlined" style="font-size:14px;">' + avatarIcon + '</span></div>' +
-      '<div class="botlab-msg-body">' + _escHtml(text) + '</div>';
+      '<div class="botlab-msg-body">' + (isHtml ? text : _escHtml(text)) + '</div>';
     container.appendChild(msgDiv);
     container.scrollTop = container.scrollHeight;
   }
@@ -6184,6 +6184,42 @@ window.addEventListener('message', function(event) {
     var d = document.createElement("div");
     d.textContent = s;
     return d.innerHTML;
+  }
+
+  // ── Helper: Build Partner Auto-Fill Booking URL ─────────────
+  function _getBotPartnerParam(clientName) {
+    var c = (clientName || "").toLowerCase();
+    if (c.indexOf("flebo") !== -1) return "Flebo.in";
+    if (c.indexOf("medibuddy") !== -1) return "Medibuddy Drop-Off";
+    if (c.indexOf("tatva") !== -1) return "Tatvacare";
+    if (c.indexOf("morepen") !== -1) return "Dr. Morepen Labs";
+    if (c.indexOf("tghs") !== -1) return "TGHS";
+    if (c.indexOf("betacura") !== -1) return "Betacura";
+    if (c.indexOf("allohealth") !== -1 || c.indexOf("allo heath") !== -1) return "Allohealth";
+    if (c.indexOf("bharath") !== -1) return "Bharath Home Medicare";
+    return clientName || "Flebo.in";
+  }
+
+  function _getBotCityParam(b, partnerParam) {
+    if (partnerParam === "Flebo.in") return "Data";
+    if (partnerParam === "Tatvacare") return "Form Responses 1";
+    if (b.sheetName && b.sheetName !== b.client) return b.sheetName;
+    if (b.client && b.client.indexOf(" - ") !== -1) {
+      return b.client.split(" - ").slice(1).join(" - ").trim();
+    }
+    return b.location || "";
+  }
+
+  function _buildBotBookingUrl(b) {
+    var partnerParam = _getBotPartnerParam(b.client || b.clientName);
+    var cityParam = _getBotCityParam(b, partnerParam);
+    var rowNum = b.rowNum || "";
+    var p = new URLSearchParams();
+    p.set("botAutoRun", "true");
+    p.set("botPartner", partnerParam);
+    if (rowNum) p.set("botRow", String(rowNum));
+    if (cityParam) p.set("botCity", String(cityParam));
+    return "https://partner.redcliffelabs.com/dashboard/corpclientadmin/booking?" + p.toString();
   }
 
   // ── Command Handler ────────────────────────────────────────
@@ -6278,33 +6314,50 @@ window.addEventListener('message', function(event) {
       var patientStr = b.name || "Patient";
       var rowStr = b.rowNum ? " (Row " + b.rowNum + ")" : "";
       var cityStr = b.location ? " - " + b.location : "";
-      _addMsg("bot", (idx + 1) + ". " + patientStr + " | " + clientStr + rowStr + cityStr);
+      var rowNumVal = b.rowNum || "";
+      var clientVal = _escHtml(b.client || "");
+      var singleLaunchBtn = rowNumVal ? ' <button onclick="window.botlabLaunchSinglePending(\'' + rowNumVal + '\',\'' + clientVal + '\')" style="margin-left:6px;padding:2px 7px;font-size:10px;font-weight:700;background:#eef2ff;color:#4f46e5;border:1px solid #c7d2fe;border-radius:4px;cursor:pointer;">Launch Tab</button>' : '';
+      _addMsg("bot", (idx + 1) + ". " + _escHtml(patientStr) + " | " + _escHtml(clientStr) + rowStr + _escHtml(cityStr) + singleLaunchBtn, true);
     });
     if (pending.length > 10) {
       _addMsg("bot", "...and " + (pending.length - 10) + " more.");
     }
 
     // Add Grid View Action Button to Chat
-    var container = document.getElementById("botlab-ai-messages");
-    if (container) {
-      var btnWrap = document.createElement("div");
-      btnWrap.className = "botlab-msg bot";
-      btnWrap.style.paddingTop = "0";
-      var numToOpen = Math.min(pending.length, 4);
-      btnWrap.innerHTML =
-        '<div class="botlab-msg-avatar"><span class="material-symbols-outlined" style="font-size:14px;">grid_view</span></div>' +
-        '<div class="botlab-msg-body">' +
-          '<button class="botlab-msg-action-btn" onclick="window.botlabLaunchPendingTabs(\'' + _escHtml(filter || 'all') + '\')">' +
-            '<span class="material-symbols-outlined" style="font-size:13px;">dashboard_customize</span>' +
-            'Open ' + numToOpen + ' Pending ' + (numToOpen === 1 ? 'Tab' : 'Tabs') + ' in Grid View' +
-          '</button>' +
-        '</div>';
-      container.appendChild(btnWrap);
-      container.scrollTop = container.scrollHeight;
-    }
+    var numToOpen = Math.min(pending.length, 4);
+    var actionHtml =
+      '<button class="botlab-msg-action-btn" onclick="window.botlabLaunchPendingTabs(\'' + _escHtml(filter || 'all') + '\')">' +
+        '<span class="material-symbols-outlined" style="font-size:13px;">dashboard_customize</span>' +
+        'Open ' + numToOpen + ' Pending ' + (numToOpen === 1 ? 'Tab' : 'Tabs') + ' in Grid View' +
+      '</button>';
+    _addMsg("bot", actionHtml, true);
   }
 
-  // ── Parallel Tabs Launcher in Grid Mode ────────────────────
+  // ── Individual Booking Launcher ────────────────────────────
+  window.botlabLaunchSinglePending = function (rowNum, clientName) {
+    var allLogs = [];
+    try {
+      if (window.Qs && Array.isArray(window.Qs.logs)) allLogs = window.Qs.logs;
+    } catch (e) {}
+    var b = allLogs.find(function (l) { return l.rowNum == rowNum && (!clientName || l.client == clientName); });
+    if (!b) return;
+    var targetUrl = _buildBotBookingUrl(b);
+    var tabTitle = (b.name || "Patient") + " (" + (b.rowNum ? "R" + b.rowNum : b.client) + ")";
+    
+    // If only Tab 0 is open and blank, reuse it
+    if (_bl.tabs.length === 1 && (!_bl.tabs[0].url || _bl.tabs[0].url === "about:blank")) {
+      _bl.tabs[0].title = tabTitle;
+      _bl.tabs[0].url = targetUrl;
+      var tEl = document.getElementById("botlab-card-title-0");
+      if (tEl) tEl.textContent = tabTitle;
+      window.botlabNavigate(targetUrl);
+    } else {
+      window.botlabCreateTab(targetUrl, tabTitle);
+    }
+    _addMsg("bot", "Opened tab for " + (b.name || "Patient") + " (Row " + b.rowNum + "). Bot will automatically fill form details.");
+  };
+
+  // ── Parallel Tabs Launcher in Grid Mode with Auto-Fill ─────
   window.botlabLaunchPendingTabs = function (filter) {
     var allLogs = [];
     try {
@@ -6326,14 +6379,24 @@ window.addEventListener('message', function(event) {
     }
 
     var toLaunch = pending.slice(0, 4);
-    _addMsg("bot", "Opening " + toLaunch.length + " pending booking(s) in Grid View...");
+    _addMsg("bot", "Opening " + toLaunch.length + " pending booking(s) with automated form-fill parameters in Grid View...");
 
-    toLaunch.forEach(function (b) {
+    toLaunch.forEach(function (b, idx) {
       var pName = b.name || "Patient";
       var cli = b.client || "Client";
-      var targetUrl = "https://partner.redcliffelabs.com/dashboard/corpclientadmin/booking";
+      var targetUrl = _buildBotBookingUrl(b);
       var tabTitle = pName + " (" + (b.rowNum ? "R" + b.rowNum : cli) + ")";
-      window.botlabCreateTab(targetUrl, tabTitle);
+
+      // If initial tab is blank, reuse it for the first pending booking
+      if (idx === 0 && _bl.tabs.length === 1 && (!_bl.tabs[0].url || _bl.tabs[0].url === "about:blank")) {
+        _bl.tabs[0].title = tabTitle;
+        _bl.tabs[0].url = targetUrl;
+        var tEl = document.getElementById("botlab-card-title-0");
+        if (tEl) tEl.textContent = tabTitle;
+        window.botlabNavigate(targetUrl);
+      } else {
+        window.botlabCreateTab(targetUrl, tabTitle);
+      }
     });
 
     // Switch to Grid View so user sees all opened tabs side-by-side
