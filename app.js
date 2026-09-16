@@ -5750,7 +5750,7 @@ setInterval(() => {
   function showHeader() {
     header.style.transform = "translateY(0)";
     const mainCont = document.getElementById("main-scroll-container");
-    if (mainCont) mainCont.style.setProperty("margin-top", "64px", "important");
+    if (mainCont) mainCont.style.setProperty("margin-top", "48px", "important");
     resetTimer();
   }
 
