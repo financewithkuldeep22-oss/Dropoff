@@ -6817,7 +6817,7 @@ window.addEventListener('message', function(event) {
     toLaunch.forEach(function (b, idx) {
       var pName = b.name || "Patient";
       var cli = b.client || "Client";
-      var delayMs = 0; // True simultaneous parallel execution across all tabs
+      var delayMs = idx * 400; // Tiny stagger to prevent CPU spike and React focus conflicts
       var targetUrl = _buildBotBookingUrl(b, delayMs);
       var tabTitle = pName + " (" + (b.rowNum ? "R" + b.rowNum : cli) + ")";
 
