@@ -2359,6 +2359,8 @@ if(syncBtnEl && !syncBtnEl.dataset.fix) {
         </div>
       `;
     }
+  }
+
   window.cleanBookingId = function(bid) {
     if (!bid) return 'N/A';
     var s = String(bid)

@@ -4,8 +4,8 @@
   <base href="/" />
   <script>
     // Global guards for background iframe handlers
-    window.onRedcliffeIframeLoad = window.onRedcliffeIframeLoad || function() {};
-    window.onBrowserIframeLoad = window.onBrowserIframeLoad || function() {};
+    var onRedcliffeIframeLoad = window.onRedcliffeIframeLoad = window.onRedcliffeIframeLoad || function() {};
+    var onBrowserIframeLoad = window.onBrowserIframeLoad = window.onBrowserIframeLoad || function() {};
   </script>
   <link rel="icon" type="image/svg+xml" href="logo.svg" />
   <link rel="apple-touch-icon" href="logo.svg" />
@@ -203,7 +203,7 @@
   </style>
 
   <!-- CSS Style Overrides -->
-  <link rel="stylesheet" href="style.css?v=14">
+  <link rel="stylesheet" href="style.css?v=15">
   <!-- GSAP Animation Library -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
 </head>
@@ -2089,7 +2089,7 @@
   <script src="offline-game.js"></script>
   <script src="auth.js?v=6"></script>
   <script src="api_v2.js?v=4"></script>
-  <script src="app.js?v=22"></script>
+  <script src="app.js?v=23"></script>
   <!-- <script src="challan.js?v=6"></script> -->
 </body>
 </html>
