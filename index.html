@@ -203,7 +203,7 @@
   </style>
 
   <!-- CSS Style Overrides -->
-  <link rel="stylesheet" href="style.css?v=2">
+  <link rel="stylesheet" href="style.css?v=3">
   <!-- GSAP Animation Library -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
 </head>
@@ -1055,19 +1055,38 @@
               <button class="botlab-quick-chip" onclick="window.botlabNavigate('https://lims.redcliffelabs.com')">
                 <span class="material-symbols-outlined" style="font-size:14px;">biotech</span> LIMS
               </button>
+              <button class="botlab-quick-chip botlab-view-toggle" id="botlab-view-toggle" onclick="window.toggleBotlabViewMode()" title="Switch between Single Tab and Grid Multi-View">
+                <span class="material-symbols-outlined" id="botlab-view-icon" style="font-size:14px;">grid_view</span>
+                <span id="botlab-view-label">Grid View</span>
+              </button>
               <div class="botlab-mode-toggle" id="botlab-mode-toggle">
                 <span class="botlab-mode-dot" id="botlab-mode-dot"></span>
                 <span class="botlab-mode-label" id="botlab-mode-label">DRY RUN</span>
               </div>
             </div>
 
-            <!-- Iframe Container (holds multiple iframes, one per tab) -->
+            <!-- Iframe Container (Single & Grid Multi-View) -->
             <div class="botlab-iframe-wrap" id="botlab-iframe-wrap">
               <div class="botlab-iframe-loader" id="botlab-iframe-loader">
                 <span class="material-symbols-outlined" style="font-size:32px;color:#6366f1;animation:spin 1.2s linear infinite;">progress_activity</span>
                 <span style="margin-top:8px;font-size:12px;font-weight:600;color:#64748b;">Connecting...</span>
               </div>
-              <iframe id="botlab-iframe-0" class="botlab-iframe active" src="about:blank" allow="clipboard-read; clipboard-write; fullscreen" sandbox="allow-same-origin allow-scripts allow-popups allow-forms allow-modals allow-top-navigation-by-user-activation"></iframe>
+              <div class="botlab-tab-card active" id="botlab-card-0">
+                <div class="botlab-card-header">
+                  <div class="flex items-center gap-1.5 overflow-hidden">
+                    <span class="material-symbols-outlined" style="font-size:14px;color:#6366f1;">tab</span>
+                    <span class="botlab-card-title" id="botlab-card-title-0">Home</span>
+                  </div>
+                  <div class="botlab-card-actions">
+                    <button class="botlab-card-btn" onclick="window.botlabFocusTab(0)" title="Focus Tab"><span class="material-symbols-outlined" style="font-size:13px;">open_in_full</span></button>
+                    <button class="botlab-card-btn" onclick="window.botlabReloadTab(0)" title="Reload"><span class="material-symbols-outlined" style="font-size:13px;">refresh</span></button>
+                    <button class="botlab-card-btn" onclick="window.botlabCloseTab(0)" title="Close"><span class="material-symbols-outlined" style="font-size:13px;">close</span></button>
+                  </div>
+                </div>
+                <div class="botlab-card-frame-wrap">
+                  <iframe id="botlab-iframe-0" class="botlab-iframe active" src="about:blank" allow="clipboard-read; clipboard-write; fullscreen" sandbox="allow-same-origin allow-scripts allow-popups allow-forms allow-modals allow-top-navigation-by-user-activation"></iframe>
+                </div>
+              </div>
             </div>
 
           </div>
@@ -1090,11 +1109,14 @@
               <button class="botlab-preset-btn" onclick="window.botAICommand('all')">
                 <span class="material-symbols-outlined" style="font-size:14px;">inventory_2</span> All Pending
               </button>
+              <button class="botlab-preset-btn" onclick="window.botAICommand('flebo')">
+                <span class="material-symbols-outlined" style="font-size:14px;">water_drop</span> Flebo.in
+              </button>
               <button class="botlab-preset-btn" onclick="window.botAICommand('medibuddy')">
                 <span class="material-symbols-outlined" style="font-size:14px;">medication</span> Medibuddy
               </button>
-              <button class="botlab-preset-btn" onclick="window.botAICommand('flebo')">
-                <span class="material-symbols-outlined" style="font-size:14px;">water_drop</span> Flebo.in
+              <button class="botlab-preset-btn" onclick="window.botAICommand('hcl')">
+                <span class="material-symbols-outlined" style="font-size:14px;">corporate_fare</span> HCL
               </button>
               <button class="botlab-preset-btn" onclick="window.botAICommand('tatvacare')">
                 <span class="material-symbols-outlined" style="font-size:14px;">health_and_safety</span> Tatvacare
@@ -2049,7 +2071,7 @@
   <script src="offline-game.js"></script>
   <script src="auth.js?v=6"></script>
   <script src="api_v2.js?v=4"></script>
-  <script src="app.js?v=13"></script>
+  <script src="app.js?v=14"></script>
   <!-- <script src="challan.js?v=6"></script> -->
 </body>
 </html>

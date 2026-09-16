@@ -5549,6 +5549,19 @@ window.updateNavBadges = function() {
       }
     }
 
+    // Bot Lab Badge (Total Pending Count)
+    const botlabBadge = document.getElementById("badge-bot-lab");
+    if (botlabBadge) {
+      if (overviewCount > 0) {
+        botlabBadge.innerText = overviewCount;
+        botlabBadge.setAttribute("data-count", overviewCount);
+        botlabBadge.style.display = "inline-flex";
+      } else {
+        botlabBadge.setAttribute("data-count", "0");
+        botlabBadge.style.display = "none";
+      }
+    }
+
     // Real-time Browser Tab Title Pendency Indicator (mirrors WhatsApp / Email tabs)
     const baseAppTitle = "Drop-off Operation";
     const expectedTabTitle = overviewCount > 0 ? `(${overviewCount}) ${baseAppTitle}` : baseAppTitle;
@@ -5825,6 +5838,7 @@ window.addEventListener('message', function(event) {
     history: { 0: [] },
     histPos: { 0: -1 },
     dryRun: true,
+    viewMode: "single", // "single" or "grid"
     initialized: false
   };
 
@@ -5837,7 +5851,7 @@ window.addEventListener('message', function(event) {
     _setupModeToggle();
   };
 
-  // ── Tab Rendering ──────────────────────────────────────────
+  // ── Tab Strip Rendering ────────────────────────────────────
   function _renderTabs() {
     var strip = document.getElementById("botlab-tab-strip");
     if (!strip) return;
@@ -5878,15 +5892,15 @@ window.addEventListener('message', function(event) {
 
   function _switchTab(id) {
     _bl.active = id;
-    // Show/hide iframes
+    // Show/hide cards (in single view mode, only active card is visible)
     var wrap = document.getElementById("botlab-iframe-wrap");
     if (wrap) {
-      var iframes = wrap.querySelectorAll(".botlab-iframe");
-      iframes.forEach(function (f) {
-        if (parseInt(f.id.replace("botlab-iframe-", "")) === id) {
-          f.classList.add("active");
+      var cards = wrap.querySelectorAll(".botlab-tab-card");
+      cards.forEach(function (card) {
+        if (card.id === "botlab-card-" + id) {
+          card.classList.add("active");
         } else {
-          f.classList.remove("active");
+          card.classList.remove("active");
         }
       });
     }
@@ -5899,16 +5913,42 @@ window.addEventListener('message', function(event) {
     _renderTabs();
   }
 
+  // ── Tab Creation (Persistent Tab-Card Architecture) ────────
   window.botlabCreateTab = function (url, title) {
     var id = _bl.nextId++;
-    _bl.tabs.push({ id: id, title: title || "New Tab", url: url || "about:blank" });
+    var tabTitle = title || "New Tab";
+    _bl.tabs.push({ id: id, title: tabTitle, url: url || "about:blank" });
     _bl.history[id] = [];
     _bl.histPos[id] = -1;
 
-    // Create iframe
+    // Create persistent card container
+    var card = document.createElement("div");
+    card.className = "botlab-tab-card";
+    card.id = "botlab-card-" + id;
+
+    // Card Header (shown in Grid Mode)
+    var header = document.createElement("div");
+    header.className = "botlab-card-header";
+    header.innerHTML =
+      '<div class="flex items-center gap-1.5 overflow-hidden">' +
+        '<span class="material-symbols-outlined" style="font-size:14px;color:#6366f1;">tab</span>' +
+        '<span class="botlab-card-title" id="botlab-card-title-' + id + '">' + _escHtml(tabTitle) + '</span>' +
+      '</div>' +
+      '<div class="botlab-card-actions">' +
+        '<button class="botlab-card-btn" onclick="window.botlabFocusTab(' + id + ')" title="Focus Tab"><span class="material-symbols-outlined" style="font-size:13px;">open_in_full</span></button>' +
+        '<button class="botlab-card-btn" onclick="window.botlabReloadTab(' + id + ')" title="Reload"><span class="material-symbols-outlined" style="font-size:13px;">refresh</span></button>' +
+        '<button class="botlab-card-btn" onclick="window.botlabCloseTab(' + id + ')" title="Close"><span class="material-symbols-outlined" style="font-size:13px;">close</span></button>' +
+      '</div>';
+    card.appendChild(header);
+
+    // Frame wrap
+    var frameWrap = document.createElement("div");
+    frameWrap.className = "botlab-card-frame-wrap";
+
+    // Create persistent iframe inside card
     var iframe = document.createElement("iframe");
     iframe.id = "botlab-iframe-" + id;
-    iframe.className = "botlab-iframe";
+    iframe.className = "botlab-iframe active";
     iframe.src = "about:blank";
     iframe.setAttribute("allow", "clipboard-read; clipboard-write; fullscreen");
     iframe.setAttribute("sandbox", "allow-same-origin allow-scripts allow-popups allow-forms allow-modals allow-top-navigation-by-user-activation");
@@ -5918,15 +5958,22 @@ window.addEventListener('message', function(event) {
       try {
         var iframeTitle = iframe.contentDocument && iframe.contentDocument.title;
         if (iframeTitle) {
-          var t = _bl.tabs.find(function (t) { return t.id === id; });
-          if (t) t.title = iframeTitle.substring(0, 30);
+          var t = _bl.tabs.find(function (tabObj) { return tabObj.id === id; });
+          if (t) {
+            t.title = iframeTitle.substring(0, 30);
+            var titleEl = document.getElementById("botlab-card-title-" + id);
+            if (titleEl) titleEl.textContent = t.title;
+          }
           _renderTabs();
         }
       } catch (e) { /* cross-origin */ }
     };
 
+    frameWrap.appendChild(iframe);
+    card.appendChild(frameWrap);
+
     var wrap = document.getElementById("botlab-iframe-wrap");
-    if (wrap) wrap.appendChild(iframe);
+    if (wrap) wrap.appendChild(card);
 
     _switchTab(id);
     if (url && url !== "about:blank") window.botlabNavigate(url);
@@ -5934,15 +5981,16 @@ window.addEventListener('message', function(event) {
     return id;
   };
 
+  // ── Tab Actions ────────────────────────────────────────────
   function _closeTab(id) {
     if (_bl.tabs.length <= 1) return;
     _bl.tabs = _bl.tabs.filter(function (t) { return t.id !== id; });
     delete _bl.history[id];
     delete _bl.histPos[id];
 
-    // Remove iframe
-    var iframe = document.getElementById("botlab-iframe-" + id);
-    if (iframe) iframe.remove();
+    // Remove card container
+    var card = document.getElementById("botlab-card-" + id);
+    if (card) card.remove();
 
     // Switch to last tab if active was closed
     if (_bl.active === id) {
@@ -5950,6 +5998,54 @@ window.addEventListener('message', function(event) {
     }
     _switchTab(_bl.active);
   }
+
+  window.botlabCloseTab = function (id) {
+    _closeTab(id);
+  };
+
+  window.botlabReloadTab = function (id) {
+    var iframe = document.getElementById("botlab-iframe-" + id);
+    if (iframe) {
+      var loader = document.getElementById("botlab-iframe-loader");
+      if (loader) loader.classList.add("show");
+      var src = iframe.src;
+      iframe.src = "about:blank";
+      setTimeout(function () { iframe.src = src; }, 50);
+    }
+  };
+
+  window.botlabFocusTab = function (id) {
+    _switchTab(id);
+    if (_bl.viewMode === "grid") {
+      window.toggleBotlabViewMode();
+    }
+  };
+
+  // ── Grid / Single View Mode Toggle ─────────────────────────
+  window.toggleBotlabViewMode = function () {
+    _bl.viewMode = (_bl.viewMode === "single" ? "grid" : "single");
+    var wrap = document.getElementById("botlab-iframe-wrap");
+    var toggleBtn = document.getElementById("botlab-view-toggle");
+    var toggleIcon = document.getElementById("botlab-view-icon");
+    var toggleLabel = document.getElementById("botlab-view-label");
+
+    if (wrap) {
+      wrap.classList.toggle("grid-mode", _bl.viewMode === "grid");
+    }
+    if (toggleBtn) {
+      toggleBtn.classList.toggle("active", _bl.viewMode === "grid");
+    }
+    if (toggleIcon) {
+      toggleIcon.textContent = (_bl.viewMode === "grid" ? "tab" : "grid_view");
+    }
+    if (toggleLabel) {
+      toggleLabel.textContent = (_bl.viewMode === "grid" ? "Single View" : "Grid View");
+    }
+
+    _addMsg("bot", _bl.viewMode === "grid"
+      ? "Switched to Grid Multi-View. All " + _bl.tabs.length + " tabs visible side-by-side."
+      : "Switched to Single Tab View.");
+  };
 
   // ── Navigation ─────────────────────────────────────────────
   window.botlabNavigate = function (rawUrl, pushHist) {
@@ -6017,14 +6113,7 @@ window.addEventListener('message', function(event) {
   };
 
   window.botlabReload = function () {
-    var iframe = document.getElementById("botlab-iframe-" + _bl.active);
-    if (iframe) {
-      var loader = document.getElementById("botlab-iframe-loader");
-      if (loader) loader.classList.add("show");
-      var src = iframe.src;
-      iframe.src = "about:blank";
-      setTimeout(function () { iframe.src = src; }, 50);
-    }
+    window.botlabReloadTab(_bl.active);
   };
 
   // ── PostMessage Listener (from RedcliffeBot in iframes) ────
@@ -6042,6 +6131,8 @@ window.addEventListener('message', function(event) {
             var u = new URL(event.data.url);
             tab.title = u.pathname.split("/").filter(Boolean).pop() || u.hostname;
             tab.url = event.data.url;
+            var titleEl = document.getElementById("botlab-card-title-" + tab.id);
+            if (titleEl) titleEl.textContent = tab.title;
             _renderTabs();
           } catch (e) {}
         }
@@ -6115,13 +6206,49 @@ window.addEventListener('message', function(event) {
       window.botAICommand("morepen");
     } else if (cmd.indexOf("hcl") !== -1) {
       window.botAICommand("hcl");
+    } else if (cmd.indexOf("grid") !== -1 || cmd.indexOf("multi") !== -1) {
+      window.toggleBotlabViewMode();
     } else {
-      _addMsg("bot", "Command not recognized. Try: 'all pending', 'hcl', 'medibuddy', 'flebo', 'tatvacare', 'tghs', or 'morepen'.");
+      _addMsg("bot", "Command not recognized. Try: 'all pending', 'flebo', 'medibuddy', 'hcl', 'tatvacare', 'tghs', 'morepen', or 'grid'.");
     }
   };
 
-  window.botAICommand = function (filter) {
-    var filterLabel = filter === "all" ? "all clients" : filter;
+  // ── AI Command & Live Pendency Engine ──────────────────────
+  window.botAICommand = function (filter, forceSync) {
+    var filterLabel = (filter === "all" || !filter) ? "all clients" : filter;
+
+    // Check if dashboard data is available
+    var hasValidData = window.Qs && Array.isArray(window.Qs.logs) && window.Qs.logs.length > 0;
+
+    if (forceSync || !hasValidData) {
+      _addMsg("bot", "Fetching real-time data from Google Sheets for " + filterLabel + "...");
+      if (typeof google !== "undefined" && google.script && google.script.run) {
+        google.script.run
+          .withSuccessHandler(function (res) {
+            if (res && res.status === "success") {
+              window.Qs = res;
+              if (typeof window.updateNavBadges === "function") window.updateNavBadges();
+              _processBotAIQuery(filter);
+            } else {
+              _addMsg("error", "Could not fetch data from Google Sheets: " + (res && res.message ? res.message : "unknown error"));
+            }
+          })
+          .withFailureHandler(function (err) {
+            _addMsg("error", "Sync connection error: " + (err && err.message ? err.message : err));
+          })
+          .getDashboardLogsData(true, "", "");
+        return;
+      } else {
+        _addMsg("error", "Backend connection is not ready. Please try again in a moment.");
+        return;
+      }
+    }
+
+    _processBotAIQuery(filter);
+  };
+
+  function _processBotAIQuery(filter) {
+    var filterLabel = (filter === "all" || !filter) ? "all clients" : filter;
     _addMsg("bot", "Scanning pending bookings for " + filterLabel + "...");
 
     var allLogs = [];
@@ -6129,17 +6256,12 @@ window.addEventListener('message', function(event) {
       if (window.Qs && Array.isArray(window.Qs.logs)) allLogs = window.Qs.logs;
     } catch (e) {}
 
-    if (allLogs.length === 0) {
-      _addMsg("bot", "Dashboard data is syncing or empty. Please wait a moment or click 'Apply Sync' on Overview.");
-      return;
-    }
-
     var pending = allLogs.filter(function (log) { return log.isPending === true; });
 
     if (filter && filter !== "all") {
-      var fNorm = filter.toLowerCase().replace(/[^a-z0-9]/g, '');
+      var fNorm = filter.toLowerCase().replace(/[^a-z0-9]/g, "");
       pending = pending.filter(function (log) {
-        var cNorm = (log.client || log.clientName || "").toLowerCase().replace(/[^a-z0-9]/g, '');
+        var cNorm = (log.client || log.clientName || "").toLowerCase().replace(/[^a-z0-9]/g, "");
         return cNorm.indexOf(fNorm) !== -1 || fNorm.indexOf(cNorm) !== -1;
       });
     }
@@ -6160,6 +6282,63 @@ window.addEventListener('message', function(event) {
     });
     if (pending.length > 10) {
       _addMsg("bot", "...and " + (pending.length - 10) + " more.");
+    }
+
+    // Add Grid View Action Button to Chat
+    var container = document.getElementById("botlab-ai-messages");
+    if (container) {
+      var btnWrap = document.createElement("div");
+      btnWrap.className = "botlab-msg bot";
+      btnWrap.style.paddingTop = "0";
+      var numToOpen = Math.min(pending.length, 4);
+      btnWrap.innerHTML =
+        '<div class="botlab-msg-avatar"><span class="material-symbols-outlined" style="font-size:14px;">grid_view</span></div>' +
+        '<div class="botlab-msg-body">' +
+          '<button class="botlab-msg-action-btn" onclick="window.botlabLaunchPendingTabs(\'' + _escHtml(filter || 'all') + '\')">' +
+            '<span class="material-symbols-outlined" style="font-size:13px;">dashboard_customize</span>' +
+            'Open ' + numToOpen + ' Pending ' + (numToOpen === 1 ? 'Tab' : 'Tabs') + ' in Grid View' +
+          '</button>' +
+        '</div>';
+      container.appendChild(btnWrap);
+      container.scrollTop = container.scrollHeight;
+    }
+  }
+
+  // ── Parallel Tabs Launcher in Grid Mode ────────────────────
+  window.botlabLaunchPendingTabs = function (filter) {
+    var allLogs = [];
+    try {
+      if (window.Qs && Array.isArray(window.Qs.logs)) allLogs = window.Qs.logs;
+    } catch (e) {}
+
+    var pending = allLogs.filter(function (log) { return log.isPending === true; });
+    if (filter && filter !== "all") {
+      var fNorm = filter.toLowerCase().replace(/[^a-z0-9]/g, "");
+      pending = pending.filter(function (log) {
+        var cNorm = (log.client || log.clientName || "").toLowerCase().replace(/[^a-z0-9]/g, "");
+        return cNorm.indexOf(fNorm) !== -1 || fNorm.indexOf(cNorm) !== -1;
+      });
+    }
+
+    if (pending.length === 0) {
+      _addMsg("bot", "No pending bookings found to launch.");
+      return;
+    }
+
+    var toLaunch = pending.slice(0, 4);
+    _addMsg("bot", "Opening " + toLaunch.length + " pending booking(s) in Grid View...");
+
+    toLaunch.forEach(function (b) {
+      var pName = b.name || "Patient";
+      var cli = b.client || "Client";
+      var targetUrl = "https://partner.redcliffelabs.com/dashboard/corpclientadmin/booking";
+      var tabTitle = pName + " (" + (b.rowNum ? "R" + b.rowNum : cli) + ")";
+      window.botlabCreateTab(targetUrl, tabTitle);
+    });
+
+    // Switch to Grid View so user sees all opened tabs side-by-side
+    if (_bl.viewMode !== "grid") {
+      window.toggleBotlabViewMode();
     }
   };
 
