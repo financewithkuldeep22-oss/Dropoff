@@ -2490,6 +2490,7 @@ input[type="password"]::-ms-clear {
     height: 100% !important;
     min-width: 100% !important;
     min-height: 100% !important;
+    zoom: 1 !important;
     transform: none !important;
   }
 }
