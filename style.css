@@ -56,16 +56,16 @@ html {
 }
 
 body {
+  zoom: 0.78 !important; /* 78% Density Scale: Delivers authentic 75% compact dashboard feel on 100% monitor resolution */
   background-color: var(--canvas);
   color: var(--text-primary);
   font-family: var(--font-body);
-  font-size: 12.5px;
+  font-size: 13px;
   line-height: 1.45;
   letter-spacing: -0.006em;
   font-feature-settings: "cv11" 1, "ss01" 1;
   -webkit-font-smoothing: antialiased;
   min-height: 100vh;
-  height: 100%;
 }
 
 /* Crisp scaled SVGs and Icons across all modules */
