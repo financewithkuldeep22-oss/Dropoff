@@ -591,3 +591,18 @@ Initializes dashboard data sync
        - Enhanced botAutoRun handler to normalize botPartner, parse botCity, and perform fuzzy option matching before dispatching change events via selectPartner.
        - Added address entries to ADDRESS_MAP: 'Dr. Morepen Labs_Order History - VIT Bhopal', 'Dr. Morepen Labs_VIT Bhopal', 'Dr. Morepen Labs_Order History - Sec 83, GGN', and 'Bhopal'.
        - Updated address resolution in startBookingHandler to dynamically check 'Dr. Morepen Labs_' + (citySuffix || currentTabName) with fallback to city and main office.
+
+9. **Viewport Height, Cross-Origin Error Suppression & True Simultaneous Multi-Tab Bot Execution:**
+   - **Bottom Blank Area Resolution**:
+     - *Issue*: Applying `zoom: 0.78` to `body` caused Chromium to truncate the body layout viewport to 78vh of the window, leaving an empty 22vh dead white void at the bottom across all views.
+     - *Fix*: Removed `zoom: 0.78 !important;` from `body`. Implemented clean high-density typography and compact padding scaling (`html { font-size: 13px !important; height: 100%; background-color: var(--canvas); }`, `body { font-size: 12.5px; height: 100%; min-height: 100vh; }`). Set `#main-scroll-container` and `.main-content-wrapper` to 100% viewport heights.
+   - **Cross-Origin Iframe Console Error Suppression**:
+     - *Issue*: `medibuddy-frame` loaded Google Apps Script web app on page startup, triggering `Uncaught ReferenceError: onRedcliffeIframeLoad / onBrowserIframeLoad is not defined` from its internal sandbox. `botlab-iframe-0` loaded `google.com` on startup, firing `Blocked autofocusing on a <textarea> element in a cross-origin subframe.`
+     - *Fix*: Lazy-loaded both iframes using `src="about:blank"` and `data-src="..."`. They are now strictly loaded on-demand when the user clicks the Medibuddy tab or opens Bot Lab.
+   - **Simultaneous Parallel Multi-Tab Automation in Redcliffe Bot**:
+     - *Issue*: When launching pending bookings in multi-tab Grid View, bookings were artificially delayed by 3000ms staggered intervals, and the bot halted with paused address modals or focus thrashing across tabs.
+     - *Fix in `redcliffe.js`*:
+       - Synthetic event guard: Added `if (!e.isTrusted) return;` inside `setupAddressInterventionWatcher` to prevent synthetic clicks from falsely marking `userTookOverAddress = true`.
+       - Focus thrashing fix: In `fillCentreStrict`, replaced the 60-iteration rapid `input.focus()` loop with direct trigger of MUI `button.MuiAutocomplete-popupIndicator`, allowing background iframes to open dropdowns seamlessly without stealing focus.
+       - URL parameter patient extraction: Added direct reading of `botPatientName`, `botAge`, `botGender`, `botPhone`, `botTest`, `botLocation`, `botCenter`, `botPartner` from query params.
+     - *Fix in `app.js`*: Set `delayMs = 0` in `botlabLaunchPendingTabs` for immediate simultaneous parallel execution across all opened tabs.

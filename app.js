@@ -2660,8 +2660,8 @@ if(syncBtnEl && !syncBtnEl.dataset.fix) {
               if (key === 'medibuddy') {
                 try {
                   const frame = document.getElementById('medibuddy-frame');
-                  if (frame && (!frame.getAttribute('src') || frame.getAttribute('src') === '')) {
-                    frame.src = 'https://script.google.com/a/macros/redcliffelabs.com/s/AKfycbxVGPygavvON2AKM-aTDPuKXQS0IDdc-ASj4wB7gCwqL4gldI8e9-r7zJC_EbI8tcts/exec';
+                  if (frame && (!frame.getAttribute('src') || frame.getAttribute('src') === '' || frame.getAttribute('src') === 'about:blank')) {
+                    frame.src = frame.getAttribute('data-src') || 'https://script.google.com/a/macros/redcliffelabs.com/s/AKfycbxVGPygavvON2AKM-aTDPuKXQS0IDdc-ASj4wB7gCwqL4gldI8e9-r7zJC_EbI8tcts/exec';
                   }
                 } catch(e) {}
               }
@@ -6056,6 +6056,9 @@ window.addEventListener('message', function(event) {
     if (typeof window.updateBotlabPendingChips === "function") window.updateBotlabPendingChips();
     var frame0 = document.getElementById("botlab-iframe-0");
     if (frame0) {
+      if (!frame0.src || frame0.src === 'about:blank' || frame0.src.endsWith('/')) {
+        frame0.src = frame0.getAttribute('data-src') || "https://www.google.com/search?igu=1";
+      }
       _wireIframeLoadHandler(frame0, 0);
     }
   };
@@ -6814,11 +6817,11 @@ window.addEventListener('message', function(event) {
     toLaunch.forEach(function (b, idx) {
       var pName = b.name || "Patient";
       var cli = b.client || "Client";
-      var delayMs = idx * 3000;
+      var delayMs = 0; // True simultaneous parallel execution across all tabs
       var targetUrl = _buildBotBookingUrl(b, delayMs);
       var tabTitle = pName + " (" + (b.rowNum ? "R" + b.rowNum : cli) + ")";
 
-      // Stagger creation by 500ms to allow smooth network loading
+      // Clean parallel DOM insertion
       setTimeout(function () {
         // If initial tab is blank or Google home, reuse it for the first pending booking
         if (idx === 0 && _bl.tabs.length === 1 && (!_bl.tabs[0].url || _bl.tabs[0].url === "about:blank" || _bl.tabs[0].url.indexOf("google.com") !== -1)) {
@@ -6830,7 +6833,7 @@ window.addEventListener('message', function(event) {
         } else {
           window.botlabCreateTab(targetUrl, tabTitle);
         }
-      }, idx * 500);
+      }, idx * 150);
     });
   };
 
