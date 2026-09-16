@@ -6352,6 +6352,16 @@ window.addEventListener('message', function(event) {
       // Booking success signal from bot
       if (event.data.action === "redcliffeBookingSuccess" && event.data.bookingId) {
         _addMsg("success", "Booking created successfully: " + event.data.bookingId);
+        
+        // Auto-run next in queue if active
+        if (window.botlabPendingQueue && window.botlabPendingQueue.length > 0) {
+          _addMsg("bot", "Waiting 2 seconds before starting next booking in queue...");
+          setTimeout(function() {
+            if (typeof window.botlabRunNextInQueue === 'function') {
+              window.botlabRunNextInQueue();
+            }
+          }, 2000);
+        }
       }
     });
   }
@@ -6782,6 +6792,44 @@ window.addEventListener('message', function(event) {
   };
 
   // ── Parallel Tabs Launcher in Grid Mode with Auto-Fill ─────
+  window.botlabPendingQueue = [];
+  
+  window.botlabRunNextInQueue = function () {
+    if (!window.botlabPendingQueue || window.botlabPendingQueue.length === 0) {
+      _addMsg("success", "Queue Finished! All pending bookings have been processed.");
+      return;
+    }
+    
+    var b = window.botlabPendingQueue.shift();
+    var pName = b.name || "Patient";
+    var cli = b.client || "Client";
+    var targetUrl = _buildBotBookingUrl(b, 0); // No delay needed for 1-by-1
+    var tabTitle = pName + " (" + (b.rowNum ? "R" + b.rowNum : cli) + ")";
+    
+    // Close all current tabs
+    while (_bl.tabs.length > 0) {
+      window.botlabCloseTab(_bl.tabs[0].id);
+    }
+    
+    // Switch to Single View for better performance
+    if (_bl.viewMode !== "single") {
+      window.toggleBotlabViewMode();
+    }
+    
+    var queueHtml = 
+      '<div style="margin-top: 5px; display: flex; gap: 8px;">' +
+        '<button class="botlab-msg-action-btn" onclick="window.botlabRunNextInQueue()">' +
+          '<span class="material-symbols-outlined" style="font-size:13px;">skip_next</span> Skip to Next' +
+        '</button>' +
+        '<button class="botlab-msg-action-btn" onclick="window.botlabPendingQueue = []; _addMsg(\'bot\', \'Queue stopped.\');" style="background: rgba(239,68,68,0.1); color: #ef4444; border-color: rgba(239,68,68,0.2);">' +
+          '<span class="material-symbols-outlined" style="font-size:13px;">stop</span> Stop Queue' +
+        '</button>' +
+      '</div>';
+      
+    _addMsg("bot", "Queue: Running <b>" + tabTitle + "</b>... (" + window.botlabPendingQueue.length + " remaining)" + queueHtml, true);
+    window.botlabCreateTab(targetUrl, tabTitle);
+  };
+  
   window.botlabLaunchPendingTabs = function (filter) {
     var allLogs = [];
     try {
@@ -6806,35 +6854,17 @@ window.addEventListener('message', function(event) {
       return;
     }
 
-    var toLaunch = pending.slice(0, 4);
-    _addMsg("bot", "Opening " + toLaunch.length + " pending booking(s) with automated form-fill parameters in Grid View...");
-
-    // Switch to Grid View so user sees all opened tabs side-by-side
-    if (_bl.viewMode !== "grid") {
-      window.toggleBotlabViewMode();
+    // Limit to 10 max in a queue to prevent runaway bots
+    window.botlabPendingQueue = pending.slice(0, 10); 
+    
+    // Auto-open chat panel so user can see queue progress
+    var panel = document.getElementById("botlab-ai-panel");
+    if (panel && panel.style.display === "none") {
+        window.toggleBotlabAI();
     }
-
-    toLaunch.forEach(function (b, idx) {
-      var pName = b.name || "Patient";
-      var cli = b.client || "Client";
-      var delayMs = idx * 400; // Tiny stagger to prevent CPU spike and React focus conflicts
-      var targetUrl = _buildBotBookingUrl(b, delayMs);
-      var tabTitle = pName + " (" + (b.rowNum ? "R" + b.rowNum : cli) + ")";
-
-      // Clean parallel DOM insertion
-      setTimeout(function () {
-        // If initial tab is blank or Google home, reuse it for the first pending booking
-        if (idx === 0 && _bl.tabs.length === 1 && (!_bl.tabs[0].url || _bl.tabs[0].url === "about:blank" || _bl.tabs[0].url.indexOf("google.com") !== -1)) {
-          _bl.tabs[0].title = tabTitle;
-          _bl.tabs[0].url = targetUrl;
-          var tEl = document.getElementById("botlab-card-title-0");
-          if (tEl) tEl.textContent = tabTitle;
-          window.botlabNavigate(targetUrl);
-        } else {
-          window.botlabCreateTab(targetUrl, tabTitle);
-        }
-      }, idx * 150);
-    });
+    
+    _addMsg("bot", "Starting 1-by-1 Queue for " + window.botlabPendingQueue.length + " pending bookings...");
+    window.botlabRunNextInQueue();
   };
 
   // Immediate init wiring for resizer and frame 0
