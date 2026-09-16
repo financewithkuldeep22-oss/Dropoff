@@ -2380,6 +2380,8 @@ if(syncBtnEl && !syncBtnEl.dataset.fix) {
     Cr(e);
     e.forEach((item, n) => {
       const s = document.createElement("div");
+      s.dataset.rowNum = item.rowNum;
+      s.dataset.bookingId = item.bookingId || "";
       s.className = "qc-queue-card " + (vr && vr.rowNum === item.rowNum ? "active" : "");
       s.onclick = () => window.selectAlloQCBooking(item, true);
       const locStr = item.location || item.city || "Mumbai";
@@ -2875,10 +2877,15 @@ if(syncBtnEl && !syncBtnEl.dataset.fix) {
   ((window.selectAlloQCBooking = function (e) {
     (e && (e.testName = e.testName || e.tests || ""), (vr = e));
     const t = document.querySelectorAll(".qc-queue-card");
-    t.forEach((e) => e.classList.remove("active"));
-    const n = Array.from(t).find((t) => t.innerHTML.includes(`Row ${e.rowNum}`));
-    (n && n.classList.add("active"),
-      (document.getElementById("allo-qc-empty-state").style.display = "none"),
+    t.forEach((card) => {
+      if (card.dataset.rowNum == e.rowNum || (e.bookingId && card.dataset.bookingId == e.bookingId)) {
+        card.classList.add("active");
+        try { card.scrollIntoView({ behavior: 'smooth', block: 'nearest' }); } catch(err) {}
+      } else {
+        card.classList.remove("active");
+      }
+    });
+    (document.getElementById("allo-qc-empty-state").style.display = "none"),
       (document.getElementById("allo-qc-review-panel").style.display = "flex"),
       (window.gsap && gsap.fromTo("#allo-qc-review-panel", {opacity: 0, scale: 0.98}, {opacity: 1, scale: 1, duration: 0.4, ease: "power2.out", overwrite: true, clearProps: "opacity,scale,transform"})),
       (document.getElementById("qc-active-patient-name").innerHTML = '<div class="skeleton-block" style="height: 18px; width: 140px; border-radius: 4px;"></div>'),
@@ -2886,7 +2893,7 @@ if(syncBtnEl && !syncBtnEl.dataset.fix) {
       (document.getElementById("qc-active-patient-bid").innerHTML = '<div class="skeleton-block" style="height: 14px; width: 80px; border-radius: 4px;"></div>'),
       (document.getElementById("qc-active-patient-date").innerHTML = '<div class="skeleton-block" style="height: 14px; width: 120px; border-radius: 4px;"></div>'),
       (document.getElementById("qc-active-patient-tests").innerHTML = '<div class="skeleton-block" style="height: 14px; width: 180px; border-radius: 4px;"></div>'),
-      (document.getElementById("qc-active-patient-vials").innerHTML = '<div class="skeleton-block" style="height: 14px; width: 80px; border-radius: 4px;"></div>'));
+      (document.getElementById("qc-active-patient-vials").innerHTML = '<div class="skeleton-block" style="height: 14px; width: 80px; border-radius: 4px;"></div>');
       if (typeof window.closeRemarksDropdown === "function") window.closeRemarksDropdown();
     const s = document.getElementById("qc-select-status");
     (s && (s.value = ""),
@@ -2907,9 +2914,11 @@ if(syncBtnEl && !syncBtnEl.dataset.fix) {
       
       document.getElementById("qc-active-patient-name").innerText = e.patientName || "N/A";
       document.getElementById("qc-active-patient-row-badge").innerText = `Row ${e.rowNum}`;
-      document.getElementById("qc-active-patient-bid").innerText = e.bookingId || "N/A";
-      if (document.getElementById("qc-active-patient-location")) { document.getElementById("qc-active-patient-location").innerText = e.location || "N/A"; }
+      document.getElementById("qc-active-patient-bid").innerText = `ID: ${e.bookingId || "N/A"}`;
+      if (document.getElementById("qc-active-patient-location")) { document.getElementById("qc-active-patient-location").innerText = e.location || e.city || "Mumbai"; }
       if (document.getElementById("qc-active-patient-age")) { document.getElementById("qc-active-patient-age").innerText = ageGender; }
+      const headerTitle = document.getElementById("qc-active-header-title");
+      if (headerTitle) { headerTitle.innerText = `${e.patientName || "N/A"} (#${e.bookingId || e.rowNum})`; }
       
       let t = e.colTime || "";
       if (t.includes("GMT")) {

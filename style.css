@@ -1111,11 +1111,11 @@ body {
       transform: translateX(6px) !important;
     }
     .qc-queue-card.active {
-      background: white !important;
-      border-color: var(--color-primary) !important;
-      box-shadow: 0 8px 25px rgba(59, 130, 246, 0.12) !important;
-      border-left: 4px solid var(--color-primary) !important;
-      padding-left: 13px !important;
+      background: #eff6ff !important;
+      border-color: #3b82f6 !important;
+      box-shadow: 0 4px 16px rgba(37, 99, 235, 0.16) !important;
+      border-left: 4px solid #2563eb !important;
+      padding-left: 12px !important;
     }
 
     /* Table Row Premium Hover */
@@ -2383,23 +2383,26 @@ input[type="password"]::-ms-clear {
     position: relative !important;
   }
 
-  /* Full Bleed Iframe Tabs - 100% Full Viewport (Never Cut Off, 100% Crisp) */
+  /* Full Bleed Iframe Tabs - 75% Compact Density (Vector-Crisp via Chromium Zoom) */
   #tab-content-ops iframe,
   #tab-content-allo iframe,
   #tab-content-bhmc iframe,
   #tab-content-medibuddy iframe,
   #tab-content-challan iframe {
-    width: 100% !important;
-    height: 100% !important;
-    min-width: 100% !important;
-    min-height: 100% !important;
-    zoom: 1 !important;
+    position: absolute !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 133.333333% !important;
+    height: 133.333333% !important;
+    min-width: 133.333333% !important;
+    min-height: 133.333333% !important;
+    zoom: 0.75 !important;
     transform: none !important;
     -webkit-font-smoothing: antialiased !important;
     border: none !important;
-    flex: 1 !important;
     display: block !important;
-    flex-shrink: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
   }
 }
 
@@ -2785,9 +2788,11 @@ input[type="password"]::-ms-clear {
 .botlab-iframe {
   position: absolute;
   top: 0; left: 0;
-  width: 100% !important;
-  height: 100% !important;
-  zoom: 1 !important;
+  width: 133.333333% !important;
+  height: 133.333333% !important;
+  min-width: 133.333333% !important;
+  min-height: 133.333333% !important;
+  zoom: 0.75 !important;
   transform: none !important;
   -webkit-font-smoothing: antialiased !important;
   border: none;
@@ -2797,9 +2802,9 @@ input[type="password"]::-ms-clear {
 /* Grid Multi-View Mode (Side-by-side simultaneous cards in Desktop Screen Ratio - Compact Density) */
 .botlab-iframe-wrap.grid-mode {
   display: grid !important;
-  grid-template-columns: repeat(auto-fit, minmax(360px, 1fr)) !important;
-  gap: 10px !important;
-  padding: 10px !important;
+  grid-template-columns: repeat(auto-fit, minmax(380px, 1fr)) !important;
+  gap: 12px !important;
+  padding: 12px !important;
   overflow-y: auto !important;
   align-content: start !important;
   background: #f1f5f9 !important;
@@ -2813,7 +2818,10 @@ input[type="password"]::-ms-clear {
   top: auto !important;
   left: auto !important;
   width: 100% !important;
-  height: 300px !important; /* 16:10 Desktop Landscape Ratio */
+  aspect-ratio: 16 / 10 !important;
+  height: auto !important;
+  min-height: 240px !important;
+  max-height: 320px !important;
   opacity: 1 !important;
   visibility: visible !important;
   pointer-events: auto !important;
@@ -2873,14 +2881,16 @@ input[type="password"]::-ms-clear {
   user-select: none;
   flex-shrink: 0;
 }
-/* Desktop Viewport Emulation for Grid Cards so Portal Form is Fully Visible with Crisp Fonts */
+/* Miniature Desktop Monitor: 1200px+ Full Desktop Portal Scaled Proportionally to Grid Card */
 .botlab-iframe-wrap.grid-mode .botlab-card-frame-wrap .botlab-iframe {
   position: absolute !important;
   top: 0 !important;
   left: 0 !important;
-  width: 160% !important;
-  height: 160% !important;
-  zoom: 0.625 !important;
+  width: 300% !important;
+  height: 300% !important;
+  min-width: 300% !important;
+  min-height: 300% !important;
+  zoom: 0.333333 !important;
   transform: none !important;
   -webkit-font-smoothing: antialiased !important;
   border: none !important;

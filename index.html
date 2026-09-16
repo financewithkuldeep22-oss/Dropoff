@@ -203,7 +203,7 @@
   </style>
 
   <!-- CSS Style Overrides -->
-  <link rel="stylesheet" href="style.css?v=12">
+  <link rel="stylesheet" href="style.css?v=13">
   <!-- GSAP Animation Library -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
 </head>
@@ -664,20 +664,24 @@
             <!-- LEFT COLUMN: Patient Info + Tubes + Actions -->
             <div class="w-[210px] shrink-0 flex flex-col overflow-y-auto border-r border-outline-variant/30 bg-white">
               
-              <!-- Hidden compatibility hooks for JS -->
-              <span id="qc-active-patient-name" class="hidden"></span>
-              <span id="qc-active-patient-location" class="hidden"></span>
-              <span id="qc-active-patient-bid" class="hidden"></span>
-
-              <!-- Patient Meta & Time -->
-              <div class="p-2.5 border-b border-outline-variant/20 bg-slate-50/60">
-                <div class="flex items-center justify-between">
-                  <span class="text-navy font-bold text-xs" id="qc-active-patient-age">-</span>
-                  <span class="px-2 py-0.5 bg-primary text-white text-[10px] font-bold rounded-full" id="qc-active-patient-row-badge">Row -</span>
+              <!-- Active Patient Identity Card -->
+              <div class="p-2.5 border-b border-outline-variant/20 bg-gradient-to-r from-slate-900 to-indigo-950 text-white rounded-t-[14px]">
+                <div class="flex items-center justify-between gap-1 mb-1">
+                  <span class="px-2 py-0.5 bg-blue-500 text-white text-[9px] font-extrabold rounded-md uppercase tracking-wider" id="qc-active-patient-row-badge">Row -</span>
+                  <span class="font-mono text-[11px] font-black text-sky-300 tracking-tight cursor-pointer hover:underline flex items-center gap-0.5" id="qc-active-patient-bid" title="Click to copy ID" onclick="window.copyActiveBookingId()">
+                    ID: -
+                  </span>
                 </div>
-                <div class="mt-1 text-[10px] text-slate-500 font-medium flex items-center gap-1">
-                  <span class="material-symbols-outlined text-[13px] text-slate-400">schedule</span>
-                  <span id="qc-active-patient-date">-</span>
+                <div class="font-black text-[13px] text-white truncate leading-tight tracking-tight" id="qc-active-patient-name" title="Patient Name">
+                  Patient Name
+                </div>
+                <div class="text-[10px] text-slate-300 flex items-center gap-1 mt-1 truncate">
+                  <span class="material-symbols-outlined text-[12px] text-sky-400 shrink-0">location_on</span>
+                  <span id="qc-active-patient-location" class="truncate font-medium">-</span>
+                </div>
+                <div class="mt-1.5 pt-1.5 border-t border-white/10 flex items-center justify-between text-[10px]">
+                  <span id="qc-active-patient-age" class="font-bold text-slate-200">-</span>
+                  <span id="qc-active-patient-date" class="text-slate-400 font-mono text-[9px]">-</span>
                 </div>
               </div>
               
@@ -719,8 +723,12 @@
             <div class="flex-1 flex flex-col bg-slate-50 overflow-hidden">
               
               <!-- Photo Tabs Header -->
-              <div class="flex items-center justify-between px-3 pt-2 pb-1.5">
+              <div class="flex items-center justify-between px-3 pt-2 pb-1.5 border-b border-slate-200/60 bg-white">
                 <div class="flex items-center gap-2">
+                  <div class="hidden sm:flex items-center gap-1 px-2.5 py-1 rounded-full bg-slate-100 dark:bg-slate-800 text-[11px] font-bold text-slate-800 dark:text-slate-200 border border-slate-200/80 mr-1">
+                    <span class="material-symbols-outlined text-[13px] text-blue-600 dark:text-sky-400">person</span>
+                    <span id="qc-active-header-title" class="truncate max-w-[200px]">Select Patient</span>
+                  </div>
                   <button class="qc-photo-tab-btn active px-2.5 py-1 text-[11px] font-bold rounded-full cursor-pointer transition-all" data-photo="refrig" onclick="window.switchQCPhotoTab && window.switchQCPhotoTab('refrig')">
                     <span class="w-2 h-2 rounded-full bg-blue-400 inline-block mr-1"></span> Refrigerator
                   </button>
@@ -2078,7 +2086,7 @@
   <script src="offline-game.js"></script>
   <script src="auth.js?v=6"></script>
   <script src="api_v2.js?v=4"></script>
-  <script src="app.js?v=20"></script>
+  <script src="app.js?v=21"></script>
   <!-- <script src="challan.js?v=6"></script> -->
 </body>
 </html>
