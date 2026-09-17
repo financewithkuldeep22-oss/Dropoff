@@ -7001,21 +7001,23 @@ window.addEventListener('message', function(event) {
     _addMsg("bot", "⚡ Launching " + batch.length + " pending booking(s) simultaneously in Parallel Grid View...");
 
     batch.forEach(function (b, idx) {
-      var targetUrl = _buildBotBookingUrl(b, idx * 400);
-      var tabTitle = (b.name || "Patient") + " (R" + (b.rowNum || idx + 1) + ")";
+      setTimeout(function() {
+        var targetUrl = _buildBotBookingUrl(b, idx * 400);
+        var tabTitle = (b.name || "Patient") + " (R" + (b.rowNum || idx + 1) + ")";
 
-      if (idx === 0 && _bl.tabs.length === 1 && (!_bl.tabs[0].url || _bl.tabs[0].url === "about:blank" || _bl.tabs[0].url.indexOf("google.com") !== -1)) {
-        _bl.tabs[0].title = tabTitle;
-        _bl.tabs[0].url = targetUrl;
-        var tEl = document.getElementById("botlab-card-title-0");
-        if (tEl) tEl.textContent = tabTitle;
-        var iframe = document.getElementById("botlab-iframe-0");
-        if (iframe) iframe.src = targetUrl;
-        var urlInput = document.getElementById("botlab-url-input");
-        if (urlInput) urlInput.value = targetUrl;
-      } else {
-        window.botlabCreateTab(targetUrl, tabTitle);
-      }
+        if (idx === 0 && _bl.tabs.length === 1 && (!_bl.tabs[0].url || _bl.tabs[0].url === "about:blank" || _bl.tabs[0].url.indexOf("google.com") !== -1)) {
+          _bl.tabs[0].title = tabTitle;
+          _bl.tabs[0].url = targetUrl;
+          var tEl = document.getElementById("botlab-card-title-0");
+          if (tEl) tEl.textContent = tabTitle;
+          var iframe = document.getElementById("botlab-iframe-0");
+          if (iframe) iframe.src = targetUrl;
+          var urlInput = document.getElementById("botlab-url-input");
+          if (urlInput) urlInput.value = targetUrl;
+        } else {
+          window.botlabCreateTab(targetUrl, tabTitle);
+        }
+      }, idx * 600);
     });
 
     if (batch.length > 1 && _bl.viewMode !== "grid") {
@@ -7376,9 +7378,11 @@ window.addEventListener('message', function(event) {
     if (actionType === "parallel") {
       _addMsg("bot", "⚡ Launching " + targetList.length + " selected bookings in Parallel Multi-Tabs...");
       targetList.forEach(function (b, idx) {
-        var url = _buildBotBookingUrl(b, idx * 400);
-        var title = (b.name || "Patient") + " (R" + (b.rowNum || idx + 1) + ")";
-        window.botlabCreateTab(url, title);
+        setTimeout(function() {
+          var url = _buildBotBookingUrl(b, idx * 400);
+          var title = (b.name || "Patient") + " (R" + (b.rowNum || idx + 1) + ")";
+          window.botlabCreateTab(url, title);
+        }, idx * 600);
       });
       if (_bl.viewMode !== "grid") window.toggleBotlabViewMode();
     } else if (actionType === "queue") {
