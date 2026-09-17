@@ -1,3 +1,5 @@
+@import './tokens.css';
+
 /* =========================================================
    ULTRA-PREMIUM EXECUTIVE OPERATIONS THEME
    DM Sans × Inter × JetBrains Mono
@@ -2052,7 +2054,7 @@ input[type="password"]::-ms-clear {
 /* Desktop Layout & Rails - Compact Enterprise Density */
 @media (min-width: 769px) {
   #main-scroll-container {
-    padding-left: 68px !important;
+    padding-left: 60px !important;
   }
   /* Navigation Rail Container - Tall, Sleek, Top-Anchored */
   .app-nav-rail {
@@ -2060,7 +2062,7 @@ input[type="password"]::-ms-clear {
     top: 48px !important;
     bottom: 0 !important;
     left: 0 !important;
-    width: 60px !important;
+    width: var(--nav-rail-collapsed, 52px) !important;
     height: calc(100vh - 48px) !important;
     max-height: none !important;
     background: #f1f5f9 !important;
@@ -2087,7 +2089,7 @@ input[type="password"]::-ms-clear {
 
   /* Expand on hover without shifting page content */
   .app-nav-rail:hover {
-    width: 215px !important;
+    width: var(--nav-rail-expanded, 188px) !important;
     box-shadow: 0 20px 45px -5px rgba(15, 23, 42, 0.18), 0 0 0 1px rgba(15, 23, 42, 0.06) !important;
   }
   .dark .app-nav-rail:hover {
@@ -3181,8 +3183,8 @@ input[type="password"]::-ms-clear {
 /* --- AI Command Panel (Right - Resizable & Sleek UI) --- */
 .botlab-ai-panel {
   position: relative;
-  width: 330px;
-  min-width: 250px;
+  width: 380px;
+  min-width: 360px;
   max-width: 650px;
   height: 100%;
   max-height: 100%;
@@ -4709,4 +4711,85 @@ body.dark-mode .botlab-recovery-close {
   from { opacity: 0; transform: translateY(-6px); }
   to { opacity: 1; transform: translateY(0); }
 }
+
+/* =========================================================
+   AUTO-HIDING HEADER & MANUAL REVEAL TAB (v2 Compact)
+   ========================================================= */
+#main-app-header {
+  transition: transform 200ms ease-out !important;
+}
+
+#main-app-header.header-hidden {
+  transform: translateY(-100%) !important;
+  transition: transform 200ms ease-out !important;
+}
+
+.header-reveal-btn {
+  position: fixed;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 28px;
+  height: 16px;
+  background: var(--surface, #ffffff);
+  border: 1px solid var(--border-subtle, #e4e8ec);
+  border-top: none;
+  border-radius: 0 0 8px 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 60;
+  cursor: pointer;
+  box-shadow: var(--shadow-xs, 0 1px 2px rgba(16, 24, 40, 0.05));
+  color: var(--text-secondary, #4a5568);
+  padding: 0;
+  margin: 0;
+  line-height: 1;
+  transition: background var(--transition-fast, 150ms ease-out), color var(--transition-fast, 150ms ease-out);
+}
+
+.header-reveal-btn:hover {
+  background: var(--surface-subtle, #f3f5f7);
+  color: var(--text-primary, #101828);
+}
+
+.header-reveal-btn .material-symbols-outlined {
+  font-size: 12px;
+  line-height: 1;
+  display: block;
+}
+
+/* ── Enterprise Compact Component Heights & Table Rows ── */
+.table-compact tbody tr,
+#tab-content-overview table tbody tr {
+  height: var(--table-row-height, 36px);
+}
+
+.btn-default, button.btn-default {
+  height: var(--btn-height-default, 32px);
+  min-height: var(--btn-height-default, 32px);
+}
+
+.btn-compact, button.btn-compact {
+  height: var(--btn-height-compact, 28px);
+  min-height: var(--btn-height-compact, 28px);
+}
+
+.btn-cta, button.btn-cta {
+  height: var(--btn-height-cta, 36px);
+  min-height: var(--btn-height-cta, 36px);
+}
+
+/* ── Touch Target Expansion on Coarse Pointer / Mobile (WCAG 2.1 AAA minimum 44x44px target) ── */
+@media (pointer: coarse), (max-width: 768px) {
+  button:not(.header-reveal-btn), 
+  a, 
+  input, 
+  select, 
+  [role="button"] {
+    min-width: 44px;
+    min-height: 44px;
+  }
+}
+
 

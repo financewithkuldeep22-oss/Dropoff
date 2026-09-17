@@ -1,0 +1,142 @@
+/**
+ * Redcliffe Labs Logistics Operations Dashboard — Design System Tokens (v2 Compact Light-Theme)
+ * Single Source of Truth for Non-Tailwind Component Styling
+ */
+
+:root {
+  /* ── 1. Color Palette (Light Theme Only — All Pairings WCAG 2.1 AA Verified) ── */
+  --canvas: #FAFBFC;
+  --surface: #FFFFFF;
+  --surface-subtle: #F3F5F7;
+  --surface-sunken: #EEF1F4;
+
+  /* Borders */
+  --border-subtle: #E4E8EC;
+  --border-strong: #8590A0; /* 3.12:1 / 3.23:1 non-text contrast against canvas/surface */
+
+  /* Typography Colors */
+  --text-primary: #101828;   /* 17.1:1 on canvas */
+  --text-secondary: #4A5568; /* 7.3:1 on canvas */
+  --text-tertiary: #64748B;  /* 4.6:1 on canvas (passes AA normal) */
+  --text-disabled: #B0B7C3;
+
+  /* Brand / Primary Accent */
+  --accent: #023B68;         /* Redcliffe Deep Navy */
+  --accent-hover: #062C4E;
+  --accent-subtle: #EAF1F8;  /* 10.1:1 navy text on subtle bg */
+  --accent-focus-ring: rgba(2, 59, 104, 0.25);
+
+  /* Status & Semantic Colors */
+  --success: #15803D;        /* 5.0:1 text */
+  --success-subtle: #E9F7EF; /* 4.5:1 text on badge */
+  --danger: #C0293D;         /* 5.8:1 text */
+  --danger-subtle: #FDECEC;  /* 5.1:1 text on badge */
+  --warning: #B45309;        /* 5.0:1 text */
+  --warning-subtle: #FDF3E4; /* 4.6:1 text on badge */
+  --info: #4A5568;
+  --info-subtle: #F3F5F7;
+
+  /* ── 2. Typography Scale (Base 13px = ~81% Standard Scale) ── */
+  --font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+  --font-micro: 10px;        /* Badges, timestamps (hard floor) */
+  --font-micro-lh: 14px;
+  --font-caption: 11px;      /* Helper text, table captions */
+  --font-caption-lh: 15px;
+  --font-body-sm: 12px;      /* Secondary body text, dense table cells */
+  --font-body-sm-lh: 18px;
+  --font-body: 13px;         /* Default UI body text */
+  --font-body-lh: 20px;
+  --font-body-lg: 14px;      /* Emphasized copy, form labels */
+  --font-body-lg-lh: 22px;
+  --font-h3: 15px;           /* Card titles, sub-headers */
+  --font-h3-lh: 20px;
+  --font-h2: 17px;           /* Panel/section headers */
+  --font-h2-lh: 24px;
+  --font-h1: 20px;           /* Page titles */
+  --font-h1-lh: 26px;
+  --font-display: 26px;      /* KPI numbers, hero stats */
+  --font-display-lh: 32px;
+
+  /* ── 3. Spacing Scale (Balanced: Not Chipke-Chipke, Not Disconnected) ── */
+  --space-1: 2px;            /* Icon-to-text gap */
+  --space-2: 4px;            /* Internal padding for micro chips/badges */
+  --space-3: 6px;            /* Compact button vertical padding */
+  --space-4: 8px;            /* Minimum gap between adjacent interactive buttons */
+  --space-5: 10px;           /* Standard button/input horizontal padding */
+  --space-6: 12px;           /* Compact card internal padding, related field gap */
+  --space-7: 16px;           /* Standard card padding, gap between unrelated controls */
+  --space-8: 20px;           /* Gap between distinct component groups */
+  --space-9: 24px;           /* Major page section gap */
+  --space-10: 32px;          /* Desktop page margins */
+
+  /* ── 4. Component Sizing ── */
+  --btn-height-default: 32px;
+  --btn-height-compact: 28px;
+  --btn-height-cta: 36px;
+  --btn-icon-size: 28px;
+  --input-height: 32px;
+  --table-row-height: 36px;
+  --nav-rail-collapsed: 52px;
+  --nav-rail-expanded: 188px;
+
+  /* ── 5. Border Radii ── */
+  --radius-sm: 6px;          /* Small controls, chips, badges */
+  --radius-md: 8px;          /* Buttons, inputs, tab headers */
+  --radius-lg: 12px;         /* Cards, panels, dropdowns */
+  --radius-xl: 16px;         /* Modals, drawers */
+  --radius-full: 9999px;     /* Status pills, circular avatars */
+
+  /* ── 6. Elevation Shadows ── */
+  --shadow-xs: 0 1px 2px rgba(16, 24, 40, 0.05);
+  --shadow-sm: 0 1px 3px rgba(16, 24, 40, 0.08);
+  --shadow-md: 0 4px 12px rgba(16, 24, 40, 0.10);
+  --shadow-lg: 0 12px 32px rgba(16, 24, 40, 0.14);
+
+  /* ── 7. Transitions & Focus ── */
+  --transition-fast: 150ms ease-out;
+  --transition-normal: 200ms ease-out;
+  --focus-ring: 0 0 0 2px var(--surface), 0 0 0 4px var(--accent);
+}
+
+/* Fallback resolution for legacy dark-mode class: force to light-theme */
+body.dark-mode {
+  --canvas: #FAFBFC;
+  --surface: #FFFFFF;
+  --surface-subtle: #F3F5F7;
+  --surface-sunken: #EEF1F4;
+  --border-subtle: #E4E8EC;
+  --border-strong: #8590A0;
+  --text-primary: #101828;
+  --text-secondary: #4A5568;
+  --text-tertiary: #64748B;
+  --text-disabled: #B0B7C3;
+  --accent: #023B68;
+  --accent-hover: #062C4E;
+  --accent-subtle: #EAF1F8;
+  --success: #15803D;
+  --success-subtle: #E9F7EF;
+  --danger: #C0293D;
+  --danger-subtle: #FDECEC;
+  --warning: #B45309;
+  --warning-subtle: #FDF3E4;
+}
+
+/* Base Font Size for ~81% scale */
+html {
+  font-size: 13px !important;
+  font-family: var(--font-family);
+  background-color: var(--canvas);
+  color: var(--text-primary);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Reduced motion preference */
+@media (prefers-reduced-motion: reduce) {
+  *, ::before, ::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

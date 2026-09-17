@@ -202,8 +202,9 @@
     }
   </style>
 
-  <!-- CSS Style Overrides -->
-  <link rel="stylesheet" href="style.css?v=32">
+  <!-- Design System Tokens & CSS Style Overrides -->
+  <link rel="stylesheet" href="tokens.css">
+  <link rel="stylesheet" href="style.css?v=33">
   
   <!-- GSAP Animation Library -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
@@ -301,16 +302,21 @@
   <!-- Main Content Canvas Wrapper -->
   <div class="flex-1 flex flex-col w-full relative main-content-wrapper transition-all pb-0">
     
+    <!-- Manual Toggle Button to reveal auto-hidden header -->
+    <button id="header-reveal-btn" class="header-reveal-btn" aria-label="Show header" title="Show header">
+      <span class="material-symbols-outlined">expand_more</span>
+    </button>
+
     <!-- TopAppBar (Header actions & branding) -->
-    <header id="main-app-header" class="fixed top-0 left-0 right-0 z-50 flex items-center h-16 bg-white/70 dark:bg-slate-950/70 backdrop-blur-xl saturate-[1.8] border-b border-slate-200/50 dark:border-slate-800/50 text-slate-900 dark:text-white shadow-[0_4px_30px_rgba(0,0,0,0.05)] dark:shadow-[0_4px_30px_rgba(0,0,0,0.3)] header-wrapper transition-transform duration-500 ease-[cubic-bezier(0.16,1,0.3,1)]">
+    <header id="main-app-header" class="fixed top-0 left-0 right-0 z-50 flex items-center h-16 bg-white/95 backdrop-blur-xl border-b border-slate-200/80 text-slate-900 shadow-sm header-wrapper transition-transform duration-200 ease-out">
       <!-- Left Side: Redcliffe Brand Logo & Title -->
       <div class="flex items-center gap-3.5 px-4 md:px-6">
-        <div class="h-10 px-3 bg-white rounded-xl flex items-center justify-center shadow-[0_2px_8px_rgba(15,23,42,0.06)] border border-slate-200/60 dark:border-slate-800/60">
+        <div class="h-10 px-3 bg-white rounded-xl flex items-center justify-center shadow-sm border border-slate-200/80">
           <img src="redcliffe_logo.png" onerror="this.onerror=null; this.src='logo.svg';" alt="Redcliffe Labs" class="h-7 w-auto object-contain">
         </div>
         <div class="flex flex-col">
-          <h1 class="font-headline-md text-[17px] md:text-[19px] font-bold tracking-tight leading-tight text-slate-900 dark:text-white">Drop-off Operation</h1>
-          <p class="text-[10px] md:text-[11px] text-slate-500 dark:text-slate-400 font-medium tracking-wide hidden sm:block">Real-time overview of drop-off operations and bookings</p>
+          <h1 class="font-headline-md text-[17px] md:text-[19px] font-bold tracking-tight leading-tight text-slate-900">Drop-off Operation</h1>
+          <p class="text-[10px] md:text-[11px] text-slate-500 font-medium tracking-wide hidden sm:block">Real-time overview of drop-off operations and bookings</p>
         </div>
       </div>
       
@@ -318,17 +324,18 @@
       <div class="flex-1 flex items-center justify-end px-4 md:px-6">
         <!-- Controls -->
         <div class="flex items-center gap-4 md:gap-5">
-          <div class="hidden lg:flex items-center gap-2 text-[11px] font-semibold text-slate-500 dark:text-slate-400">
-            <span>Last Synced: <strong id="sync-time-lbl" class="font-bold text-slate-900 dark:text-white">Loading...</strong><span class="sync-pulse" title="Live WebSocket / Sheet Sync Connected"></span></span>
+          <div class="hidden lg:flex items-center gap-2 text-[11px] font-semibold text-slate-500">
+            <span>Last Synced: <strong id="sync-time-lbl" class="font-bold text-slate-900">Loading...</strong><span class="sync-pulse" title="Live WebSocket / Sheet Sync Connected"></span></span>
           </div>
           
-          <button onclick="window.syncAllDashboardData(true)" class="bg-slate-50 hover:bg-slate-100 dark:bg-slate-900 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300 rounded-full p-1.5 transition-all flex items-center justify-center border border-slate-200/60 dark:border-slate-800/60 focus:outline-none cursor-pointer shadow-sm hover:shadow-md" title="Refresh Now">
+          <button onclick="window.syncAllDashboardData(true)" class="bg-slate-50 hover:bg-slate-100 text-slate-600 rounded-full p-1.5 transition-all flex items-center justify-center border border-slate-200 focus:outline-none cursor-pointer shadow-sm hover:shadow-md" title="Refresh Now" aria-label="Refresh Dashboard Data">
             <span id="sync-btn-icon" class="material-symbols-outlined text-[15px]">refresh</span>
           </button>
 
-          <div class="w-px h-6 bg-slate-200 dark:bg-slate-800 hidden md:block"></div>
+          <div class="w-px h-6 bg-slate-200 hidden md:block"></div>
           
-          <button aria-label="Theme" class="text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors cursor-pointer" onclick="window.toggleTheme()">
+          <!-- Hidden in v2 light-only theme per spec -->
+          <button aria-label="Theme" id="theme-toggle-btn" class="hidden" style="display:none !important;" onclick="window.toggleTheme()">
             <i class="fa-solid fa-moon text-[15px] mt-[2px]" id="theme-toggle-icon"></i>
           </button>
           
@@ -1225,19 +1232,19 @@
             <!-- Quick Prompt Suggestions Bar (Raycast / Linear Pills) -->
             <div class="botlab-ai-suggestions" id="botlab-ai-suggestions">
               <button class="botlab-suggestion-pill" onclick="window.sendBotlabCommand('Saari bookings ek saath kaise banaye?')">
-                <span class="botlab-pill-emoji">⚡</span> Ek Saath Kaise Banaye?
+                <span class="material-symbols-outlined text-[13px] text-indigo-600 align-middle mr-1">bolt</span> Ek Saath Kaise Banaye?
               </button>
               <button class="botlab-suggestion-pill" onclick="window.sendBotlabCommand('Single single booking kaise kare?')">
-                <span class="botlab-pill-emoji">🔁</span> Single-Single Mode
+                <span class="material-symbols-outlined text-[13px] text-indigo-600 align-middle mr-1">sync_alt</span> Single-Single Mode
               </button>
               <button class="botlab-suggestion-pill" onclick="window.sendBotlabCommand('Iframe blank kyu hai?')">
-                <span class="botlab-pill-emoji">🛡️</span> Blank Iframe Bypass
+                <span class="material-symbols-outlined text-[13px] text-indigo-600 align-middle mr-1">shield</span> Blank Iframe Bypass
               </button>
               <button class="botlab-suggestion-pill" onclick="window.sendBotlabCommand('Morepen Labs ki booking kaise kare?')">
-                <span class="botlab-pill-emoji">🏥</span> Morepen Help
+                <span class="material-symbols-outlined text-[13px] text-indigo-600 align-middle mr-1">local_hospital</span> Morepen Help
               </button>
               <button class="botlab-suggestion-pill" onclick="window.sendBotlabCommand('QC sample rejection reasons')">
-                <span class="botlab-pill-emoji">🧪</span> QC Rejections
+                <span class="material-symbols-outlined text-[13px] text-indigo-600 align-middle mr-1">science</span> QC Rejections
               </button>
             </div>
 

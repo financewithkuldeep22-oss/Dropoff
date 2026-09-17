@@ -910,10 +910,16 @@ function getSafeLocalStorage(key, defaultVal) {
   const pr = ["#3b82f6", "#0891b2", "#059669", "#d97706", "#dc2626", "#7c3aed", "#db2777"];
   function mr() {
     ((function () {
-        const e = getSafeLocalStorage("dashboard_theme") || "light",
-          t = document.body,
-          n = document.getElementById("theme-toggle-icon");
-        t && ("dark" === e ? (t.classList.add("dark-mode"), n && (n.className = "fa-solid fa-sun")) : (t.classList.remove("dark-mode"), n && (n.className = "fa-solid fa-moon")));
+        try {
+          if (getSafeLocalStorage("dashboard_theme") === "dark") {
+            setSafeLocalStorage("dashboard_theme", "light");
+          }
+          if (document.body) {
+            document.body.classList.remove("dark-mode");
+          }
+          const n = document.getElementById("theme-toggle-icon");
+          if (n) n.className = "fa-solid fa-moon";
+        } catch (e) {}
       })(),
       Ao(),
       window.syncAllDashboardData(!1),
@@ -1407,11 +1413,11 @@ if(syncBtnEl && !syncBtnEl.dataset.fix) {
       const val = input.value.trim();
       if (val) {
         setSafeLocalStorage("VITE_BACKEND_URL", val);
-        wr("âœ… Google Apps Script Web App URL saved!");
+        wr("Google Apps Script Web App URL saved!");
         if (typeof br === "function") br();
       } else {
         removeSafeLocalStorage("VITE_BACKEND_URL");
-        wr("â„¹ï¸ REST API Web App URL cleared.");
+        wr("REST API Web App URL cleared.");
       }
     }),
     (window.closeConnectionsModal = function () {
@@ -1937,7 +1943,7 @@ if(syncBtnEl && !syncBtnEl.dataset.fix) {
         const { clientName, sheetTab, rowNum, bookingId, removedItem, operator, patientName } = currentUndoState;
         
         window.hideUndoToast();
-        if (window.wr) window.wr(`↩️ Undoing Booking ID ${bookingId} for Row #${rowNum}...`);
+        if (window.wr) window.wr(`Undoing Booking ID ${bookingId} for Row #${rowNum}...`);
 
         // Restore item immediately into Qs.logs
         if (removedItem && typeof Qs !== 'undefined' && Array.isArray(Qs.logs)) {
@@ -1951,16 +1957,16 @@ if(syncBtnEl && !syncBtnEl.dataset.fix) {
         google.script.run
           .withSuccessHandler((res) => {
             if (res && res.status === "success") {
-              if (window.wr) window.wr(`↩️ Successfully restored Row #${rowNum} to Pending!`);
+              if (window.wr) window.wr(`Successfully restored Row #${rowNum} to Pending!`);
             } else {
-              if (window.wr) window.wr(`⚠️ Undo warning: ${res ? res.message : 'Please verify sheet'}`, true);
+              if (window.wr) window.wr(`Undo warning: ${res ? res.message : 'Please verify sheet'}`, true);
             }
             if (typeof window.syncAllDashboardData === 'function') {
               setTimeout(() => window.syncAllDashboardData(true), 500);
             }
           })
           .withFailureHandler((err) => {
-            if (window.wr) window.wr(`❌ Undo Error: ${err.message || String(err)}`, true);
+            if (window.wr) window.wr(`Undo Error: ${err.message || String(err)}`, true);
           })
           .updateBookingIdInSourceSheet(clientName, sheetTab || "", rowNum, "", "Operator Undid Write-Back", operator, patientName);
       };
@@ -1971,7 +1977,7 @@ if(syncBtnEl && !syncBtnEl.dataset.fix) {
       const bookingId = input ? input.value.trim() : "";
       
       if (!bookingId) {
-        if (window.wr) window.wr("⚠️ Please enter or paste a valid Booking ID!", true);
+        if (window.wr) window.wr("Please enter or paste a valid Booking ID!", true);
         if (input) input.focus();
         return;
       }
@@ -2031,7 +2037,7 @@ if(syncBtnEl && !syncBtnEl.dataset.fix) {
             }
           } else {
             // Rollback on server error
-            if (window.wr) window.wr(`❌ Server Error: ${res ? res.message : 'Failed to write to sheet'}`, true);
+            if (window.wr) window.wr(`Server Error: ${res ? res.message : 'Failed to write to sheet'}`, true);
             if (removedItem && typeof Qs !== 'undefined' && Array.isArray(Qs.logs)) {
               Qs.logs.unshift(removedItem);
               if (typeof window.filterPendingModalList === 'function') {
@@ -2042,7 +2048,7 @@ if(syncBtnEl && !syncBtnEl.dataset.fix) {
         })
         .withFailureHandler((err) => {
           const msg = typeof Gs === 'function' ? Gs(err) : (err.message || String(err));
-          if (window.wr) window.wr(`❌ Connection Error: ${msg}`, true);
+          if (window.wr) window.wr(`Connection Error: ${msg}`, true);
           // Rollback on connection failure
           if (removedItem && typeof Qs !== 'undefined' && Array.isArray(Qs.logs)) {
             Qs.logs.unshift(removedItem);
@@ -2804,7 +2810,7 @@ if(syncBtnEl && !syncBtnEl.dataset.fix) {
       l = [];
     if (
       (t.forEach((e) => {
-        const t = e.replace(/^\s*[-*â€¢\d+]+[\s.)\]-]+\s*/, "").trim();
+        const t = e.replace(/^\s*[-*\u2022\d+]+[\s.)\]-]+\s*/, "").trim();
         t && l.push(t);
       }),
       0 === l.length)
@@ -3364,7 +3370,7 @@ if(syncBtnEl && !syncBtnEl.dataset.fix) {
       if (!vr || !vr.testName) return;
       const e = vr.testName
           .split(/[,\n]/)[0]
-          .replace(/^\s*[-*â€¢\d+]+[\s.)\]-]+\s*/, "")
+          .replace(/^\s*[-*\u2022\d+]+[\s.)\]-]+\s*/, "")
           .trim(),
         t = `https://partner.redcliffelabs.com/dashboard/corpclientadmin/packages?searchQuery=${encodeURIComponent(e)}`;
       (window.open(t, "_blank"), wr("Opening partner packages directory..."));
@@ -3654,7 +3660,7 @@ if(syncBtnEl && !syncBtnEl.dataset.fix) {
     }),
     (window.saveSignature = function () {
       const e = document.getElementById("hcl-sig-editor").value;
-      (setSafeLocalStorage("hcl_gmail_signature", e), wr("ðŸ’¾ Gmail Signature saved successfully!"), eo());
+      (setSafeLocalStorage("hcl_gmail_signature", e), wr("Gmail Signature saved successfully!"), eo());
     }),
     (window.copySignatureToClipboard = function () {
       const e = document.getElementById("hcl-sig-editor").value;
@@ -3662,7 +3668,7 @@ if(syncBtnEl && !syncBtnEl.dataset.fix) {
         ? navigator.clipboard
             .writeText(e)
             .then(() => {
-              wr("ðŸ“‹ Signature copied to clipboard!");
+              wr("Signature copied to clipboard!");
             })
             .catch((e) => {
               wr("Failed to copy signature: " + e, !0);
@@ -3677,10 +3683,10 @@ if(syncBtnEl && !syncBtnEl.dataset.fix) {
         r = `Dear Team,\n\nGreetings from Redcliffe Labs!!\n\nPlease find the attached report for ${t} for your reference.`;
       if ((Io("hcl_mail", { location: Qr, date: t }), "gmail" === e)) {
         const e = "https://mail.google.com/mail/?view=cm&fs=1&to=" + encodeURIComponent(n.to) + "&cc=" + encodeURIComponent(Yr.Cc) + "&su=" + encodeURIComponent(s) + "&body=" + encodeURIComponent(r);
-        (window.open(e, "_blank"), wr("ðŸ“§ Opening Gmail web composer..."));
+        (window.open(e, "_blank"), wr("Opening Gmail web composer..."));
       } else {
         const e = "mailto:" + encodeURIComponent(n.rawTo) + "?cc=" + encodeURIComponent(Yr.rawCc) + "&subject=" + encodeURIComponent(s) + "&body=" + encodeURIComponent(r);
-        ((window.open(e, "_blank")), wr("âœ‰ï¸ Triggering system mail client..."));
+        ((window.open(e, "_blank")), wr("Triggering system mail client..."));
       }
     }));
   let to = "inhouse",
@@ -4025,7 +4031,7 @@ if(syncBtnEl && !syncBtnEl.dataset.fix) {
               { onConflict: "date,phlebo_name" },
             )
             .then(({ error: e }) => {
-              e ? (console.error("Supabase inhouse update failed:", e), wr("âš ï¸ Supabase update failed, syncing Sheets...", !0)) : wr("Success: Attendance updated in Supabase.");
+              e ? (console.error("Supabase inhouse update failed:", e), wr("Supabase update failed, syncing Sheets...", !0)) : wr("Success: Attendance updated in Supabase.");
             }),
         google.script.run
           .withSuccessHandler((r) => {
@@ -4311,7 +4317,7 @@ if(syncBtnEl && !syncBtnEl.dataset.fix) {
         google.script.run
           .withSuccessHandler((e) => {
             e && "success" === e.status
-              ? (wr("ðŸ“§ Gmail draft created successfully! Mark Mail done."),
+              ? (wr("Gmail draft created successfully! Mark Mail done."),
                 Io("payment_mail", {
                   count: oo.length,
                   locations: oo.map((e) => e.clinicLocation).filter((e, t, n) => n.indexOf(e) === t),
@@ -4464,12 +4470,13 @@ if(syncBtnEl && !syncBtnEl.dataset.fix) {
       0 !== e.length ? ((oo = e), window.openPaymentMailPreview()) : wr("No pending outsourced duties found to draft!", !0);
     }),
     (window.toggleTheme = function () {
-      const e = document.body,
-        t = document.getElementById("theme-toggle-icon");
-      e.classList.toggle("dark-mode") ? (setSafeLocalStorage("dashboard_theme", "dark"), t && (t.className = "fa-solid fa-sun"), wr("ðŸŒ™ Dark Mode Enabled")) : (setSafeLocalStorage("dashboard_theme", "light"), t && (t.className = "fa-solid fa-moon"), wr("â˜€ï¸ Light Mode Enabled"));
+      setSafeLocalStorage("dashboard_theme", "light");
+      if (document.body) document.body.classList.remove("dark-mode");
+      const t = document.getElementById("theme-toggle-icon");
+      if (t) t.className = "fa-solid fa-moon";
     }),
     (window.clearActivityFeed = function () {
-      confirm("Are you sure you want to clear the recent operations audit log?") && (removeSafeLocalStorage("operations_activity_log"), Ao(), wr("ðŸ—‘ï¸ Audit log cleared successfully!"));
+      confirm("Are you sure you want to clear the recent operations audit log?") && (removeSafeLocalStorage("operations_activity_log"), Ao(), wr("Audit log cleared successfully!"));
     }));
   function applyGSAPAnimations() {
     if (!window.gsap) return;
@@ -4490,7 +4497,7 @@ if(syncBtnEl && !syncBtnEl.dataset.fix) {
             applyGSAPAnimations();
             if (typeof window.routeFromURL === 'function') window.routeFromURL();
           } catch (Co) {
-            if(typeof wr === 'function') wr("ðŸ”¥ DOMContentLoaded mr() Crash: " + Co.message, !0);
+            if(typeof wr === 'function') wr("DOMContentLoaded mr() Crash: " + Co.message, !0);
             Vs("initAllDashboardLogic (DOMContentLoaded)", Co);
           }
         })
@@ -4501,11 +4508,11 @@ if(syncBtnEl && !syncBtnEl.dataset.fix) {
             if (typeof window.routeFromURL === 'function') window.routeFromURL();
           }
           catch (Co) {
-            if(typeof wr === 'function') wr("ðŸ”¥ Immediate mr() Crash: " + Co.message, !0);
+            if(typeof wr === 'function') wr("Immediate mr() Crash: " + Co.message, !0);
           }
         })();
   } catch (Co) {
-    if(typeof wr === 'function') wr("ðŸ”¥ Outer mr() Crash: " + Co.message, !0);
+    if(typeof wr === 'function') wr("Outer mr() Crash: " + Co.message, !0);
     Vs("initAllDashboardLogic (immediate)", Co);
   }
 
@@ -6815,9 +6822,9 @@ window.addEventListener('message', function(event) {
     // B. Dual Mode: Saari Ek Saath vs Single-Single
     if (/(\bek saath\b|\ball at once\b|\bsaari\b|\bbulk\b|\bparallel\b)/i.test(lower) && /(\bkaise\b|\boption\b|\bkarein\b|\bmode\b|\bhelp\b|\bbana\b)/i.test(lower)) {
       var allAtOnceAnswer =
-        "<b>⚡ Saari Bookings Ek Saath Banane Ka Tareeka (Parallel Grid Mode):</b><br/>" +
-        "1. Toolbar me <b>'⚡ All at Once'</b> button par click karein.<br/>" +
-        "2. <b>'All Pending'</b> chip par click karein ya <b>'📋 Dispatch Matrix'</b> drawer open karein.<br/>" +
+        "<b>Saari Bookings Ek Saath Banane Ka Tareeka (Parallel Grid Mode):</b><br/>" +
+        "1. Toolbar me <b>'All at Once'</b> button par click karein.<br/>" +
+        "2. <b>'All Pending'</b> chip par click karein ya <b>'Dispatch Matrix'</b> drawer open karein.<br/>" +
         "3. Dashboard sabhi pending bookings ko separate tabs me open karega aur automatically <b>Grid View</b> me arrange kar dega, jisse saari bookings ek saath simultaneously execute hongi!<br/>" +
         '<div style="margin-top:6px;display:flex;gap:6px;flex-wrap:wrap;">' +
           '<button class="botlab-msg-action-btn" onclick="window.botlabSetExecutionMode(\'all\'); window.botlabLaunchPendingTabs(\'all\');"><span class="material-symbols-outlined" style="font-size:13px;">bolt</span> Launch All at Once Now</button>' +
@@ -6829,11 +6836,11 @@ window.addEventListener('message', function(event) {
 
     if (/(\bsingle\b|\bek ek\b|\bqueue\b|\bstep\b|\bone by one\b)/i.test(lower) && /(\bkaise\b|\boption\b|\bkarein\b|\bmode\b|\bhelp\b|\bbana\b)/i.test(lower)) {
       var singleAnswer =
-        "<b>🔁 Ek-Ek Karke Booking Banane Ka Tareeka (1-by-1 Queue Mode):</b><br/>" +
-        "1. Toolbar me <b>'🔁 1-by-1 Queue'</b> button select karein.<br/>" +
+        "<b>Ek-Ek Karke Booking Banane Ka Tareeka (1-by-1 Queue Mode):</b><br/>" +
+        "1. Toolbar me <b>'1-by-1 Queue'</b> button select karein.<br/>" +
         "2. Chip click karne par screen par persistent <b>Queue HUD</b> show hoga jisme progress bar aur Skip/Pause buttons honge.<br/>" +
         "3. Har booking complete hone par bot agle patient par move karega.<br/>" +
-        "4. Kisi ek particular patient ki akele booking banani ho toh <b>'Pending Matrix'</b> me jakar uske aage direct <b>'⚡ Tab'</b> ya <b>'↗ Window'</b> dabayein.<br/>" +
+        "4. Kisi ek particular patient ki akele booking banani ho toh <b>'Pending Matrix'</b> me jakar uske aage direct <b>'Tab'</b> ya <b>'Window'</b> dabayein.<br/>" +
         '<div style="margin-top:6px;display:flex;gap:6px;flex-wrap:wrap;">' +
           '<button class="botlab-msg-action-btn" onclick="window.botlabSetExecutionMode(\'queue\'); window.botlabLaunchPendingTabs(\'all\');"><span class="material-symbols-outlined" style="font-size:13px;">format_list_numbered</span> Start 1-by-1 Queue</button>' +
           '<button class="botlab-msg-action-btn" onclick="window.openDispatchMatrix();"><span class="material-symbols-outlined" style="font-size:13px;">ballot</span> Open Dispatch Matrix</button>' +
@@ -6845,7 +6852,7 @@ window.addEventListener('message', function(event) {
     // C. QC Rejections & Tube Colors
     if (/(\bqc\b|\breject\b|\breasons\b|\btube\b|\bvial\b|\bcolor\b|\bedta\b|\bserum\b)/i.test(lower) && !/booking|bana/i.test(lower)) {
       var qcAnswer =
-        "<b>🧪 Quality Control (QC) Rejection Reasons & Vial Protocol:</b><br/>" +
+        "<b>Quality Control (QC) Rejection Reasons & Vial Protocol:</b><br/>" +
         "• <b>Standard 8 Rejections:</b> Clotted Sample, Hemolysed Sample, Insufficient Volume (QNS), Label Mismatch, Wrong Tube, Leaked Vial, Lipemic Sample, Delayed Transit (>24h).<br/>" +
         "• <b>Vial Colors:</b> Lavender (EDTA - CBC/HbA1c), Red/Yellow (Serum - LFT/KFT), Grey (Fluoride - Sugar), Blue (Citrate - PT/INR).<br/>" +
         '<div style="margin-top:6px;">' +
@@ -6858,7 +6865,7 @@ window.addEventListener('message', function(event) {
     // D. Challan & Dispatch
     if (/(\bchallan\b|\bmanifest\b|\bprint\b|\bdispatch\b)/i.test(lower) && !/booking|bana/i.test(lower)) {
       var challanAnswer =
-        "<b>🧾 Delivery Challan & Dispatch Manifest:</b><br/>" +
+        "<b>Delivery Challan & Dispatch Manifest:</b><br/>" +
         "Top rail par <b>Challan</b> tab (Key 6) me jakar destination lab select karein, dispatch hone wale samples ko check karein aur <b>'Generate & Print Challan'</b> dabayein.<br/>" +
         '<div style="margin-top:6px;">' +
           '<button class="botlab-msg-action-btn" onclick="window.switchDashboardTab(\'challan\')"><span class="material-symbols-outlined" style="font-size:13px;">receipt_long</span> Go to Challan Generator</button>' +
@@ -6870,7 +6877,7 @@ window.addEventListener('message', function(event) {
     // E. Morepen Booking Help
     if (lower.indexOf("morepen") !== -1 && (/kaise|help|problem|error|bhopal|ggn/i.test(lower))) {
       var morepenAnswer =
-        "<b>🏥 Dr. Morepen Labs Booking Guide:</b><br/>" +
+        "<b>Dr. Morepen Labs Booking Guide:</b><br/>" +
         "Morepen me partner name hamesha <b>'Dr. Morepen Labs'</b> hota hai. VIT Bhopal branch ke liye bot automatically <b>'Order History - VIT Bhopal'</b> select karta hai aur pre-seeded address map karta hai.<br/>" +
         '<div style="margin-top:6px;">' +
           '<button class="botlab-msg-action-btn" onclick="window.botlabLaunchPendingTabs(\'morepen\')"><span class="material-symbols-outlined" style="font-size:13px;">rocket_launch</span> Launch Morepen Bookings</button>' +
@@ -7055,9 +7062,9 @@ window.addEventListener('message', function(event) {
 
     if (pending.length === 0) {
       if (statsPending > 0) {
-        _addMsg("bot", "Overview reports " + statsPending + " pending for " + filterLabel + " based on daily counts, but all individual rows are currently processed/punched in the Google Sheet. All up to date! 🎉");
+        _addMsg("bot", "Overview reports " + statsPending + " pending for " + filterLabel + " based on daily counts, but all individual rows are currently processed/punched in the Google Sheet. All up to date!");
       } else {
-        _addMsg("bot", "No pending bookings found for " + filterLabel + ". All up to date! 🎉");
+        _addMsg("bot", "No pending bookings found for " + filterLabel + ". All up to date!");
       }
       return;
     }
@@ -7128,9 +7135,9 @@ window.addEventListener('message', function(event) {
     if (btnQueue) btnQueue.classList.toggle("active", window.botlabExecutionMode === "queue");
 
     if (window.botlabExecutionMode === "all") {
-      _addMsg("bot", "⚡ Mode switched to <b>All at Once (Parallel Grid)</b>. Clicking any pendency chip will launch all matching bookings simultaneously in separate tabs in Grid View.", true);
+      _addMsg("bot", "Mode switched to <b>All at Once (Parallel Grid)</b>. Clicking any pendency chip will launch all matching bookings simultaneously in separate tabs in Grid View.", true);
     } else {
-      _addMsg("bot", "🔁 Mode switched to <b>1-by-1 Queue (Step-by-Step)</b>. Clicking any chip will run bookings sequentially with the interactive Queue HUD.", true);
+      _addMsg("bot", "Mode switched to <b>1-by-1 Queue (Step-by-Step)</b>. Clicking any chip will run bookings sequentially with the interactive Queue HUD.", true);
     }
   };
 
@@ -7158,7 +7165,7 @@ window.addEventListener('message', function(event) {
 
     // Launch up to 6 concurrent tabs for high-speed parallel booking
     var batch = pending.slice(0, 6);
-    _addMsg("bot", "⚡ Launching " + batch.length + " pending booking(s) simultaneously in Parallel Grid View...");
+    _addMsg("bot", "Launching " + batch.length + " pending booking(s) simultaneously in Parallel Grid View...");
 
     batch.forEach(function (b, idx) {
       setTimeout(function() {
@@ -7190,7 +7197,7 @@ window.addEventListener('message', function(event) {
           '<span class="material-symbols-outlined" style="font-size:13px;">open_in_new</span> Pop-out All in External Windows' +
         '</button>' +
       '</div>';
-    _addMsg("bot", "⚡ <b>" + batch.length + " parallel bookings running</b> side-by-side in Grid View! Forms are filling automatically." + popAllHtml, true);
+    _addMsg("bot", "<b>" + batch.length + " parallel bookings running</b> side-by-side in Grid View! Forms are filling automatically." + popAllHtml, true);
   };
 
   window.botlabPopoutAllTabs = function () {
@@ -7235,7 +7242,7 @@ window.addEventListener('message', function(event) {
     var hud = document.getElementById("botlab-queue-hud");
     if (hud) hud.classList.add("active");
 
-    _addMsg("bot", "🔁 Starting 1-by-1 Sequential Queue for " + window.botlabQueueTotal + " pending booking(s)...");
+    _addMsg("bot", "Starting 1-by-1 Sequential Queue for " + window.botlabQueueTotal + " pending booking(s)...");
     window.botlabRunNextInQueue();
   };
 
@@ -7536,7 +7543,7 @@ window.addEventListener('message', function(event) {
     window.closeDispatchMatrix();
 
     if (actionType === "parallel") {
-      _addMsg("bot", "⚡ Launching " + targetList.length + " selected bookings in Parallel Multi-Tabs...");
+      _addMsg("bot", "Launching " + targetList.length + " selected bookings in Parallel Multi-Tabs...");
       targetList.forEach(function (b, idx) {
         setTimeout(function() {
           var url = _buildBotBookingUrl(b, idx * 400);
@@ -7550,7 +7557,7 @@ window.addEventListener('message', function(event) {
       window.botlabQueueTotal = targetList.length;
       var hud = document.getElementById("botlab-queue-hud");
       if (hud) hud.classList.add("active");
-      _addMsg("bot", "🔁 Starting 1-by-1 Queue for " + targetList.length + " selected bookings...");
+      _addMsg("bot", "Starting 1-by-1 Queue for " + targetList.length + " selected bookings...");
       window.botlabRunNextInQueue();
     } else if (actionType === "windows") {
       targetList.forEach(function (b) {
@@ -7661,3 +7668,56 @@ document.addEventListener('change', function(e) {
     }
   }
 });
+
+
+// =========================================================
+// AUTO-HIDING HEADER CONTROLLER (v2 Compact)
+// =========================================================
+(function initAutoHidingHeader() {
+  const header = document.getElementById("main-app-header");
+  const revealBtn = document.getElementById("header-reveal-btn");
+  if (!header) return;
+
+  let hideTimer = null;
+  let isHovered = false;
+
+  function showHeader() {
+    header.classList.remove("header-hidden");
+  }
+
+  function hideHeader() {
+    if (!isHovered) {
+      header.classList.add("header-hidden");
+    }
+  }
+
+  function resetTimer() {
+    showHeader();
+    if (hideTimer) clearTimeout(hideTimer);
+    hideTimer = setTimeout(hideHeader, 3000);
+  }
+
+  header.addEventListener("mouseenter", function () {
+    isHovered = true;
+    if (hideTimer) clearTimeout(hideTimer);
+  });
+
+  header.addEventListener("mouseleave", function () {
+    isHovered = false;
+    resetTimer();
+  });
+
+  if (revealBtn) {
+    revealBtn.addEventListener("click", function (e) {
+      e.stopPropagation();
+      resetTimer();
+    });
+  }
+
+  ["mousemove", "keydown", "scroll", "click", "touchstart"].forEach(function (evt) {
+    document.addEventListener(evt, resetTimer, { passive: true });
+  });
+
+  // Initial page load 3-second timer
+  hideTimer = setTimeout(hideHeader, 3000);
+})();
