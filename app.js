@@ -1337,7 +1337,7 @@ if(syncBtnEl && !syncBtnEl.dataset.fix) {
             }
           });
 
-          const alloLbl = document.getElementById("allo-badge-lbl");
+          const alloLbl = document.getElementById("allo-badge-lbl") || document.getElementById("badge-qc");
           let alloCount = (Qs.kpis && typeof Qs.kpis.alloPendingCount === 'number') ? Qs.kpis.alloPendingCount : 0;
           if (alloCount === 0) {
             if (typeof _r !== 'undefined' && Array.isArray(_r) && _r.length > 0) {
@@ -1346,13 +1346,18 @@ if(syncBtnEl && !syncBtnEl.dataset.fix) {
               alloCount = jr;
             }
           }
+          if (typeof jr !== 'undefined') {
+            jr = alloCount;
+          }
           const kpiQc = document.getElementById("kpi-qc-pendency");
           if (kpiQc) kpiQc.innerText = alloCount;
           if (alloLbl) {
             if (alloCount > 0) {
               alloLbl.innerText = alloCount;
-              alloLbl.style.display = "flex";
+              alloLbl.setAttribute("data-count", String(alloCount));
+              alloLbl.style.display = "inline-flex";
             } else {
+              alloLbl.setAttribute("data-count", "0");
               alloLbl.style.display = "none";
             }
           }
@@ -2784,9 +2789,21 @@ if(syncBtnEl && !syncBtnEl.dataset.fix) {
     };
   let jr = 0;
   function Dr(e) {
-    ((jr = parseInt(e) || 0), (document.getElementById("qc-count-badge").innerText = jr));
-    const t = document.getElementById("allo-badge-lbl");
-    (t && (jr > 0 ? ((t.innerText = jr), (t.style.display = "flex")) : (t.style.display = "none")), Ur());
+    jr = parseInt(e) || 0;
+    const qcCountBadge = document.getElementById("qc-count-badge");
+    if (qcCountBadge) qcCountBadge.innerText = jr;
+    const t = document.getElementById("allo-badge-lbl") || document.getElementById("badge-qc");
+    if (t) {
+      if (jr > 0) {
+        t.innerText = jr;
+        t.setAttribute("data-count", String(jr));
+        t.style.display = "inline-flex";
+      } else {
+        t.setAttribute("data-count", "0");
+        t.style.display = "none";
+      }
+    }
+    Ur();
     const kpi = document.getElementById("kpi-qc-pendency");
     if (kpi) kpi.innerText = jr;
   }
@@ -5626,12 +5643,56 @@ window.updateNavBadges = function() {
     }
 
     // 2. QC Badge (Pending QC Check)
-    const qcBadge = document.getElementById("allo-badge-lbl");
+    const qcBadge = document.getElementById("allo-badge-lbl") || document.getElementById("badge-qc");
     if (qcBadge) {
-      const count = (typeof jr !== 'undefined') ? jr : (Array.isArray(_r) ? _r.length : 0);
+      let count = 0;
+      let countDetermined = false;
+
+      // Priority 1: In-memory active QC bookings queue
+      if (typeof _r !== 'undefined' && Array.isArray(_r) && _r.length > 0) {
+        count = _r.length;
+        countDetermined = true;
+      }
+
+      // Priority 2: Count reported from QC check iframe / callback / initial sync
+      if (!countDetermined && typeof jr !== 'undefined' && jr > 0) {
+        count = jr;
+        countDetermined = true;
+      }
+
+      // Priority 3: Server KPI snapshot from data sync
+      if (!countDetermined && typeof Qs !== 'undefined' && Qs && Qs.kpis && typeof Qs.kpis.alloPendingCount === 'number' && Qs.kpis.alloPendingCount > 0) {
+        count = Qs.kpis.alloPendingCount;
+        countDetermined = true;
+      }
+
+      // Priority 4: Read directly from KPI Card on screen (#kpi-qc-pendency)
+      if (!countDetermined) {
+        const kpiQc = document.getElementById("kpi-qc-pendency");
+        if (kpiQc) {
+          const rawText = (kpiQc.innerText || "").trim();
+          const parsed = parseInt(rawText.replace(/[^0-9]/g, ''), 10);
+          if (!isNaN(parsed) && parsed > 0) {
+            count = parsed;
+            countDetermined = true;
+          }
+        }
+      }
+
+      // Priority 5: External iframe badge message if any
+      if (!countDetermined && window._iframeBadges) {
+        if (typeof window._iframeBadges['badge-qc'] === 'number' && window._iframeBadges['badge-qc'] > 0) {
+          count = window._iframeBadges['badge-qc'];
+          countDetermined = true;
+        } else if (typeof window._iframeBadges['allo-badge-lbl'] === 'number' && window._iframeBadges['allo-badge-lbl'] > 0) {
+          count = window._iframeBadges['allo-badge-lbl'];
+          countDetermined = true;
+        }
+      }
+
       if (count > 0) {
         qcBadge.innerText = count;
-        qcBadge.setAttribute("data-count", count);
+        qcBadge.setAttribute("data-count", String(count));
         qcBadge.style.display = "inline-flex";
       } else {
         qcBadge.setAttribute("data-count", "0");
