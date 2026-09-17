@@ -143,3 +143,4 @@ audit_*.js
 deep_audit.js
 locate_broken_buttons.js
 dev_server.js
+.env*
