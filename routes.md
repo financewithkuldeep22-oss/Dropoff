@@ -45,6 +45,8 @@ The application supports standard browser history navigation (`pushState` and `p
 
 | Modal Identifier | Trigger Action | Access | Functionality |
 | :--- | :--- | :--- | :--- |
+| `#modal-dispatch-matrix` | "Dispatch Matrix" button in Bot Lab toolbar | Logged In | Batch operations console, multi-select rows, parallel tab launch, queue launch, and popup windows |
+| `#modal-pending-view` | "Pending Bookings" button in navigation rail / header | Logged In | Client breakdown and quick copy for pending requisition bookings |
 | `#login-overlay` | Initial load if unauthenticated / Logout | Public | Secure username/password authentication modal |
 | `#modal-client-config`| "Config" button in navigation rail | Admin | Dynamic client spreadsheet URL, tab name, and status editor |
 | `#modal-photo-lightbox`| Thumbnail click in QC review panel | Logged In | Full-screen photo lightbox with 25% zoom, rotation, and panning |
@@ -59,6 +61,3 @@ The application supports standard browser history navigation (`pushState` and `p
 | `GET` | `/exec` | `doGet(e)` | Public | Serves web app template when launched directly in Google Workspace |
 | `POST` | `/exec` | `doPost(e)` | Protected | Core JSON-RPC API endpoint parsing `{ action, args }` |
 | `OPTIONS` | `/exec` | `doOptions(e)` | Public | CORS preflight handler responding with HTTP 200 |
-
-| ot-lab | index.html, pp.js | Embedded browser for AI bulk bookings | Local extension required |
-

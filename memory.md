@@ -47,7 +47,7 @@ Diagnostic blood, urine, and swab specimens collected from patient residences ac
 | **Backend & Compute** | Google Apps Script (V8 Engine) | V8 Runtime (Code.gs) | Serverless microservice hosting REST/JSON-RPC gateways (doPost, doGet, doOptions) |
 | **Persistence / Database** | Google Sheets (Master Hub + Dynamic Spokes) | Google Drive API, Sheets API | Relational table storage across central hub and 25+ spoke client spreadsheets |
 | **File Storage & Media** | Google Drive | Native DriveApp / Drive API | Phlebotomist specimen photos, temperature logs, and signed consent documentation |
-| **Hosting & CI/CD** | Vercel Edge Network | Vercel CLI / GitHub CI | Production deployment at https://redcliffedropoff.vercel.app/ connected to main branch |
+| **Hosting & CI/CD** | Vercel Edge Network | Vercel CLI / GitHub CI | Production deployment at https://dropoff-three.vercel.app (and https://dropoff-financewithkuldeep22-5969s-projects.vercel.app) automatically deployed on push to origin/main |
 | **Offline Support** | Native HTML5 Canvas (offline-game.js) | Window online/offline events | Offline indicator banner and built-in interactive runner game during network drops |
 
 ---
@@ -67,6 +67,7 @@ drop-off dashboard/ (clever-volta / Workspace Root)
 ├── auth.js                               # Session manager, credential verification, and login overlay handler
 ├── challan.js                            # Phlebotomist Challan Maker engine, tube summaries, and PDF print formatting
 ├── redcliffechallan_app.js               # Extended challan generation runtime with 182 clinic auto-completion presets
+├── dashboard_knowledge.json              # Dashboard & Bot Lab comprehensive knowledge base for AI Assistant
 ├── allo.html                             # Embedded AlloHealth Sample Tracker portal HTML shell
 ├── allo-app.min.js                       # AlloHealth standalone runtime script
 ├── allo-style.min.css                    # AlloHealth custom stylesheet

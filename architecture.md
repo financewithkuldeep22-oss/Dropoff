@@ -71,8 +71,13 @@ The Drop-Off Operations Control Center is structured as a **Decoupled Serverless
 3. **Audit Trail:**
    - Every mutation is logged with timestamp, user identity, target client, row number, and old/new state in `Dashboard_Logs`.
 
-### NEW COMPONENT: BOT LAB ORCHESTRATOR
-- **Iframe Integration**: Bypasses CORS/CSP using local Chrome Extension to embed external partner portal.
-- **Parallel Processing**: Employs a multi-iframe tab pool to run form-filling concurrently.
-- **Cross-Window Messaging**: Uses window.postMessage between pp.js and the Chrome Extension's content script to track navigation and completion states.
-
+### 4. BOT LAB ORCHESTRATOR & AUTOMATION ENGINE
+- **Dual Execution Engine:**
+  - **Mode A (Parallel "All at Once"):** Automatically opens multiple pending bookings concurrently across Arc-style tabs in a responsive 2x2 grid (`window.botlabLaunchAllParallel(filter)`).
+  - **Mode B (Sequential "1-by-1 Queue"):** Step-by-step queue processor (`window.botlabLaunchPendingQueue(filter)`) with top Queue HUD (`#botlab-queue-hud`) allowing manual skip, pause, and external window popout.
+- **Pending Bookings Dispatch Matrix:**
+  - Full-screen modal drawer (`#modal-dispatch-matrix`) with live client filter pills, instant search input, select-all checkboxes, individual tab/window launchers, and batch actions.
+- **Iframe Integration & External Window Bypass:**
+  - Bypasses CORS/CSP using the local Chrome companion extension. For strict `X-Frame-Options: SAMEORIGIN` partners (e.g. Redcliffe Partner Portal), 1-click external window bypass buttons are provided in the tab header HUD, Omnibox, and Dispatch Matrix.
+- **AI Assistant & Dashboard Knowledge Base:**
+  - Self-contained knowledge engine (`dashboard_knowledge.json`) loaded into memory to instantly answer questions regarding tab features, iframe troubleshooting, Morepen/Allo/BHMC booking URLs, and QC reasons.
