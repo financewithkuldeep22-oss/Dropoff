@@ -6039,8 +6039,10 @@ window.addEventListener('message', function(event) {
 
     try {
       var saved = localStorage.getItem("botlab_ai_panel_width");
-      if (saved && Number(saved) >= 250 && Number(saved) <= 700) {
+      if (saved && Number(saved) >= 360 && Number(saved) <= 700) {
         panel.style.width = Number(saved) + "px";
+      } else {
+        panel.style.width = "380px";
       }
     } catch (e) {}
 
@@ -6063,7 +6065,7 @@ window.addEventListener('message', function(event) {
       function onMouseMove(moveEvent) {
         if (!isDragging) return;
         var delta = startX - moveEvent.clientX;
-        var newWidth = Math.max(250, Math.min(650, startWidth + delta));
+        var newWidth = Math.max(360, Math.min(650, startWidth + delta));
         panel.style.width = newWidth + "px";
       }
 
@@ -6087,8 +6089,8 @@ window.addEventListener('message', function(event) {
     });
 
     resizer.addEventListener("dblclick", function () {
-      panel.style.width = "330px";
-      try { localStorage.setItem("botlab_ai_panel_width", "330"); } catch (e) {}
+      panel.style.width = "380px";
+      try { localStorage.setItem("botlab_ai_panel_width", "380"); } catch (e) {}
     });
   }
 
@@ -6410,6 +6412,10 @@ window.addEventListener('message', function(event) {
         if (iframe) iframe.src = tab.url;
       }
     });
+    var panel = document.getElementById("botlab-ai-panel");
+    if (panel) panel.classList.remove("run-active");
+    var sugg = document.getElementById("botlab-ai-suggestions");
+    if (sugg) sugg.classList.remove("run-hidden");
     _addMsg("bot", "Automation stopped on all active tabs.");
   };
 
@@ -6775,11 +6781,65 @@ window.addEventListener('message', function(event) {
   }
 
   // ── Chat Reset / Clear ─────────────────────────────────────
+  var _botlabChatHistory = [];
+
   window.botlabClearChat = function () {
     var msgContainer = document.getElementById("botlab-ai-messages");
     if (msgContainer) msgContainer.innerHTML = "";
+    _botlabChatHistory = [];
     _addMsg("bot", "Chat reset. RedcliffeBot ready. Ask me anything (e.g. <i>'Flebo ki kitni pending hai?'</i> ya <i>'Indore wali booking bana do'</i>) or click preset buttons above.", true);
   };
+
+  function showTypingIndicator() {
+    var container = document.getElementById("botlab-ai-messages");
+    if (!container || document.getElementById("botlab-typing-indicator")) return;
+    var indDiv = document.createElement("div");
+    indDiv.id = "botlab-typing-indicator";
+    indDiv.className = "botlab-msg bot typing";
+    var avatarSvg = '<svg class="botlab-svg-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3-1.9 5.8a2 2 0 0 1-1.3 1.3L3 12l5.8 1.9a2 2 0 0 1 1.3 1.3L12 21l1.9-5.8a2 2 0 0 1 1.3-1.3L21 12l-5.8-1.9a2 2 0 0 1-1.3-1.3L12 3Z"/></svg>';
+    indDiv.innerHTML =
+      '<div class="botlab-msg-avatar">' + avatarSvg + '</div>' +
+      '<div class="botlab-msg-body botlab-typing-dots"><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>';
+    container.appendChild(indDiv);
+    container.scrollTop = container.scrollHeight;
+  }
+
+  function hideTypingIndicator() {
+    var ind = document.getElementById("botlab-typing-indicator");
+    if (ind && ind.parentNode) {
+      ind.parentNode.removeChild(ind);
+    }
+  }
+
+  async function botlabAskAI(text, history) {
+    showTypingIndicator();
+    try {
+      var gasUrl = typeof getActiveGasUrl === "function" ? getActiveGasUrl() : DEFAULT_GAS_URL;
+      const res = await fetch(gasUrl, {
+        method: "POST",
+        headers: { "Content-Type": "text/plain;charset=utf-8" },
+        body: JSON.stringify({ action: "botlabChat", parameters: [text, JSON.stringify(history || [])] })
+      });
+      const data = await res.json();
+      if (data && data.status === "success" && data.reply && typeof data.reply === "string") {
+        var r = data.reply.trim();
+        var isErr = r.indexOf("⚠️") !== -1 || r.indexOf("Gemini network error") !== -1 || r.indexOf("Error: No candidates") !== -1 || r.indexOf("AI Error:") !== -1 || r.length === 0;
+        if (!isErr) {
+          if (Array.isArray(_botlabChatHistory)) {
+            _botlabChatHistory.push({ role: "assistant", text: r });
+          }
+          _addMsg("bot", r, true);
+          return;
+        }
+      }
+      throw new Error("bad response or AI error");
+    } catch (e) {
+      console.warn("botlabAskAI failed, falling back to local regex logic:", e);
+      window.botlabAskAIFallback(text);
+    } finally {
+      hideTypingIndicator();
+    }
+  }
 
   // ── Conversational AI Command Engine ───────────────────────
   window.sendBotlabCommand = function (rawText) {
@@ -6788,6 +6848,44 @@ window.addEventListener('message', function(event) {
     _addMsg("user", text);
 
     var lower = text.toLowerCase().trim();
+
+    // 1. STOP COMMAND (local, instant)
+    if (/(\bstop\b|\brok\b|\bband\b|\bhyp\b|\bcancel\b)/i.test(lower)) {
+      window.botlabStopAllTabs();
+      window.botlabStopQueue();
+      return;
+    }
+
+    // 2. CLEAR CHAT COMMAND (local, instant)
+    if (/(\bclear\b|\bsaaf\b|\breset\b)/i.test(lower) && /(\bchat\b|\bmsg\b|\bconversation\b)/i.test(lower)) {
+      _botlabChatHistory = [];
+      window.botlabClearChat();
+      return;
+    }
+
+    // 3. VIEW MODE TOGGLE (local, instant)
+    if (/(\bgrid\b|\bmulti\b|\bsaath\b|\bsabko ek sath\b)/i.test(lower)) {
+      if (_bl.viewMode !== "grid") window.toggleBotlabViewMode();
+      _addMsg("bot", "Switched to Grid Multi-View. All tabs visible side-by-side.");
+      return;
+    }
+    if (/(\bsingle\b|\bone\b|\bnormal\b|\bexpand\b|\bfull\b)/i.test(lower) && !/booking|bana/i.test(lower)) {
+      if (_bl.viewMode === "grid") window.toggleBotlabViewMode();
+      _addMsg("bot", "Switched to Single Tab View.");
+      return;
+    }
+
+    // Forward conversational query to Gemini-backed AI
+    _botlabChatHistory.push({ role: "user", text: text });
+    if (_botlabChatHistory.length > 20) {
+      _botlabChatHistory = _botlabChatHistory.slice(-20);
+    }
+    botlabAskAI(text, _botlabChatHistory);
+  };
+
+  // ── Preserved Offline/Error Fallback Engine (Original Regex Logic) ──
+  window.botlabAskAIFallback = function (text) {
+    var lower = (text || "").toLowerCase().trim();
 
     // 1. Get current state of logs and client stats
     var allLogs = [];
@@ -6823,31 +6921,6 @@ window.addEventListener('message', function(event) {
         }
       }
       if (targetClient) break;
-    }
-
-    // 2. STOP COMMAND
-    if (/(\bstop\b|\brok\b|\bband\b|\bhyp\b|\bcancel\b)/i.test(lower)) {
-      window.botlabStopAllTabs();
-      window.botlabStopQueue();
-      return;
-    }
-
-    // 3. CLEAR CHAT COMMAND
-    if (/(\bclear\b|\bsaaf\b|\breset\b)/i.test(lower) && /(\bchat\b|\bmsg\b|\bconversation\b)/i.test(lower)) {
-      window.botlabClearChat();
-      return;
-    }
-
-    // 4. VIEW MODE TOGGLE
-    if (/(\bgrid\b|\bmulti\b|\bsaath\b|\bsabko ek sath\b)/i.test(lower)) {
-      if (_bl.viewMode !== "grid") window.toggleBotlabViewMode();
-      _addMsg("bot", "Switched to Grid Multi-View. All tabs visible side-by-side.");
-      return;
-    }
-    if (/(\bsingle\b|\bone\b|\bnormal\b|\bexpand\b|\bfull\b)/i.test(lower) && !/booking|bana/i.test(lower)) {
-      if (_bl.viewMode === "grid") window.toggleBotlabViewMode();
-      _addMsg("bot", "Switched to Single Tab View.");
-      return;
     }
 
     // ── KNOWLEDGE BASE QUERY RESOLUTION (Hindi / Hinglish / English) ──
@@ -6943,11 +7016,9 @@ window.addEventListener('message', function(event) {
     }
 
     if (isLaunchIntent) {
-      // Check for row number: e.g. "row 6486" or "6486"
       var rowMatch = lower.match(/row\s*[:#-]?\s*(\d+)/i) || lower.match(/\b(\d{3,5})\b/);
       var searchRow = rowMatch ? parseInt(rowMatch[1], 10) : null;
 
-      // Extract location words
       var knownLocations = ["indore", "kanpur", "lucknow", "noida", "delhi", "bhopal", "gurgaon", "ggn", "mumbai", "pune", "bangalore", "kolkata", "chennai", "jaipur", "mohali", "chandigarh", "sec 83", "vit bhopal"];
       var matchedLocation = null;
       for (var lIdx = 0; lIdx < knownLocations.length; lIdx++) {
@@ -6957,7 +7028,6 @@ window.addEventListener('message', function(event) {
         }
       }
 
-      // Filter pool
       var pool = allPending.slice();
       if (targetClient) {
         var fNorm = targetClient.toLowerCase().replace(/[^a-z0-9]/g, "");
@@ -6993,7 +7063,6 @@ window.addEventListener('message', function(event) {
         _addMsg("bot", "Opening booking tab for <b>" + _escHtml(candidate.name) + "</b> (" + _escHtml(candidate.client) + ", Row " + candidate.rowNum + (candidate.location ? " - " + candidate.location : "") + ") with automated form-fill parameters.", true);
         return;
       } else {
-        // If not in pending, check if already created
         var alreadyCreated = allLogs.find(function (l) {
           if (searchRow && l.rowNum == searchRow) return true;
           if (matchedLocation && (l.location || l.sheetName || "").toLowerCase().indexOf(matchedLocation) !== -1) return true;
@@ -7020,13 +7089,8 @@ window.addEventListener('message', function(event) {
       return;
     }
 
-    // 7. GREETING & HELP
-    _addMsg("bot", "Namaste! Main RedcliffeBot AI assistant hoon. Aap mujhse naturally kuch bhi bol sakte hain:<br/>" +
-      "• <i>'Flebo.in ki kitni pending bookings bachi hain?'</i><br/>" +
-      "• <i>'Flebo ki booking bana do Indore wali'</i><br/>" +
-      "• <i>'HCL ki saari bookings grid view me open karo'</i><br/>" +
-      "• <i>'Row 6632 open karo'</i><br/>" +
-      "• <i>'Bot ko stop kar do'</i> ya <i>'Grid view dikhao'</i>", true);
+    // 7. GREETING & FALLBACK
+    _addMsg("bot", "Is baare mein mujhe pakka jaankari nahi hai — Overview ya Bookings tab se check kar lena. Aap mujhse pending bookings ya booking launch karne ke baare mein pooch sakte hain.");
   };
 
   // ── AI Command & Live Pendency Engine ──────────────────────
@@ -7212,6 +7276,11 @@ window.addEventListener('message', function(event) {
 
     // Launch up to 6 concurrent tabs for high-speed parallel booking
     var batch = pending.slice(0, 6);
+    var panel = document.getElementById("botlab-ai-panel");
+    if (panel) panel.classList.add("run-active");
+    var sugg = document.getElementById("botlab-ai-suggestions");
+    if (sugg) sugg.classList.add("run-hidden");
+
     _addMsg("bot", "Launching " + batch.length + " pending booking(s) simultaneously in Parallel Grid View...");
 
     batch.forEach(function (b, idx) {
@@ -7287,6 +7356,11 @@ window.addEventListener('message', function(event) {
     window.botlabPendingQueue = pending.slice(0, 15);
     window.botlabQueueTotal = window.botlabPendingQueue.length;
 
+    var panel = document.getElementById("botlab-ai-panel");
+    if (panel) panel.classList.add("run-active");
+    var sugg = document.getElementById("botlab-ai-suggestions");
+    if (sugg) sugg.classList.add("run-hidden");
+
     var hud = document.getElementById("botlab-queue-hud");
     if (hud) hud.classList.add("active");
 
@@ -7297,6 +7371,10 @@ window.addEventListener('message', function(event) {
   window.botlabStopQueue = function () {
     window.botlabPendingQueue = [];
     window.botlabQueueTotal = 0;
+    var panel = document.getElementById("botlab-ai-panel");
+    if (panel) panel.classList.remove("run-active");
+    var sugg = document.getElementById("botlab-ai-suggestions");
+    if (sugg) sugg.classList.remove("run-hidden");
     var hud = document.getElementById("botlab-queue-hud");
     if (hud) hud.classList.remove("active");
     var prog = document.getElementById("botlab-ai-progress");
@@ -7314,6 +7392,10 @@ window.addEventListener('message', function(event) {
 
   window.botlabRunNextInQueue = function () {
     if (!window.botlabPendingQueue || window.botlabPendingQueue.length === 0) {
+      var panel = document.getElementById("botlab-ai-panel");
+      if (panel) panel.classList.remove("run-active");
+      var sugg = document.getElementById("botlab-ai-suggestions");
+      if (sugg) sugg.classList.remove("run-hidden");
       _addMsg("success", "Queue Finished! All pending bookings have been processed.");
       var hud = document.getElementById("botlab-queue-hud");
       if (hud) hud.classList.remove("active");
@@ -7361,9 +7443,14 @@ window.addEventListener('message', function(event) {
         '<button class="botlab-msg-action-btn" onclick="window.open(\'' + encodeURI(targetUrl) + '\', \'_blank\')" title="Open booking directly in external tab">' +
           '<span class="material-symbols-outlined" style="font-size:13px;">open_in_new</span> Open in Window' +
         '</button>' +
-        '<button class="botlab-msg-action-btn" onclick="window.botlabStopQueue()" style="background: rgba(239,68,68,0.1); color: #ef4444; border-color: rgba(239,68,68,0.2);">' +
-          '<span class="material-symbols-outlined" style="font-size:13px;">stop</span> Stop Queue' +
-        '</button>' +
+        '<details class="botlab-msg-more">' +
+          '<summary class="botlab-msg-more-summary">More options</summary>' +
+          '<div class="botlab-msg-more-content">' +
+            '<button class="botlab-msg-action-btn" onclick="window.botlabStopQueue()" style="background: rgba(239,68,68,0.1); color: #ef4444; border-color: rgba(239,68,68,0.2);">' +
+              '<span class="material-symbols-outlined" style="font-size:13px;">stop</span> Stop Queue' +
+            '</button>' +
+          '</div>' +
+        '</details>' +
       '</div>';
 
     _addMsg("bot", "Queue (" + completedCount + "/" + window.botlabQueueTotal + "): Running <b>" + _escHtml(tabTitle) + "</b>... (" + window.botlabPendingQueue.length + " remaining)" + queueHtml, true);

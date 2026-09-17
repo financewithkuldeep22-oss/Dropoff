@@ -3036,6 +3036,12 @@ function doPost(e) {
  * ============================================================
  */
 
+/**
+ * ============================================================
+ * BOOKING OPERATIONS SUITE - BACKEND
+ * ============================================================
+ */
+
 
 /* ============================================================
  * WEB APP
@@ -3048,4 +3054,103 @@ function onOpen() {
     .addToUi();
 }
 
+// ============================================================
+// BOT LAB AI & GEMINI / GROQ API INTEGRATION
+// ============================================================
 
+function callGroqAPI(prompt, temperature) {
+  if (temperature === undefined) temperature = 0.1;
+  var apiKey = PropertiesService.getScriptProperties().getProperty('GROQ_API_KEY'); 
+  if (!apiKey) return "⚠️ AI Error: GROQ_API_KEY is missing in Apps Script Properties.";
+  
+  var url = "https://api.groq.com/openai/v1/chat/completions";
+  var payload = {
+    "model": "llama-3.3-70b-versatile", 
+    "messages": [{ "role": "user", "content": prompt }],
+    "temperature": temperature,
+    "max_tokens": 4096
+  };
+  
+  var options = {
+    "method": "post",
+    "headers": { "Authorization": "Bearer " + apiKey },
+    "contentType": "application/json",
+    "payload": JSON.stringify(payload),
+    "muteHttpExceptions": true
+  };
+  
+  try {
+    var response = UrlFetchApp.fetch(url, options);
+    if (response.getResponseCode() === 429) return "⏳ Groq API is taking a breath! Please wait 10 seconds."; 
+    
+    var json = JSON.parse(response.getContentText());
+    if (json.error) return "⚠️ API Error: " + json.error.message;
+    return json.choices[0].message.content;
+    
+  } catch(e) { 
+    return "Network error: " + e.toString(); 
+  }
+}
+
+function callGeminiAPI(prompt, temperature) {
+  if (temperature === undefined) temperature = 0.1;
+  var apiKey = PropertiesService.getScriptProperties().getProperty('GEMINI_API_KEY'); 
+  if (!apiKey) return callGroqAPI(prompt, temperature); // Fallback to Groq if key missing
+  
+  var url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=" + apiKey;
+  var payload = {
+    "contents": [{
+      "parts": [{
+        "text": prompt
+      }]
+    }],
+    "generationConfig": {
+      "temperature": temperature
+    }
+  };
+  
+  var options = {
+    "method": "post",
+    "contentType": "application/json",
+    "payload": JSON.stringify(payload),
+    "muteHttpExceptions": true
+  };
+  
+  try {
+    var response = UrlFetchApp.fetch(url, options);
+    var json = JSON.parse(response.getContentText());
+    if (json.error) return "⚠️ API Error: " + json.error.message;
+    if (json.candidates && json.candidates[0] && json.candidates[0].content && json.candidates[0].content.parts[0]) {
+      return json.candidates[0].content.parts[0].text;
+    }
+    return "Error: No candidates returned from Gemini API";
+  } catch(e) { 
+    return "Gemini network error: " + e.toString(); 
+  }
+}
+
+function botlabChat(userMessage, historyJson) {
+  var kb = getBotlabKnowledgeBase();
+  var history = [];
+  try { history = JSON.parse(historyJson || "[]"); } catch (e) {}
+  var historyText = history.slice(-6).map(function(m) {
+    return (m.role === "user" ? "User: " : "Assistant: ") + m.text;
+  }).join("\n");
+
+  var prompt = kb + "\n\n---\nRecent conversation:\n" + historyText +
+    "\n\nUser's new message: \"" + userMessage + "\"\n\n" +
+    "Answer as the Bot Lab AI, following every rule in the knowledge base above. " +
+    "Keep it short — this renders in a narrow chat panel, not a document. " +
+    "Reply in the same language mix (Hindi/Hinglish/English) the user used. No emojis.";
+
+  var responseText = callGeminiAPI(prompt, 0.3);
+  return { status: "success", reply: responseText };
+}
+
+function getBotlabKnowledgeBase() {
+  // Return the contents of botlab_knowledge_base.md as a string constant.
+  // Script Properties has a 9KB-per-value limit — this file will likely exceed that,
+  // so store it as a plain JS template-string constant in its own file
+  // (e.g. a new BotlabKnowledgeBase.gs), not in Script Properties or Drive.
+  return typeof BOTLAB_KB_TEXT !== 'undefined' ? BOTLAB_KB_TEXT : "";
+}

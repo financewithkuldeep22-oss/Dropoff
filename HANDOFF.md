@@ -40,3 +40,22 @@
   - Used `PropertiesService.getScriptProperties().getProperty('GEMINI_API_KEY')` and `GROQ_API_KEY` with zero hardcoded credentials.
   - Fallback logic from Gemini to Groq matches `Redcliffe_Bot/Code.gs`.
 
+### Phase 2: Part 4 — Chat UI/UX Redesign & Frontend Integration
+- **Files Modified**:
+  - `app.js`:
+    - Updated `sendBotlabCommand`: Retained instant local control commands (`STOP`, `CLEAR CHAT`, `VIEW MODE TOGGLE`), and routed all conversational questions to `botlabAskAI`.
+    - Added `botlabAskAI(text, history)`: Dispatches `botlabChat` action to Google Apps Script backend with multi-turn history.
+    - Preserved entire legacy regex/keyword matching logic verbatim inside `window.botlabAskAIFallback(text)` as the offline/error fallback.
+    - Added animated typing indicator (`showTypingIndicator` / `hideTypingIndicator`).
+    - Added automatic collapse of suggestion pills (`#botlab-ai-suggestions`) during queue and parallel runs.
+    - Added progressive disclosure for queue action buttons (collapsing tertiary action "Stop Queue" behind "More options").
+    - Raised default panel width from 330px to 380px (with 360px floor).
+  - `style.css`:
+    - Guaranteed `.botlab-ai-messages { min-height: 40% !important; }` to maintain chat visibility.
+    - Added CSS auto-hiding for `.botlab-ai-suggestions` when HUD or run is active.
+    - Added typing indicator styling (`.botlab-typing-dots`).
+    - Added progressive disclosure styling (`.botlab-msg-more`).
+    - Tightened `.botlab-queue-hud` padding and added `flex-shrink: 0;`.
+- **Verification**:
+  - `node --check app.js` passed with code 0.
+
