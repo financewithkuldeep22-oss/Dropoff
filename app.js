@@ -3587,6 +3587,11 @@ if(syncBtnEl && !syncBtnEl.dataset.fix) {
   } catch (Co) {
     Vs("switchDashboardTab override", Co);
   }
+  if (window._pendingTabSwitch) {
+    var pendingTab = window._pendingTabSwitch;
+    delete window._pendingTabSwitch;
+    window.switchDashboardTab(pendingTab);
+  }
   let Gr = !1;
   function Vr() {
     if (Gr) return;

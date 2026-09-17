@@ -3,9 +3,12 @@
 <head>
   <base href="/" />
   <script>
-    // Global guards for background iframe handlers
+    // Global guards for background iframe handlers & tab switching
     var onRedcliffeIframeLoad = window.onRedcliffeIframeLoad = window.onRedcliffeIframeLoad || function() {};
     var onBrowserIframeLoad = window.onBrowserIframeLoad = window.onBrowserIframeLoad || function() {};
+    window.switchDashboardTab = window.switchDashboardTab || function(tab) {
+      window._pendingTabSwitch = tab;
+    };
   </script>
   <link rel="icon" type="image/svg+xml" href="logo.svg" />
   <link rel="apple-touch-icon" href="logo.svg" />
@@ -204,7 +207,7 @@
 
   <!-- Design System Tokens & CSS Style Overrides -->
   <link rel="stylesheet" href="tokens.css?v=2">
-  <link rel="stylesheet" href="style.css?v=36">
+  <link rel="stylesheet" href="style.css?v=37">
   
   <!-- GSAP Animation Library -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
@@ -2275,7 +2278,7 @@
   <script src="offline-game.js"></script>
   <script src="auth.js?v=6"></script>
   <script src="api_v2.js?v=4"></script>
-  <script src="app.js?v=36"></script>
+  <script src="app.js?v=37"></script>
   <!-- <script src="challan.js?v=6"></script> -->
 </body>
 </html>
