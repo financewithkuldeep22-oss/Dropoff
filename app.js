@@ -5893,12 +5893,94 @@ window.addEventListener('message', function(event) {
     dryRun: true,
     viewMode: "single", // "single" or "grid"
     initialized: false,
-    loaderTimeout: null
+    loaderTimeout: null,
+    recoveryTimers: {}
   };
+
+  // ── Omnibox HTTPS Dynamic Lock ────────────────────────────
+  function _updateOmniboxLock(url) {
+    var lock = document.getElementById("botlab-omnibox-lock") || document.querySelector(".botlab-omnibox-lock");
+    if (!lock) return;
+    var str = (url || "").trim().toLowerCase();
+    var isHttps = str.startsWith("https://");
+    if (isHttps) {
+      lock.style.display = "flex";
+      lock.style.color = "#10b981";
+      lock.setAttribute("title", "Secure Encrypted Connection (HTTPS)");
+    } else {
+      lock.style.display = "none";
+    }
+  }
+
+  // ── Iframe Blocked / Recovery Banner Management ────────────
+  function _clearRecoveryTimer(id) {
+    if (_bl.recoveryTimers && _bl.recoveryTimers[id]) {
+      clearTimeout(_bl.recoveryTimers[id]);
+      delete _bl.recoveryTimers[id];
+    }
+  }
+
+  function _removeRecoveryBanner(id) {
+    var card = document.getElementById("botlab-card-" + id);
+    if (!card) return;
+    var wrap = card.querySelector(".botlab-card-frame-wrap");
+    if (!wrap) return;
+    var banner = wrap.querySelector(".botlab-recovery-banner");
+    if (banner) banner.remove();
+  }
+
+  function _showRecoveryBanner(iframe, id) {
+    var card = document.getElementById("botlab-card-" + id);
+    if (!card) return;
+    var wrap = card.querySelector(".botlab-card-frame-wrap");
+    if (!wrap) return;
+    if (wrap.querySelector(".botlab-recovery-banner")) return; // already showing
+
+    var tab = _bl.tabs.find(function (t) { return t.id === id; });
+    var targetUrl = (iframe && iframe.src) || (tab && tab.url) || "";
+    if (!targetUrl || targetUrl === "about:blank") return;
+
+    var banner = document.createElement("div");
+    banner.className = "botlab-recovery-banner";
+    banner.setAttribute("role", "alert");
+    banner.innerHTML =
+      '<div class="botlab-recovery-content">' +
+        '<svg class="botlab-svg-xs text-amber-500 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>' +
+        '<span>This site can\'t be shown here</span>' +
+        '<button class="botlab-recovery-btn" aria-label="Open in External Window" title="Open in External Window">' +
+          '<svg class="botlab-svg-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>' +
+          '<span>Open in External Window</span>' +
+        '</button>' +
+      '</div>' +
+      '<button class="botlab-recovery-close" aria-label="Dismiss banner" title="Dismiss">' +
+        '<svg class="botlab-svg-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6L6 18M6 6l12 12"/></svg>' +
+      '</button>';
+
+    var openBtn = banner.querySelector(".botlab-recovery-btn");
+    if (openBtn) {
+      openBtn.onclick = function (e) {
+        e.stopPropagation();
+        window.open(targetUrl, "_blank");
+      };
+    }
+
+    var closeBtn = banner.querySelector(".botlab-recovery-close");
+    if (closeBtn) {
+      closeBtn.onclick = function (e) {
+        e.stopPropagation();
+        banner.remove();
+      };
+    }
+
+    wrap.appendChild(banner);
+  }
 
   // ── Helper to wire iframe load handler (Tab 0 & Dynamic Tabs) ──
   function _wireIframeLoadHandler(iframe, id) {
     if (!iframe) return;
+    _clearRecoveryTimer(id);
+    _removeRecoveryBanner(id);
+
     iframe.onload = function () {
       if (_bl.loaderTimeout) {
         clearTimeout(_bl.loaderTimeout);
@@ -5906,9 +5988,12 @@ window.addEventListener('message', function(event) {
       }
       var loader = document.getElementById("botlab-iframe-loader");
       if (loader) loader.classList.remove("show");
+
+      var accessible = false;
       try {
         var iframeTitle = iframe.contentDocument && iframe.contentDocument.title;
         if (iframeTitle) {
+          accessible = true;
           var t = _bl.tabs.find(function (tabObj) { return tabObj.id === id; });
           if (t) {
             t.title = iframeTitle.substring(0, 30);
@@ -5916,8 +6001,23 @@ window.addEventListener('message', function(event) {
             if (titleEl) titleEl.textContent = t.title;
           }
           _renderTabs();
+        } else if (iframe.contentDocument && iframe.contentDocument.body) {
+          accessible = true;
         }
-      } catch (e) { /* cross-origin */ }
+      } catch (e) {
+        accessible = false; /* cross-origin / blocked */
+      }
+
+      // If contentDocument is inaccessible and no postMessage arrived, set 4s recovery timer
+      if (!accessible) {
+        _clearRecoveryTimer(id);
+        _bl.recoveryTimers[id] = setTimeout(function () {
+          _showRecoveryBanner(iframe, id);
+        }, 4000);
+      } else {
+        _clearRecoveryTimer(id);
+        _removeRecoveryBanner(id);
+      }
     };
   }
 
@@ -6118,6 +6218,8 @@ window.addEventListener('message', function(event) {
       }
       _wireIframeLoadHandler(frame0, 0);
     }
+    var curTab = _bl.tabs.find(function (t) { return t.id === _bl.active; }) || _bl.tabs[0];
+    if (curTab) _updateOmniboxLock(curTab.url);
   };
 
   // ── Tab Strip Rendering (Arc & Modern Chrome Style) ────────
@@ -6146,6 +6248,9 @@ window.addEventListener('message', function(event) {
         var closeBtn = document.createElement("span");
         closeBtn.className = "botlab-tab-close";
         closeBtn.title = "Close Tab";
+        closeBtn.setAttribute("aria-label", "Close Tab");
+        closeBtn.setAttribute("role", "button");
+        closeBtn.setAttribute("tabindex", "0");
         closeBtn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6L6 18M6 6l12 12"/></svg>';
         closeBtn.onclick = function (e) {
           e.stopPropagation();
@@ -6161,6 +6266,7 @@ window.addEventListener('message', function(event) {
     var newBtn = document.createElement("button");
     newBtn.className = "botlab-tab-new";
     newBtn.title = "New Tab (Ctrl+T)";
+    newBtn.setAttribute("aria-label", "New Tab (Ctrl+T)");
     newBtn.innerHTML = '<svg class="botlab-svg-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>';
     newBtn.onclick = function () { window.botlabCreateTab("https://www.google.com/search?igu=1", "Google"); };
     strip.appendChild(newBtn);
@@ -6183,6 +6289,7 @@ window.addEventListener('message', function(event) {
     if (tab) {
       var urlInput = document.getElementById("botlab-url-input");
       if (urlInput) urlInput.value = tab.url || "";
+      _updateOmniboxLock(tab.url || "");
     }
     _renderTabs();
   }
@@ -6217,10 +6324,10 @@ window.addEventListener('message', function(event) {
         '</div>' +
       '</div>' +
       '<div class="botlab-card-actions">' +
-        '<button class="botlab-card-btn" onclick="window.botlabFocusTab(' + id + ')" title="Focus Tab (Single View)"><svg class="botlab-svg-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg></button>' +
-        '<button class="botlab-card-btn" onclick="window.open(document.getElementById(\'botlab-iframe-\' + ' + id + ') ? document.getElementById(\'botlab-iframe-\' + ' + id + ').src : \'' + encodeURI(tabUrl) + '\', \'_blank\')" title="Open in External Window"><svg class="botlab-svg-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg></button>' +
-        '<button class="botlab-card-btn" onclick="window.botlabReloadTab(' + id + ')" title="Reload Tab"><svg class="botlab-svg-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-2.636-6.364M21 3v6h-6"/></svg></button>' +
-        '<button class="botlab-card-btn close-action" onclick="window.botlabCloseTab(' + id + ')" title="Close Tab"><svg class="botlab-svg-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6L6 18M6 6l12 12"/></svg></button>' +
+        '<button class="botlab-card-btn" onclick="window.botlabFocusTab(' + id + ')" title="Focus Tab (Single View)" aria-label="Focus Tab (Single View)"><svg class="botlab-svg-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg></button>' +
+        '<button class="botlab-card-btn" onclick="window.open(document.getElementById(\'botlab-iframe-\' + ' + id + ') ? document.getElementById(\'botlab-iframe-\' + ' + id + ').src : \'' + encodeURI(tabUrl) + '\', \'_blank\')" title="Open in External Window" aria-label="Open in External Window"><svg class="botlab-svg-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg></button>' +
+        '<button class="botlab-card-btn" onclick="window.botlabReloadTab(' + id + ')" title="Reload Tab" aria-label="Reload Tab"><svg class="botlab-svg-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-2.636-6.364M21 3v6h-6"/></svg></button>' +
+        '<button class="botlab-card-btn close-action" onclick="window.botlabCloseTab(' + id + ')" title="Close Tab" aria-label="Close Tab"><svg class="botlab-svg-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6L6 18M6 6l12 12"/></svg></button>' +
       '</div>';
     card.appendChild(header);
 
@@ -6249,6 +6356,8 @@ window.addEventListener('message', function(event) {
   // ── Tab Actions ────────────────────────────────────────────
   function _closeTab(id) {
     if (_bl.tabs.length <= 1) return;
+    _clearRecoveryTimer(id);
+    _removeRecoveryBanner(id);
     _bl.tabs = _bl.tabs.filter(function (t) { return t.id !== id; });
     delete _bl.history[id];
     delete _bl.histPos[id];
@@ -6267,6 +6376,8 @@ window.addEventListener('message', function(event) {
   };
 
   window.botlabReloadTab = function (id) {
+    _clearRecoveryTimer(id);
+    _removeRecoveryBanner(id);
     var iframe = document.getElementById("botlab-iframe-" + id);
     if (iframe) {
       var loader = document.getElementById("botlab-iframe-loader");
@@ -6277,6 +6388,7 @@ window.addEventListener('message', function(event) {
           if (loader) loader.classList.remove("show");
         }, 2000);
       }
+      _wireIframeLoadHandler(iframe, id);
       iframe.src = iframe.src;
     }
   };
@@ -6341,7 +6453,19 @@ window.addEventListener('message', function(event) {
       }
     }
 
+    // Apply Dry Run / Live mode gating to partner booking URLs
+    if (rawUrl.indexOf("partner.redcliffelabs.com") !== -1 || rawUrl.indexOf("botAutoRun=true") !== -1) {
+      try {
+        var parsed = new URL(rawUrl);
+        parsed.searchParams.set("botDryRun", _bl.dryRun ? "true" : "false");
+        rawUrl = parsed.toString();
+      } catch (e) {}
+    }
+
     var id = _bl.active;
+    _clearRecoveryTimer(id);
+    _removeRecoveryBanner(id);
+
     if (pushHist) {
       _bl.history[id] = (_bl.history[id] || []).slice(0, (_bl.histPos[id] || -1) + 1);
       _bl.history[id].push(rawUrl);
@@ -6361,12 +6485,14 @@ window.addEventListener('message', function(event) {
           if (loader) loader.classList.remove("show");
         }, 2000);
       }
+      _wireIframeLoadHandler(iframe, id);
       iframe.src = rawUrl;
     }
 
     var urlInput = document.getElementById("botlab-url-input");
     if (urlInput) urlInput.value = rawUrl;
 
+    _updateOmniboxLock(rawUrl);
     _renderTabs();
   };
 
@@ -6377,10 +6503,17 @@ window.addEventListener('message', function(event) {
     if (pos > 0) {
       _bl.histPos[_bl.active] = pos - 1;
       var url = h[_bl.histPos[_bl.active]];
-      var iframe = document.getElementById("botlab-iframe-" + _bl.active);
-      if (iframe) iframe.src = url;
+      var id = _bl.active;
+      _clearRecoveryTimer(id);
+      _removeRecoveryBanner(id);
+      var iframe = document.getElementById("botlab-iframe-" + id);
+      if (iframe) {
+        _wireIframeLoadHandler(iframe, id);
+        iframe.src = url;
+      }
       var urlInput = document.getElementById("botlab-url-input");
       if (urlInput) urlInput.value = url;
+      _updateOmniboxLock(url);
     }
   };
 
@@ -6391,10 +6524,17 @@ window.addEventListener('message', function(event) {
     if (pos < h.length - 1) {
       _bl.histPos[_bl.active] = pos + 1;
       var url = h[pos + 1];
-      var iframe = document.getElementById("botlab-iframe-" + _bl.active);
-      if (iframe) iframe.src = url;
+      var id = _bl.active;
+      _clearRecoveryTimer(id);
+      _removeRecoveryBanner(id);
+      var iframe = document.getElementById("botlab-iframe-" + id);
+      if (iframe) {
+        _wireIframeLoadHandler(iframe, id);
+        iframe.src = url;
+      }
       var urlInput = document.getElementById("botlab-url-input");
       if (urlInput) urlInput.value = url;
+      _updateOmniboxLock(url);
     }
   };
 
@@ -6407,6 +6547,16 @@ window.addEventListener('message', function(event) {
     window.addEventListener("message", function (event) {
       if (!event.data) return;
 
+      // Clear recovery timer and existing banner upon receiving framed postMessage
+      _clearRecoveryTimer(_bl.active);
+      _removeRecoveryBanner(_bl.active);
+      if (_bl.recoveryTimers) {
+        Object.keys(_bl.recoveryTimers).forEach(function (tid) {
+          _clearRecoveryTimer(tid);
+          _removeRecoveryBanner(tid);
+        });
+      }
+
       var loader = document.getElementById("botlab-iframe-loader");
       if (loader) loader.classList.remove("show");
 
@@ -6414,6 +6564,7 @@ window.addEventListener('message', function(event) {
       if (event.data.type === "redcliffe-iframe-url" && event.data.url) {
         var urlInput = document.getElementById("botlab-url-input");
         if (urlInput) urlInput.value = event.data.url;
+        _updateOmniboxLock(event.data.url);
         var tab = _bl.tabs.find(function (t) { return t.id === _bl.active; });
         if (tab) {
           try {
@@ -6457,12 +6608,19 @@ window.addEventListener('message', function(event) {
     var modeToggle = document.getElementById("botlab-mode-toggle");
     if (modeToggle && !modeToggle._hasListener) {
       modeToggle._hasListener = true;
-      modeToggle.addEventListener("click", function () {
+      var doToggle = function () {
         _bl.dryRun = !_bl.dryRun;
         modeToggle.classList.toggle("live", !_bl.dryRun);
         var label = document.getElementById("botlab-mode-label");
         if (label) label.textContent = _bl.dryRun ? "DRY RUN" : "LIVE";
         _addMsg("bot", _bl.dryRun ? "Switched to DRY RUN mode. Forms will be filled without final submission." : "Switched to LIVE mode. Bookings will be submitted directly.");
+      };
+      modeToggle.addEventListener("click", doToggle);
+      modeToggle.addEventListener("keydown", function (e) {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          doToggle();
+        }
       });
     }
   }
@@ -6542,6 +6700,8 @@ window.addEventListener('message', function(event) {
     var rowNum = b.rowNum || "";
     var p = new URLSearchParams();
     p.set("botAutoRun", "true");
+    // Partner-portal companion script reads botDryRun to skip final booking submission when true
+    p.set("botDryRun", _bl.dryRun ? "true" : "false");
     p.set("botPartner", partnerParam);
     p.set("botCenter", centerParam);
     if (rowNum) p.set("botRow", String(rowNum));

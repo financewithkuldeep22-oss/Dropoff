@@ -1,4 +1,3 @@
-```gitignore
 # Compiled and build artifacts
 *.pyc
 __pycache__/
@@ -46,11 +45,16 @@ extract.js
 *.txt
 dashboard_data.json
 user_prompt_*
+audit_*.js
+deep_audit.js
+locate_broken_buttons.js
+dev_server.js
 
 # Dependencies
 .venv/
 venv/
 .vercel
+.vercel/
 %AppData%/
 node_modules/
 .julia/
@@ -67,6 +71,7 @@ zig-cache/
 .env
 .env.local
 *.env.*
+.env*
 
 # Editors
 .vscode/
@@ -138,9 +143,3 @@ hs_err_pid*
 *.tar.bz2
 *.tar.xz
 *.tar.zst
-```
-audit_*.js
-deep_audit.js
-locate_broken_buttons.js
-dev_server.js
-.env*
