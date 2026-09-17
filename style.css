@@ -2051,6 +2051,9 @@ input[type="password"]::-ms-clear {
 
 /* Desktop Layout & Rails - Compact Enterprise Density */
 @media (min-width: 769px) {
+  #main-scroll-container {
+    padding-left: 68px !important;
+  }
   /* Navigation Rail Container - Tall, Sleek, Top-Anchored */
   .app-nav-rail {
     position: fixed !important;
@@ -2514,7 +2517,7 @@ input[type="password"]::-ms-clear {
 }
 
 /* =========================================================
-   BOT LAB — EMBEDDED BROWSER + AI COMMAND CENTER
+   BOT LAB — MODERN ENTERPRISE BROWSER + AI COMMAND CENTER
    ========================================================= */
 
 .botlab-root {
@@ -2523,11 +2526,12 @@ input[type="password"]::-ms-clear {
   max-height: 100%;
   width: 100%;
   gap: 0;
-  background: #f1f5f9;
+  background: #f8fafc;
   overflow: hidden;
+  position: relative;
 }
 
-/* --- Browser Panel (Left) --- */
+/* --- Left Browser Panel --- */
 .botlab-browser-panel {
   flex: 1;
   height: 100%;
@@ -2535,52 +2539,87 @@ input[type="password"]::-ms-clear {
   display: flex;
   flex-direction: column;
   min-width: 0;
-  background: #fff;
-  border-right: 1px solid #e2e8f0;
+  background: #ffffff;
+  border-right: 1px solid rgba(226, 232, 240, 0.9);
   overflow: hidden;
+  position: relative;
 }
 
-/* Tab Strip */
+/* --- Modern Floating Tab Strip (Arc / Chrome 2024 Style) --- */
 .botlab-tab-strip {
   display: flex;
-  align-items: flex-end;
+  align-items: center;
   background: #f1f5f9;
-  padding: 2px 6px 0;
-  gap: 1px;
+  border-bottom: 1px solid #e2e8f0;
+  padding: 4px 8px;
+  gap: 4px;
   overflow-x: auto;
-  min-height: 28px;
+  min-height: 36px;
+  max-height: 36px;
   scrollbar-width: none;
+  user-select: none;
 }
 .botlab-tab-strip::-webkit-scrollbar { display: none; }
 
 .botlab-tab {
-  display: flex;
+  display: inline-flex;
   align-items: center;
-  gap: 4px;
-  padding: 3px 10px;
-  border-radius: 6px 6px 0 0;
-  background: #e2e8f0;
+  gap: 7px;
+  padding: 0 10px;
+  border-radius: 9px;
+  background: transparent;
   cursor: pointer;
-  font-size: 10.5px;
+  font-size: 11.5px;
   font-weight: 600;
-  color: #475569;
-  max-width: 160px;
-  min-width: 60px;
-  height: 25px;
+  color: #64748b;
+  max-width: 190px;
+  min-width: 90px;
+  height: 28px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  transition: background 0.15s, color 0.15s;
-  user-select: none;
+  transition: all 0.16s cubic-bezier(0.16, 1, 0.3, 1);
   position: relative;
+  border: 1px solid transparent;
 }
-.botlab-tab:hover { background: #e8ecf1; }
+.botlab-tab:hover:not(.active) {
+  background: #e2e8f0;
+  color: #1e293b;
+}
+.botlab-tab:active {
+  transform: scale(0.97);
+}
 .botlab-tab.active {
-  background: #fff;
+  background: #ffffff;
   color: #0f172a;
-  box-shadow: 0 -1px 4px rgba(0,0,0,0.06);
+  border-color: rgba(99, 102, 241, 0.25);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05), 0 0 0 1px rgba(99, 102, 241, 0.12);
+}
+.botlab-tab.active::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 12px;
+  right: 12px;
+  height: 2px;
+  background: #6366f1;
+  border-radius: 9999px;
+}
+.botlab-tab-favicon-wrap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+  color: #6366f1;
+}
+.botlab-tab-favicon {
+  width: 13px;
+  height: 13px;
 }
 .botlab-tab-title {
+  flex: 1;
   overflow: hidden;
   text-overflow: ellipsis;
 }
@@ -2588,48 +2627,67 @@ input[type="password"]::-ms-clear {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 14px;
-  height: 14px;
-  border-radius: 3px;
-  font-size: 9px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
   color: #94a3b8;
   cursor: pointer;
   flex-shrink: 0;
-  transition: background 0.12s, color 0.12s;
+  opacity: 0.6;
+  transition: all 0.15s ease;
 }
+.botlab-tab-close svg {
+  width: 10px;
+  height: 10px;
+}
+.botlab-tab:hover .botlab-tab-close { opacity: 1; }
 .botlab-tab-close:hover {
-  background: #fecaca;
-  color: #dc2626;
+  background: #fee2e2;
+  color: #ef4444;
 }
 .botlab-tab-new {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 24px;
-  height: 24px;
-  border-radius: 5px;
+  width: 26px;
+  height: 26px;
+  border-radius: 8px;
   background: transparent;
-  border: none;
+  border: 1px dashed #cbd5e1;
   cursor: pointer;
   color: #64748b;
-  font-size: 15px;
-  font-weight: 500;
   margin-left: 2px;
   flex-shrink: 0;
-  transition: background 0.12s;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
 }
-.botlab-tab-new:hover { background: #e2e8f0; }
+.botlab-tab-new:hover {
+  background: #e2e8f0;
+  border-color: #94a3b8;
+  color: #4f46e5;
+  transform: scale(1.06);
+}
+.botlab-tab-new:active { transform: scale(0.92); }
 
-/* Unified Chrome Omnibox Toolbar */
+/* --- Unified Omnibox & Command Toolbar --- */
 .botlab-omnibox {
   display: flex;
   align-items: center;
-  gap: 6px;
-  padding: 5px 12px;
+  gap: 8px;
+  padding: 6px 12px;
   background: #ffffff;
   border-bottom: 1px solid #e2e8f0;
-  min-height: 38px;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02);
+  min-height: 42px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
+  z-index: 20;
+  flex-wrap: wrap;
+}
+
+/* Nav Controls Cluster */
+.botlab-nav-cluster {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  flex-shrink: 0;
 }
 .botlab-nav-btn {
   display: flex;
@@ -2637,25 +2695,47 @@ input[type="password"]::-ms-clear {
   justify-content: center;
   width: 28px;
   height: 28px;
-  border-radius: 6px;
-  border: none;
+  border-radius: 7px;
+  border: 1px solid transparent;
   background: transparent;
   cursor: pointer;
   color: #64748b;
-  transition: all 0.15s;
+  transition: all 0.16s cubic-bezier(0.16, 1, 0.3, 1);
   flex-shrink: 0;
 }
 .botlab-nav-btn:hover {
   background: #f1f5f9;
   color: #0f172a;
+  transform: translateY(-0.5px);
 }
 .botlab-nav-btn:active {
   background: #e2e8f0;
+  transform: scale(0.94);
 }
 .botlab-nav-btn.botlab-view-toggle.active {
   background: #eef2ff;
   color: #4f46e5;
-  border: 1px solid #c7d2fe;
+  border-color: #c7d2fe;
+}
+
+/* Omnibox Address Shell (Raycast/Arc Command Capsule) */
+.botlab-omnibox-shell {
+  flex: 1;
+  min-width: 220px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  height: 32px;
+  padding: 0 8px 0 10px;
+  border-radius: 10px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.botlab-omnibox-shell:focus-within {
+  background: #ffffff;
+  border-color: #818cf8;
+  box-shadow: 0 0 0 1px #6366f1, 0 0 0 3.5px rgba(99, 102, 241, 0.15);
 }
 .botlab-omnibox-lock {
   display: flex;
@@ -2663,24 +2743,52 @@ input[type="password"]::-ms-clear {
   padding: 0 2px;
   flex-shrink: 0;
 }
+.botlab-svg-lock {
+  width: 14px;
+  height: 14px;
+  stroke: #10b981;
+}
 .botlab-url-field {
   flex: 1;
-  height: 28px;
-  padding: 0 12px;
-  border-radius: 14px;
-  border: 1px solid #e2e8f0;
-  background: #f8fafc;
+  border: none;
+  background: transparent;
+  font-family: 'JetBrains Mono', 'SF Mono', 'Fira Code', Menlo, Consolas, monospace;
   font-size: 11.5px;
-  font-family: 'JetBrains Mono', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, monospace;
-  color: #334155;
+  color: #1e293b;
   outline: none;
-  transition: border-color 0.15s, box-shadow 0.15s, background 0.15s;
+  padding: 0;
 }
-.botlab-url-field:focus {
-  border-color: #818cf8;
-  box-shadow: 0 0 0 3px rgba(129, 140, 248, 0.15);
-  background: #ffffff;
+.botlab-url-field::placeholder {
+  color: #94a3b8;
+  font-family: inherit;
 }
+
+/* Omnibox Right Action Controls */
+.botlab-omnibox-actions {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  flex-shrink: 0;
+}
+.botlab-omnibox-action-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 6px;
+  border: none;
+  background: transparent;
+  color: #94a3b8;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+.botlab-omnibox-action-btn:hover {
+  background: #e2e8f0;
+  color: #1e293b;
+}
+.botlab-omnibox-action-btn:active { transform: scale(0.92); }
+
 .botlab-go-btn {
   display: flex;
   align-items: center;
@@ -2812,12 +2920,17 @@ input[type="password"]::-ms-clear {
   z-index: -1 !important;
 }
 .botlab-tab-card .botlab-card-header {
-  display: none; /* Hidden in single view for full-bleed browser experience */
-  padding: 6px 10px;
+  display: flex !important;
+  padding: 4px 12px;
   background: #f8fafc;
   border-bottom: 1px solid #e2e8f0;
   align-items: center;
   justify-content: space-between;
+  height: 32px;
+  min-height: 32px;
+  flex-shrink: 0;
+  z-index: 5;
+  transition: background 0.15s, border-color 0.15s;
 }
 .botlab-card-frame-wrap {
   flex: 1;
@@ -2923,6 +3036,55 @@ input[type="password"]::-ms-clear {
   user-select: none;
   flex-shrink: 0;
 }
+
+/* macOS Window Dots */
+.botlab-window-dots {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  margin-right: 4px;
+}
+.botlab-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  display: inline-block;
+  transition: transform 0.15s ease, opacity 0.15s ease;
+}
+.botlab-dot.close { background: #ff5f56; border: 1px solid #e0443e; }
+.botlab-dot.minimize { background: #ffbd2e; border: 1px solid #dea123; }
+.botlab-dot.expand { background: #27c93f; border: 1px solid #1aab29; }
+.botlab-card-header:hover .botlab-dot { transform: scale(1.08); }
+
+/* Unified Crisp SVG utility classes */
+.botlab-svg-icon {
+  width: 15px;
+  height: 15px;
+  stroke: currentColor;
+  display: inline-block;
+  vertical-align: middle;
+}
+.botlab-svg-sm {
+  width: 14px;
+  height: 14px;
+  stroke: currentColor;
+  display: inline-block;
+  vertical-align: middle;
+}
+.botlab-svg-xs {
+  width: 12px;
+  height: 12px;
+  stroke: currentColor;
+  display: inline-block;
+  vertical-align: middle;
+}
+.botlab-svg-avatar {
+  width: 16px;
+  height: 16px;
+  stroke: currentColor;
+  display: inline-block;
+  vertical-align: middle;
+}
 /* Miniature Desktop Monitor: 1200px+ Full Desktop Portal Scaled Proportionally to Grid Card */
 .botlab-iframe-wrap.grid-mode .botlab-card-frame-wrap .botlab-iframe {
   position: absolute !important;
@@ -2987,13 +3149,29 @@ input[type="password"]::-ms-clear {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  background: rgba(255, 255, 255, 0.75);
-  backdrop-filter: blur(2px);
-  z-index: 5;
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(4px);
+  z-index: 20;
   pointer-events: none !important;
+  transition: opacity 0.2s ease;
 }
 .botlab-iframe-loader.show {
   display: flex;
+}
+.botlab-spinner-ring {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 2.5px solid rgba(99, 102, 241, 0.15);
+  border-top-color: #6366f1;
+  animation: spin 0.75s linear infinite;
+  margin-bottom: 8px;
+}
+.botlab-loader-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: #475569;
+  letter-spacing: 0.2px;
 }
 @keyframes spin {
   from { transform: rotate(0deg); }
@@ -3073,10 +3251,29 @@ input[type="password"]::-ms-clear {
 .botlab-ai-header {
   display: flex;
   align-items: center;
-  padding: 8px 12px;
+  justify-content: space-between;
+  padding: 10px 14px;
   background: #ffffff;
   border-bottom: 1px solid #f1f5f9;
   flex-shrink: 0;
+}
+.botlab-ai-profile {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+.botlab-ai-avatar-glow {
+  width: 30px;
+  height: 30px;
+  border-radius: 9px;
+  background: linear-gradient(135deg, #6366f1, #8b5cf6 50%, #06b6d4);
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  box-shadow: 0 2px 10px rgba(99, 102, 241, 0.35);
 }
 .botlab-ai-avatar {
   width: 28px;
@@ -3091,30 +3288,67 @@ input[type="password"]::-ms-clear {
   box-shadow: 0 2px 6px rgba(99, 102, 241, 0.3);
 }
 .botlab-ai-title {
-  font-size: 13px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 12.5px;
   font-weight: 700;
   color: #0f172a;
+  line-height: 1.2;
+}
+.botlab-version-chip {
+  display: inline-block;
+  padding: 1px 5px;
+  border-radius: 9999px;
+  font-size: 9px;
+  font-weight: 700;
+  background: #e0e7ff;
+  color: #4338ca;
+  border: 1px solid #c7d2fe;
   line-height: 1.2;
 }
 .botlab-ai-subtitle {
   font-size: 10px;
   font-weight: 500;
   color: #64748b;
-  line-height: 1;
+  line-height: 1.2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.botlab-ai-status-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 2px 8px;
+  border-radius: 9999px;
+  background: #dcfce7;
+  border: 1px solid #bbf7d0;
+}
+.botlab-status-ping {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #16a34a;
+  box-shadow: 0 0 0 2px rgba(22, 163, 74, 0.2);
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }
 .botlab-ai-status {
   font-size: 9.5px;
   font-weight: 700;
-  color: #16a34a;
-  background: #dcfce7;
-  padding: 2px 7px;
-  border-radius: 9999px;
-  border: 1px solid #bbf7d0;
+  color: #15803d;
+  letter-spacing: 0.2px;
 }
 .botlab-ai-status.busy {
-  color: #d97706;
+  color: #b45309;
+}
+.botlab-ai-status-pill.busy {
   background: #fef3c7;
   border-color: #fde68a;
+}
+.botlab-ai-status-pill.busy .botlab-status-ping {
+  background: #f59e0b;
+  box-shadow: 0 0 0 2px rgba(245, 158, 11, 0.2);
 }
 .botlab-ai-icon-btn {
   display: flex;
@@ -3322,50 +3556,80 @@ input[type="password"]::-ms-clear {
   text-align: right;
 }
 
-/* Chat Input Bar */
+/* Chat Input Bar (Linear / Raycast Capsule Composer) */
 .botlab-ai-input-bar {
   display: flex;
   align-items: center;
-  gap: 6px;
   padding: 8px 10px;
   background: #ffffff;
   border-top: 1px solid #e2e8f0;
   flex-shrink: 0;
 }
-.botlab-ai-input {
+.botlab-ai-composer {
   flex: 1;
-  height: 32px;
-  padding: 0 12px;
-  border-radius: 16px;
-  border: 1px solid #cbd5e1;
+  display: flex;
+  align-items: center;
   background: #f8fafc;
+  border: 1px solid #cbd5e1;
+  border-radius: 12px;
+  padding: 2px 4px 2px 10px;
+  transition: all 0.2s ease;
+}
+.botlab-ai-composer:focus-within {
+  background: #ffffff;
+  border-color: #6366f1;
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
+}
+.botlab-ai-composer .botlab-ai-input {
+  flex: 1;
+  border: none;
+  background: transparent;
   font-size: 11.5px;
   outline: none;
   color: #1e293b;
-  transition: all 0.15s;
+  padding: 5px 4px;
 }
-.botlab-ai-input:focus {
-  border-color: #6366f1;
-  background: #ffffff;
-  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
+.botlab-ai-composer .botlab-ai-input::placeholder {
+  color: #94a3b8;
+}
+.botlab-composer-right {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+.botlab-kbd-hint {
+  font-family: 'JetBrains Mono', 'SF Mono', Consolas, monospace;
+  font-size: 9.5px;
+  font-weight: 600;
+  color: #94a3b8;
+  background: #f1f5f9;
+  border: 1px solid #e2e8f0;
+  border-radius: 5px;
+  padding: 2px 5px;
+  user-select: none;
+  line-height: 1.2;
 }
 .botlab-ai-send {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 30px;
-  height: 30px;
-  border-radius: 50%;
+  width: 26px;
+  height: 26px;
+  border-radius: 8px;
   border: none;
   background: #6366f1;
   color: #ffffff;
   cursor: pointer;
-  transition: all 0.15s;
+  transition: all 0.15s ease;
   flex-shrink: 0;
 }
 .botlab-ai-send:hover {
   background: #4f46e5;
   transform: scale(1.05);
+}
+.botlab-ai-send:active {
+  transform: scale(0.92);
 }
 
 /* --- Full Bleed for Bot Lab --- */
@@ -3430,7 +3694,26 @@ body.dark-mode .botlab-progress-text { color: #94a3b8; }
 body.dark-mode .botlab-ai-input-bar { background: #0f172a; border-color: #334155; }
 body.dark-mode .botlab-ai-input { background: #1e293b; border-color: #334155; color: #e2e8f0; }
 body.dark-mode .botlab-ai-input:focus { border-color: #6366f1; background: #0f172a; }
-body.dark-mode .botlab-ai-status { background: #0f2b1a; border-color: #15803d; }
+body.dark-mode .botlab-ai-status { background: #0f2b1a; border-color: #15803d; color: #4ade80; }
+body.dark-mode .botlab-omnibox-shell { background: #0f172a; border-color: #334155; }
+body.dark-mode .botlab-omnibox-shell:focus-within { background: #1e293b; border-color: #818cf8; box-shadow: 0 0 0 1px #6366f1, 0 0 0 3.5px rgba(99, 102, 241, 0.2); }
+body.dark-mode .botlab-omnibox-action-btn:hover { background: #334155; color: #f1f5f9; }
+body.dark-mode .botlab-card-header { background: #0f172a; border-bottom-color: #334155; }
+body.dark-mode .botlab-loader-label { color: #94a3b8; }
+body.dark-mode .botlab-spinner-ring { border-color: rgba(129, 140, 248, 0.2); border-top-color: #818cf8; }
+body.dark-mode .botlab-ai-avatar-glow { box-shadow: 0 2px 12px rgba(99, 102, 241, 0.5); }
+body.dark-mode .botlab-version-chip { background: #312e81; color: #c7d2fe; border-color: #4338ca; }
+body.dark-mode .botlab-ai-status-pill { background: #0f2b1a; border-color: #15803d; }
+body.dark-mode .botlab-ai-status-pill.busy { background: #451a03; border-color: #78350f; }
+body.dark-mode .botlab-ai-status-pill.busy .botlab-status-ping { background: #fbbf24; }
+body.dark-mode .botlab-ai-status.busy { color: #fde68a; }
+body.dark-mode .botlab-ai-composer { background: #1e293b; border-color: #334155; }
+body.dark-mode .botlab-ai-composer:focus-within { background: #0f172a; border-color: #818cf8; box-shadow: 0 0 0 3px rgba(129, 140, 248, 0.2); }
+body.dark-mode .botlab-ai-composer .botlab-ai-input { color: #f1f5f9; }
+body.dark-mode .botlab-ai-composer .botlab-ai-input::placeholder { color: #64748b; }
+body.dark-mode .botlab-kbd-hint { background: #0f172a; border-color: #334155; color: #64748b; }
+body.dark-mode .botlab-ai-send { background: #6366f1; }
+body.dark-mode .botlab-ai-send:hover { background: #4f46e5; }
 
 /* --- Mobile: Hide AI panel, full width browser --- */
 @media (max-width: 768px) {
@@ -3768,5 +4051,523 @@ body.dark-mode .empty-state {
     height: 26px !important;
   }
 }
+
+/* =========================================================
+   BOT LAB DUAL-MODE EXECUTION, DISPATCH MATRIX & UI/UX OVERHAUL
+   ========================================================= */
+
+/* 1. Dual Execution Mode Segmented Selector */
+.botlab-exec-mode-wrap {
+  display: flex;
+  align-items: center;
+  background: #f1f5f9;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  padding: 2px;
+  gap: 2px;
+  margin-left: 6px;
+  flex-shrink: 0;
+}
+.botlab-exec-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 8px;
+  border-radius: 6px;
+  border: none;
+  background: transparent;
+  color: #64748b;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+  user-select: none;
+}
+.botlab-exec-btn:hover {
+  color: #0f172a;
+  background: rgba(0,0,0,0.04);
+}
+.botlab-exec-btn:active {
+  transform: scale(0.96);
+}
+.botlab-exec-btn.active {
+  background: #ffffff;
+  color: #4f46e5;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1), 0 1px 2px rgba(0,0,0,0.06);
+}
+body.dark-mode .botlab-exec-mode-wrap {
+  background: #0f172a;
+  border-color: #334155;
+}
+body.dark-mode .botlab-exec-btn {
+  color: #94a3b8;
+}
+body.dark-mode .botlab-exec-btn:hover {
+  color: #f8fafc;
+  background: rgba(255,255,255,0.05);
+}
+body.dark-mode .botlab-exec-btn.active {
+  background: #1e293b;
+  color: #818cf8;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+}
+
+/* 2. Dispatch Matrix Trigger Button in Toolbar */
+.botlab-matrix-trigger-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 8px;
+  border: 1px solid #c7d2fe;
+  background: linear-gradient(135deg, #eef2ff 0%, #e0e7ff 100%);
+  color: #4338ca;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 1px 2px rgba(99, 102, 241, 0.1);
+  flex-shrink: 0;
+}
+.botlab-matrix-trigger-btn:hover {
+  background: linear-gradient(135deg, #e0e7ff 0%, #c7d2fe 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 10px rgba(99, 102, 241, 0.2);
+}
+.botlab-matrix-trigger-btn:active {
+  transform: scale(0.96);
+}
+.botlab-matrix-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: #4f46e5;
+  color: #ffffff;
+  border-radius: 9999px;
+  padding: 1px 6px;
+  font-size: 10px;
+  font-weight: 800;
+}
+body.dark-mode .botlab-matrix-trigger-btn {
+  background: linear-gradient(135deg, #1e1b4b 0%, #312e81 100%);
+  border-color: #4338ca;
+  color: #c7d2fe;
+}
+body.dark-mode .botlab-matrix-badge {
+  background: #6366f1;
+}
+
+/* 3. Persistent Queue Control HUD Banner */
+.botlab-queue-hud {
+  display: none;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 14px;
+  background: linear-gradient(90deg, #eef2ff, #f5f3ff);
+  border-bottom: 1px solid #c7d2fe;
+  font-size: 11.5px;
+  font-weight: 600;
+  color: #3730a3;
+  z-index: 15;
+  animation: slideDown 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.botlab-queue-hud.active {
+  display: flex;
+}
+.botlab-queue-hud-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+.botlab-queue-hud-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+.botlab-queue-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 8px;
+  border-radius: 6px;
+  border: 1px solid #cbd5e1;
+  background: #ffffff;
+  color: #334155;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+.botlab-queue-btn:hover {
+  background: #f1f5f9;
+  color: #0f172a;
+}
+.botlab-queue-btn:active {
+  transform: scale(0.96);
+}
+.botlab-queue-btn.stop {
+  background: #fee2e2;
+  border-color: #fca5a5;
+  color: #dc2626;
+}
+.botlab-queue-btn.stop:hover {
+  background: #fecaca;
+}
+body.dark-mode .botlab-queue-hud {
+  background: linear-gradient(90deg, #1e1b4b, #2e1065);
+  border-bottom-color: #4338ca;
+  color: #e0e7ff;
+}
+body.dark-mode .botlab-queue-btn {
+  background: #1e293b;
+  border-color: #334155;
+  color: #e2e8f0;
+}
+body.dark-mode .botlab-queue-btn:hover {
+  background: #334155;
+}
+body.dark-mode .botlab-queue-btn.stop {
+  background: #450a0a;
+  border-color: #7f1d1d;
+  color: #fca5a5;
+}
+
+/* 4. Pending Bookings Dispatch Matrix Drawer Modal */
+.botlab-matrix-drawer {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: none;
+  background: rgba(15, 23, 42, 0.65);
+  backdrop-filter: blur(8px);
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+.botlab-matrix-drawer.open {
+  display: flex !important;
+}
+.botlab-matrix-content {
+  width: 100%;
+  max-width: 1000px;
+  max-height: 88vh;
+  background: #ffffff;
+  border-radius: 20px;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 25px 50px -12px rgba(15, 23, 42, 0.25);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  animation: modalPop 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+@keyframes modalPop {
+  0% { transform: scale(0.95) translateY(10px); opacity: 0; }
+  100% { transform: scale(1) translateY(0); opacity: 1; }
+}
+body.dark-mode .botlab-matrix-content {
+  background: #0f172a;
+  border-color: #334155;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.6);
+}
+.botlab-matrix-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  background: #f8fafc;
+  border-bottom: 1px solid #e2e8f0;
+}
+body.dark-mode .botlab-matrix-header {
+  background: #0b0f19;
+  border-color: #1e293b;
+}
+.botlab-matrix-filters {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 20px;
+  background: #ffffff;
+  border-bottom: 1px solid #f1f5f9;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+body.dark-mode .botlab-matrix-filters {
+  background: #0f172a;
+  border-color: #1e293b;
+}
+.botlab-matrix-filter-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+}
+.botlab-filter-pill {
+  padding: 4px 10px;
+  border-radius: 9999px;
+  font-size: 11px;
+  font-weight: 600;
+  border: 1px solid #e2e8f0;
+  background: #f8fafc;
+  color: #475569;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+.botlab-filter-pill:hover {
+  background: #eef2ff;
+  border-color: #c7d2fe;
+  color: #4338ca;
+}
+.botlab-filter-pill.active {
+  background: #4f46e5;
+  border-color: #4338ca;
+  color: #ffffff;
+}
+body.dark-mode .botlab-filter-pill {
+  background: #1e293b;
+  border-color: #334155;
+  color: #94a3b8;
+}
+body.dark-mode .botlab-filter-pill.active {
+  background: #6366f1;
+  color: #ffffff;
+}
+.botlab-matrix-search {
+  height: 32px;
+  padding: 0 12px;
+  border-radius: 8px;
+  border: 1px solid #cbd5e1;
+  background: #f8fafc;
+  font-size: 12px;
+  color: #1e293b;
+  outline: none;
+  min-width: 220px;
+}
+body.dark-mode .botlab-matrix-search {
+  background: #1e293b;
+  border-color: #334155;
+  color: #f8fafc;
+}
+.botlab-matrix-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 0;
+  background: #ffffff;
+}
+body.dark-mode .botlab-matrix-body {
+  background: #0f172a;
+}
+.botlab-matrix-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+  text-align: left;
+}
+.botlab-matrix-table th {
+  position: sticky;
+  top: 0;
+  background: #f1f5f9;
+  padding: 10px 14px;
+  font-size: 11px;
+  font-weight: 700;
+  color: #475569;
+  border-bottom: 1px solid #cbd5e1;
+  z-index: 10;
+}
+body.dark-mode .botlab-matrix-table th {
+  background: #1e293b;
+  color: #94a3b8;
+  border-color: #334155;
+}
+.botlab-matrix-table td {
+  padding: 10px 14px;
+  border-bottom: 1px solid #f1f5f9;
+  color: #334155;
+}
+body.dark-mode .botlab-matrix-table td {
+  border-color: #1e293b;
+  color: #cbd5e1;
+}
+.botlab-matrix-table tr:hover td {
+  background: #f8fafc;
+}
+body.dark-mode .botlab-matrix-table tr:hover td {
+  background: #1e293b;
+}
+.botlab-matrix-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 20px;
+  background: #f8fafc;
+  border-top: 1px solid #e2e8f0;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+body.dark-mode .botlab-matrix-footer {
+  background: #0b0f19;
+  border-color: #1e293b;
+}
+.botlab-matrix-action-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 14px;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  border: 1px solid transparent;
+  transition: all 0.15s ease;
+}
+.botlab-matrix-action-btn.primary {
+  background: #4f46e5;
+  color: #ffffff;
+}
+.botlab-matrix-action-btn.primary:hover {
+  background: #4338ca;
+  transform: translateY(-1px);
+}
+.botlab-matrix-action-btn.secondary {
+  background: #eef2ff;
+  border-color: #c7d2fe;
+  color: #4338ca;
+}
+.botlab-matrix-action-btn.secondary:hover {
+  background: #e0e7ff;
+}
+.botlab-matrix-action-btn.outline {
+  background: transparent;
+  border-color: #cbd5e1;
+  color: #475569;
+}
+.botlab-matrix-action-btn.outline:hover {
+  background: #f1f5f9;
+  color: #0f172a;
+}
+body.dark-mode .botlab-matrix-action-btn.secondary {
+  background: #1e1b4b;
+  border-color: #4338ca;
+  color: #c7d2fe;
+}
+body.dark-mode .botlab-matrix-action-btn.outline {
+  border-color: #334155;
+  color: #94a3b8;
+}
+body.dark-mode .botlab-matrix-action-btn.outline:hover {
+  background: #1e293b;
+  color: #f8fafc;
+}
+
+/* 5. Glassmorphic Iframe Diagnostics / Health Helper Overlay */
+.botlab-iframe-overlay {
+  position: absolute;
+  inset: 0;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(4px);
+  z-index: 10;
+  padding: 24px;
+  text-align: center;
+}
+.botlab-iframe-overlay.show {
+  display: flex;
+}
+body.dark-mode .botlab-iframe-overlay {
+  background: rgba(15, 23, 42, 0.9);
+}
+.botlab-overlay-card {
+  max-width: 440px;
+  padding: 24px;
+  border-radius: 16px;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+body.dark-mode .botlab-overlay-card {
+  background: #1e293b;
+  border-color: #334155;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5);
+}
+.botlab-overlay-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  border-radius: 8px;
+  background: #4f46e5;
+  color: #ffffff;
+  font-size: 12px;
+  font-weight: 700;
+  border: none;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  box-shadow: 0 2px 6px rgba(79, 70, 229, 0.3);
+}
+.botlab-overlay-btn:hover {
+  background: #4338ca;
+  transform: translateY(-1px);
+}
+.botlab-overlay-btn:active {
+  transform: scale(0.96);
+}
+
+/* 6. AI Prompt Suggestion Pills */
+.botlab-ai-suggestions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  padding: 6px 10px;
+  background: #f8fafc;
+  border-top: 1px solid #f1f5f9;
+  flex-shrink: 0;
+}
+body.dark-mode .botlab-ai-suggestions {
+  background: #0b0f19;
+  border-color: #1e293b;
+}
+.botlab-suggestion-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3.5px 9px;
+  border-radius: 9999px;
+  font-size: 10px;
+  font-weight: 600;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  color: #64748b;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+  user-select: none;
+}
+.botlab-suggestion-pill:hover {
+  background: #eef2ff;
+  border-color: #c7d2fe;
+  color: #4338ca;
+  transform: translateY(-1px);
+}
+.botlab-pill-emoji {
+  font-size: 11px;
+  display: inline-block;
+}
+body.dark-mode .botlab-suggestion-pill {
+  background: #1e293b;
+  border-color: #334155;
+  color: #94a3b8;
+}
+body.dark-mode .botlab-suggestion-pill:hover {
+  background: #312e81;
+  color: #c7d2fe;
+}
+
 
 

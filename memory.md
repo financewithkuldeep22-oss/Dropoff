@@ -606,3 +606,36 @@ Initializes dashboard data sync
        - Focus thrashing fix: In `fillCentreStrict`, replaced the 60-iteration rapid `input.focus()` loop with direct trigger of MUI `button.MuiAutocomplete-popupIndicator`, allowing background iframes to open dropdowns seamlessly without stealing focus.
        - URL parameter patient extraction: Added direct reading of `botPatientName`, `botAge`, `botGender`, `botPhone`, `botTest`, `botLocation`, `botCenter`, `botPartner` from query params.
      - *Fix in `app.js`*: Set `delayMs = 0` in `botlabLaunchPendingTabs` for immediate simultaneous parallel execution across all opened tabs.
+
+10. **Bot Lab Complete Freeze & Infinite Loop Resolution (v=30):**
+    - **Fatal Root Cause 1 (JS Event Loop Freeze)**:
+      - In `window.botlabRunNextInQueue`, the tab closing loop was implemented as `while (_bl.tabs.length > 1) { window.botlabCloseTab(_bl.tabs[1].id); }` (and previously `while (_bl.tabs.length > 0)`).
+      - When `botlabCloseTab` reached its safety boundary `if (_bl.tabs.length <= 1) return;`, the loop was unable to remove the last tab, causing an unbreakable, non-yielding `while` loop that locked the JavaScript thread at 100% CPU. Any button click or interaction immediately froze the entire browser tab.
+      - *Fix*: Replaced the unbounded `while` loop with a deterministic, bounded backwards `for` loop:
+        ```js
+        for (var i = _bl.tabs.length - 1; i >= 1; i--) {
+          if (_bl.tabs[i] && _bl.tabs[i].id !== 0) {
+            window.botlabCloseTab(_bl.tabs[i].id);
+          }
+        }
+        ```
+    - **Fatal Root Cause 2 (TypeError Null Dereferences in Nav Polling)**:
+      - The 3-second `updateNavBadges` polling routine and badge counters used `typeof Qs !== "undefined"` guards. In JavaScript, `typeof null === "object" !== "undefined"`. When `Qs` was `null` during startup or network syncs, expressions like `Qs.kpi` or `Qs.clientStats` threw uncaught `TypeError: Cannot read properties of null`, terminating badge updates and chip generation.
+      - *Fix*: Hardened all checks to `typeof Qs !== "undefined" && Qs && ...` across lines 5554, 5559, 5634, 5640, 5665, 5681, 5708, and 5724 in `app.js`.
+    - **Fatal Root Cause 3 (Iframe Sandboxing Blocking Chrome Extension)**:
+      - `#botlab-iframe-0` and dynamically created tab cards possessed `sandbox="allow-scripts allow-forms allow-same-origin allow-popups"`.
+      - This sandbox blocked the local Chrome extension (*Bisht Ji Ultimate Bot v10.2*) from injecting `redcliffe.js` and stripping security headers, preventing automated booking completion inside Bot Lab.
+      - *Fix*: Removed `sandbox` attributes from `#botlab-iframe-0` in `index.html` and tab iframes in `botlabCreateTab` (in `app.js`), bringing them in line with production iframes (`medibuddy-frame`, `challan-frame`).
+      - Added direct "Open in External Window" (`window.open`) buttons to tab headers and queue message actions for users running outside iframe-supported contexts.
+    - **Fatal Root Cause 4 (Cache Trap & Stale Code Retention)**:
+      - Browser had aggressively cached older `app.js?v=24` which contained the freezing while loop.
+      - *Fix*: Bumped asset versions in `index.html` to `app.js?v=30` and `style.css?v=30`.
+
+11. **Bot Lab Enterprise Browser UI & AI Command Suite Elevation (v=31):**
+    - **Modern Omnibox & Navigation Suite**: Replaced text-based icons with crisp, pixel-perfect inline SVGs. Added SSL encrypted padlock badge (`.botlab-svg-lock`), JetBrains Mono monospace URL input, 1-click clipboard copy (`window.botlabCopyUrl()`) with animated checkmark feedback, external pop-out window launcher, and round forward navigate button.
+    - **Arc Browser-Style Floating Tabs**: Upgraded `.botlab-tab-strip` with floating pill tabs featuring vector world/globe SVGs, animated close buttons (`.botlab-tab-close`), active indicator pills with elevation and smooth transitions, and a micro-interaction rotating '+' new tab trigger.
+    - **Dual Execution Segmented Controller**: High-contrast modern segmented control allowing instantaneous switching between *All at Once* (multi-tab parallel grid execution) and *1-by-1 Queue* (sequential batch processing with persistent HUD).
+    - **Persistent Queue HUD**: Floating glassmorphic heads-up banner with animated sync status, live queue counter, Skip Next, Pop-out, and Stop actions.
+    - **macOS Window Dots & Card Headers**: Added macOS traffic light window dots (red `#ff5f56`, yellow `#ffbd2e`, green `#27c93f`) to both static and dynamically generated tab cards, paired with quick-action SVGs (Focus, Pop-out, Reload, Close).
+    - **Linear & Raycast AI Command Dock**: Redesigned RedcliffeBot AI panel with a glowing multi-stop gradient avatar (`#6366f1` to `#06b6d4`), version chip (`v2.4`), status pill with pulsing emerald indicator, Raycast-inspired prompt suggestion chips, and a Linear capsule composer with keyboard hint (`<kbd>↵ Enter</kbd>`).
+    - **Full Dark Mode Parity**: Styled all newly introduced UI components with slate-900 / dark-mode themes, indigo accents, and subtle borders.

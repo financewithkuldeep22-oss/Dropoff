@@ -2073,7 +2073,12 @@ if(syncBtnEl && !syncBtnEl.dataset.fix) {
         }));
     }),
     (window.setChartType = function (e) {
-      ((Zs = e), document.getElementById("btn-chart-bar").classList.toggle("active", "bar" === e), document.getElementById("btn-chart-line").classList.toggle("active", "line" === e), hr());
+      Zs = e;
+      const bBtn = document.getElementById("btn-chart-bar");
+      const lBtn = document.getElementById("btn-chart-line");
+      if (bBtn) bBtn.classList.toggle("active", "bar" === e);
+      if (lBtn) lBtn.classList.toggle("active", "line" === e);
+      if (typeof hr === 'function') hr();
     }));
   let vr = null,
     kr = "refrig",
@@ -3306,6 +3311,7 @@ if(syncBtnEl && !syncBtnEl.dataset.fix) {
       e && ((e.style.transform = "scale(1) rotate(0deg)"), (e.dataset.zoom = "1"), (e.dataset.rotate = "0"));
     }),
     (window.switchQCPhotoTab = function (photoType) {
+      kr = photoType;
       document.querySelectorAll(".qc-photo-tab-btn").forEach((btn) => {
         if (btn.dataset.photo === photoType) {
           btn.classList.add("active");
@@ -3314,6 +3320,28 @@ if(syncBtnEl && !syncBtnEl.dataset.fix) {
         }
       });
       window.zoomPhoto(photoType);
+    }),
+    (window.zoomActiveQCPhoto = function () {
+      const activeBtn = document.querySelector(".qc-photo-tab-btn.active");
+      const photoType = (activeBtn && activeBtn.dataset.photo) ? activeBtn.dataset.photo : (kr || "refrig");
+      window.zoomPhoto(photoType);
+    }),
+    (window.zoomOutActiveQCPhoto = function () {
+      const lightbox = document.getElementById("modal-photo-lightbox");
+      if (lightbox && lightbox.classList.contains("active")) {
+        window.adjustLightboxZoom(-0.25);
+      } else {
+        window.zoomActiveQCPhoto();
+      }
+    }),
+    (window.rotateActiveQCPhoto = function () {
+      const lightbox = document.getElementById("modal-photo-lightbox");
+      if (lightbox && lightbox.classList.contains("active")) {
+        window.rotateLightbox(90);
+      } else {
+        window.zoomActiveQCPhoto();
+        setTimeout(() => window.rotateLightbox(90), 100);
+      }
     }),
     (window.switchQCPhoto = function (e) {
       window.zoomPhoto(e);
@@ -5551,12 +5579,12 @@ window.updateNavBadges = function() {
       const rawText = kpiPendingEl.innerText || "";
       overviewCount = parseInt(rawText.replace(/[^0-9]/g, '')) || 0;
     }
-    if (overviewCount === 0 && typeof Qs !== 'undefined' && Qs.clientStats) {
+    if (overviewCount === 0 && typeof Qs !== 'undefined' && Qs && Qs.clientStats) {
       Object.keys(Qs.clientStats).forEach(k => {
         overviewCount += (Qs.clientStats[k].pending || 0);
       });
     }
-    if (overviewCount === 0 && typeof Qs !== 'undefined' && Array.isArray(Qs.logs)) {
+    if (overviewCount === 0 && typeof Qs !== 'undefined' && Qs && Array.isArray(Qs.logs)) {
       overviewCount = Qs.logs.filter(log => log.isPending).length;
     }
     if (overviewBadge) {
@@ -5631,13 +5659,13 @@ window.updateNavBadges = function() {
       }
 
       // Priority 3: Fallback from Qs.kpis.alloPendingCount
-      if (!countDetermined && typeof Qs !== 'undefined' && Qs.kpis && typeof Qs.kpis.alloPendingCount === 'number') {
+      if (!countDetermined && typeof Qs !== 'undefined' && Qs && Qs.kpis && typeof Qs.kpis.alloPendingCount === 'number') {
         count = Qs.kpis.alloPendingCount;
         countDetermined = true;
       }
 
       // Priority 4: Fallback to Overview clientStats / logs
-      if (!countDetermined && typeof Qs !== 'undefined' && Qs.clientStats) {
+      if (!countDetermined && typeof Qs !== 'undefined' && Qs && Qs.clientStats) {
         Object.keys(Qs.clientStats).forEach(k => {
           if (k.toLowerCase().includes('allo')) {
             count += (Qs.clientStats[k].pending || 0);
@@ -5662,7 +5690,7 @@ window.updateNavBadges = function() {
       let countDetermined = false;
 
       // Priority 1: Overview clientStats (source of truth for booking pendency)
-      if (typeof Qs !== 'undefined' && Qs.clientStats) {
+      if (typeof Qs !== 'undefined' && Qs && Qs.clientStats) {
         let bhmcFound = false;
         let bhmcPending = 0;
         Object.keys(Qs.clientStats).forEach(k => {
@@ -5678,7 +5706,7 @@ window.updateNavBadges = function() {
       }
 
       // Priority 2: Active pending logs
-      if (!countDetermined && typeof Qs !== 'undefined' && Array.isArray(Qs.logs) && Qs.logs.length > 0) {
+      if (!countDetermined && typeof Qs !== 'undefined' && Qs && Array.isArray(Qs.logs) && Qs.logs.length > 0) {
         count = Qs.logs.filter(log => log.isPending && (log.client && (log.client.toLowerCase().includes('bharath') || log.client.toLowerCase().includes('bhmc')))).length;
         countDetermined = true;
       }
@@ -5705,7 +5733,7 @@ window.updateNavBadges = function() {
       let countDetermined = false;
 
       // Priority 1: Overview clientStats
-      if (typeof Qs !== 'undefined' && Qs.clientStats) {
+      if (typeof Qs !== 'undefined' && Qs && Qs.clientStats) {
         let mbFound = false;
         let mbPending = 0;
         Object.keys(Qs.clientStats).forEach(k => {
@@ -5721,7 +5749,7 @@ window.updateNavBadges = function() {
       }
 
       // Priority 2: Overview logs
-      if (!countDetermined && typeof Qs !== 'undefined' && Array.isArray(Qs.logs) && Qs.logs.length > 0) {
+      if (!countDetermined && typeof Qs !== 'undefined' && Qs && Array.isArray(Qs.logs) && Qs.logs.length > 0) {
         count = Qs.logs.filter(log => log.isPending && (log.client && log.client.toLowerCase().includes('medibuddy'))).length;
         countDetermined = true;
       }
@@ -5995,7 +6023,7 @@ window.addEventListener('message', function(event) {
     if (totalPending === 0) {
       container.innerHTML =
         '<div class="botlab-chip-empty">' +
-          '<span class="material-symbols-outlined" style="font-size:14px;color:#10b981;">check_circle</span>' +
+          '<svg class="botlab-svg-xs text-emerald-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>' +
           '<span>No pending bookings</span>' +
         '</div>';
       return;
@@ -6007,7 +6035,7 @@ window.addEventListener('message', function(event) {
     allBtn.title = "View all " + totalPending + " pending bookings";
     allBtn.onclick = function () { window.botlabLaunchPendingTabs("all"); };
     allBtn.innerHTML =
-      '<span class="material-symbols-outlined" style="font-size:13px;">inventory_2</span>' +
+      '<svg class="botlab-svg-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/></svg>' +
       '<span>All Pending</span>' +
       '<span class="botlab-chip-badge">' + totalPending + '</span>';
     container.appendChild(allBtn);
@@ -6022,23 +6050,52 @@ window.addEventListener('message', function(event) {
           btn.title = "View " + count + " pending for " + cName;
           btn.onclick = function () { window.botlabLaunchPendingTabs(cName); };
 
-          var icon = "business";
           var clow = cName.toLowerCase();
-          if (clow.indexOf("flebo") !== -1) icon = "water_drop";
-          else if (clow.indexOf("medi") !== -1) icon = "medication";
-          else if (clow.indexOf("hcl") !== -1) icon = "domain";
-          else if (clow.indexOf("tatva") !== -1) icon = "shield";
-          else if (clow.indexOf("tghs") !== -1) icon = "health_and_safety";
-          else if (clow.indexOf("bharath") !== -1 || clow.indexOf("bhmc") !== -1) icon = "local_hospital";
-          else if (clow.indexOf("apollo") !== -1) icon = "emergency";
+          var iconSvg = '<svg class="botlab-svg-xs text-slate-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="2" width="16" height="20" rx="2" ry="2"/><path d="M9 22v-4h6v4"/><path d="M8 6h.01"/><path d="M16 6h.01"/><path d="M12 6h.01"/><path d="M12 10h.01"/><path d="M12 14h.01"/><path d="M16 10h.01"/><path d="M16 14h.01"/><path d="M8 10h.01"/><path d="M8 14h.01"/></svg>';
+          if (clow.indexOf("flebo") !== -1) {
+            iconSvg = '<svg class="botlab-svg-xs text-cyan-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg>';
+          } else if (clow.indexOf("medi") !== -1) {
+            iconSvg = '<svg class="botlab-svg-xs text-indigo-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m10.5 20.5 10-10a4.95 4.95 0 1 0-7-7l-10 10a4.95 4.95 0 1 0 7 7Z"/><path d="m8.5 8.5 7 7"/></svg>';
+          } else if (clow.indexOf("tatva") !== -1) {
+            iconSvg = '<svg class="botlab-svg-xs text-blue-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>';
+          } else if (clow.indexOf("bharath") !== -1 || clow.indexOf("bhmc") !== -1 || clow.indexOf("apollo") !== -1) {
+            iconSvg = '<svg class="botlab-svg-xs text-rose-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 6v12M6 12h12"/></svg>';
+          }
 
           btn.innerHTML =
-            '<span class="material-symbols-outlined" style="font-size:13px;">' + icon + '</span>' +
+            iconSvg +
             '<span>' + _escHtml(cName) + '</span>' +
             '<span class="botlab-chip-badge">' + count + '</span>';
           container.appendChild(btn);
         })(client, cnt);
       }
+    }
+
+    // Update Dispatch Matrix trigger badge
+    var matrixBadge = document.getElementById("botlab-matrix-badge");
+    if (matrixBadge) matrixBadge.textContent = totalPending;
+    var matrixHeadCount = document.getElementById("matrix-header-count");
+    if (matrixHeadCount) matrixHeadCount.textContent = totalPending + " Pending";
+  };
+
+  // ── 1-Click Copy URL to Clipboard ─────────────────────────
+  window.botlabCopyUrl = function () {
+    var urlInput = document.getElementById("botlab-url-input");
+    var val = (urlInput && urlInput.value) || "";
+    if (!val) return;
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(val).then(function () {
+        var btn = document.getElementById("botlab-copy-url-btn");
+        if (btn) {
+          btn.innerHTML = '<svg class="botlab-svg-sm text-emerald-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>';
+          setTimeout(function () {
+            btn.innerHTML = '<svg class="botlab-svg-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>';
+          }, 1500);
+        }
+        if (typeof window.showToast === "function") {
+          window.showToast("URL copied to clipboard!", "success");
+        }
+      });
     }
   };
 
@@ -6063,7 +6120,7 @@ window.addEventListener('message', function(event) {
     }
   };
 
-  // ── Tab Strip Rendering ────────────────────────────────────
+  // ── Tab Strip Rendering (Arc & Modern Chrome Style) ────────
   function _renderTabs() {
     var strip = document.getElementById("botlab-tab-strip");
     if (!strip) return;
@@ -6074,6 +6131,12 @@ window.addEventListener('message', function(event) {
       el.className = "botlab-tab" + (tab.id === _bl.active ? " active" : "");
       el.setAttribute("data-id", tab.id);
 
+      // Favicon Icon
+      var favWrap = document.createElement("span");
+      favWrap.className = "botlab-tab-favicon-wrap";
+      favWrap.innerHTML = '<svg class="botlab-tab-favicon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20M2 12h20"/></svg>';
+      el.appendChild(favWrap);
+
       var titleSpan = document.createElement("span");
       titleSpan.className = "botlab-tab-title";
       titleSpan.textContent = tab.title || ("Tab " + (idx + 1));
@@ -6082,7 +6145,8 @@ window.addEventListener('message', function(event) {
       if (_bl.tabs.length > 1) {
         var closeBtn = document.createElement("span");
         closeBtn.className = "botlab-tab-close";
-        closeBtn.textContent = "\u00d7";
+        closeBtn.title = "Close Tab";
+        closeBtn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6L6 18M6 6l12 12"/></svg>';
         closeBtn.onclick = function (e) {
           e.stopPropagation();
           _closeTab(tab.id);
@@ -6096,8 +6160,8 @@ window.addEventListener('message', function(event) {
 
     var newBtn = document.createElement("button");
     newBtn.className = "botlab-tab-new";
-    newBtn.textContent = "+";
-    newBtn.title = "New Tab";
+    newBtn.title = "New Tab (Ctrl+T)";
+    newBtn.innerHTML = '<svg class="botlab-svg-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>';
     newBtn.onclick = function () { window.botlabCreateTab("https://www.google.com/search?igu=1", "Google"); };
     strip.appendChild(newBtn);
   }
@@ -6137,18 +6201,26 @@ window.addEventListener('message', function(event) {
     card.className = "botlab-tab-card";
     card.id = "botlab-card-" + id;
 
-    // Card Header (shown in Grid Mode)
+    // Card Header (macOS window dots + tab title + modern SVG actions)
     var header = document.createElement("div");
     header.className = "botlab-card-header";
     header.innerHTML =
-      '<div class="flex items-center gap-1.5 overflow-hidden">' +
-        '<span class="material-symbols-outlined" style="font-size:14px;color:#6366f1;">tab</span>' +
-        '<span class="botlab-card-title" id="botlab-card-title-' + id + '">' + _escHtml(tabTitle) + '</span>' +
+      '<div class="flex items-center gap-2 overflow-hidden">' +
+        '<div class="botlab-window-dots">' +
+          '<span class="botlab-dot close"></span>' +
+          '<span class="botlab-dot minimize"></span>' +
+          '<span class="botlab-dot expand"></span>' +
+        '</div>' +
+        '<div class="flex items-center gap-1.5 overflow-hidden pl-1 border-l border-slate-200 dark:border-slate-700">' +
+          '<svg class="botlab-svg-xs text-indigo-500 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20M2 12h20"/></svg>' +
+          '<span class="botlab-card-title" id="botlab-card-title-' + id + '">' + _escHtml(tabTitle) + '</span>' +
+        '</div>' +
       '</div>' +
       '<div class="botlab-card-actions">' +
-        '<button class="botlab-card-btn" onclick="window.botlabFocusTab(' + id + ')" title="Focus Tab"><span class="material-symbols-outlined" style="font-size:13px;">open_in_full</span></button>' +
-        '<button class="botlab-card-btn" onclick="window.botlabReloadTab(' + id + ')" title="Reload"><span class="material-symbols-outlined" style="font-size:13px;">refresh</span></button>' +
-        '<button class="botlab-card-btn" onclick="window.botlabCloseTab(' + id + ')" title="Close"><span class="material-symbols-outlined" style="font-size:13px;">close</span></button>' +
+        '<button class="botlab-card-btn" onclick="window.botlabFocusTab(' + id + ')" title="Focus Tab (Single View)"><svg class="botlab-svg-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg></button>' +
+        '<button class="botlab-card-btn" onclick="window.open(document.getElementById(\'botlab-iframe-\' + ' + id + ') ? document.getElementById(\'botlab-iframe-\' + ' + id + ').src : \'' + encodeURI(tabUrl) + '\', \'_blank\')" title="Open in External Window"><svg class="botlab-svg-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg></button>' +
+        '<button class="botlab-card-btn" onclick="window.botlabReloadTab(' + id + ')" title="Reload Tab"><svg class="botlab-svg-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-2.636-6.364M21 3v6h-6"/></svg></button>' +
+        '<button class="botlab-card-btn close-action" onclick="window.botlabCloseTab(' + id + ')" title="Close Tab"><svg class="botlab-svg-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6L6 18M6 6l12 12"/></svg></button>' +
       '</div>';
     card.appendChild(header);
 
@@ -6162,7 +6234,6 @@ window.addEventListener('message', function(event) {
     iframe.className = "botlab-iframe active";
     iframe.src = tabUrl;
     iframe.setAttribute("allow", "clipboard-read; clipboard-write; fullscreen");
-    iframe.setAttribute("sandbox", "allow-same-origin allow-scripts allow-popups allow-forms allow-modals allow-top-navigation-by-user-activation");
     _wireIframeLoadHandler(iframe, id);
 
     frameWrap.appendChild(iframe);
@@ -6243,7 +6314,9 @@ window.addEventListener('message', function(event) {
       toggleBtn.classList.toggle("active", _bl.viewMode === "grid");
     }
     if (toggleIcon) {
-      toggleIcon.textContent = (_bl.viewMode === "grid" ? "crop_square" : "grid_view");
+      toggleIcon.innerHTML = (_bl.viewMode === "grid"
+        ? '<svg class="botlab-svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/></svg>'
+        : '<svg class="botlab-svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/></svg>');
     }
 
     _addMsg("bot", _bl.viewMode === "grid"
@@ -6400,9 +6473,18 @@ window.addEventListener('message', function(event) {
     if (!container) return;
     var msgDiv = document.createElement("div");
     msgDiv.className = "botlab-msg " + (type || "bot");
-    var avatarIcon = type === "user" ? "person" : (type === "success" ? "check_circle" : (type === "error" ? "error" : "smart_toy"));
+    
+    var avatarSvg = '<svg class="botlab-svg-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3-1.9 5.8a2 2 0 0 1-1.3 1.3L3 12l5.8 1.9a2 2 0 0 1 1.3 1.3L12 21l1.9-5.8a2 2 0 0 1 1.3-1.3L21 12l-5.8-1.9a2 2 0 0 1-1.3-1.3L12 3Z"/></svg>';
+    if (type === "user") {
+      avatarSvg = '<svg class="botlab-svg-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>';
+    } else if (type === "success") {
+      avatarSvg = '<svg class="botlab-svg-xs text-emerald-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>';
+    } else if (type === "error") {
+      avatarSvg = '<svg class="botlab-svg-xs text-rose-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>';
+    }
+
     msgDiv.innerHTML =
-      '<div class="botlab-msg-avatar"><span class="material-symbols-outlined" style="font-size:14px;">' + avatarIcon + '</span></div>' +
+      '<div class="botlab-msg-avatar">' + avatarSvg + '</div>' +
       '<div class="botlab-msg-body">' + (isHtml ? text : _escHtml(text)) + '</div>';
     container.appendChild(msgDiv);
     container.scrollTop = container.scrollHeight;
@@ -6532,6 +6614,7 @@ window.addEventListener('message', function(event) {
     // 2. STOP COMMAND
     if (/(\bstop\b|\brok\b|\bband\b|\bhyp\b|\bcancel\b)/i.test(lower)) {
       window.botlabStopAllTabs();
+      window.botlabStopQueue();
       return;
     }
 
@@ -6550,6 +6633,89 @@ window.addEventListener('message', function(event) {
     if (/(\bsingle\b|\bone\b|\bnormal\b|\bexpand\b|\bfull\b)/i.test(lower) && !/booking|bana/i.test(lower)) {
       if (_bl.viewMode === "grid") window.toggleBotlabViewMode();
       _addMsg("bot", "Switched to Single Tab View.");
+      return;
+    }
+
+    // ── KNOWLEDGE BASE QUERY RESOLUTION (Hindi / Hinglish / English) ──
+    // A. Iframe Blank / Loading Help
+    if (/(\bblank\b|\bwhite\b|\bsafed\b|\bload nahi\b|\bkhul nahi\b|\biframe\b|\bextension\b)/i.test(lower)) {
+      var iframeAnswer =
+        "<b>Iframe Blank ya Loading Problem Fix:</b><br/>" +
+        "1. <b>Security Policy:</b> partner.redcliffelabs.com browser me <i>X-Frame-Options: SAMEORIGIN</i> bhejta hai, jise Chrome by default iframe me block karta hai.<br/>" +
+        "2. <b>Chrome Extension:</b> Check karein ki <i>'Bisht Ji Ultimate Bot v10.2'</i> extension enabled hai (chrome://extensions). Ye extension security headers ko strip karti hai.<br/>" +
+        "3. <b>Instant 1-Click Bypass:</b> Sabse best aur fast tareeka hai ki aap upar card header me ya Omnibox me <b>'Window'</b> button dabayein. Ye direct popup window me khulega jisme extension 100% smooth chalegi.<br/>" +
+        '<div style="margin-top:6px;display:flex;gap:6px;flex-wrap:wrap;">' +
+          '<button class="botlab-msg-action-btn" onclick="window.botlabOpenCurrentInWindow()"><span class="material-symbols-outlined" style="font-size:13px;">open_in_new</span> Open in Window</button>' +
+          '<button class="botlab-msg-action-btn" onclick="window.botlabReload()"><span class="material-symbols-outlined" style="font-size:13px;">refresh</span> Reload Iframe</button>' +
+        '</div>';
+      _addMsg("bot", iframeAnswer, true);
+      return;
+    }
+
+    // B. Dual Mode: Saari Ek Saath vs Single-Single
+    if (/(\bek saath\b|\ball at once\b|\bsaari\b|\bbulk\b|\bparallel\b)/i.test(lower) && /(\bkaise\b|\boption\b|\bkarein\b|\bmode\b|\bhelp\b|\bbana\b)/i.test(lower)) {
+      var allAtOnceAnswer =
+        "<b>⚡ Saari Bookings Ek Saath Banane Ka Tareeka (Parallel Grid Mode):</b><br/>" +
+        "1. Toolbar me <b>'⚡ All at Once'</b> button par click karein.<br/>" +
+        "2. <b>'All Pending'</b> chip par click karein ya <b>'📋 Dispatch Matrix'</b> drawer open karein.<br/>" +
+        "3. Dashboard sabhi pending bookings ko separate tabs me open karega aur automatically <b>Grid View</b> me arrange kar dega, jisse saari bookings ek saath simultaneously execute hongi!<br/>" +
+        '<div style="margin-top:6px;display:flex;gap:6px;flex-wrap:wrap;">' +
+          '<button class="botlab-msg-action-btn" onclick="window.botlabSetExecutionMode(\'all\'); window.botlabLaunchPendingTabs(\'all\');"><span class="material-symbols-outlined" style="font-size:13px;">bolt</span> Launch All at Once Now</button>' +
+          '<button class="botlab-msg-action-btn" onclick="window.openDispatchMatrix();"><span class="material-symbols-outlined" style="font-size:13px;">ballot</span> Open Dispatch Matrix</button>' +
+        '</div>';
+      _addMsg("bot", allAtOnceAnswer, true);
+      return;
+    }
+
+    if (/(\bsingle\b|\bek ek\b|\bqueue\b|\bstep\b|\bone by one\b)/i.test(lower) && /(\bkaise\b|\boption\b|\bkarein\b|\bmode\b|\bhelp\b|\bbana\b)/i.test(lower)) {
+      var singleAnswer =
+        "<b>🔁 Ek-Ek Karke Booking Banane Ka Tareeka (1-by-1 Queue Mode):</b><br/>" +
+        "1. Toolbar me <b>'🔁 1-by-1 Queue'</b> button select karein.<br/>" +
+        "2. Chip click karne par screen par persistent <b>Queue HUD</b> show hoga jisme progress bar aur Skip/Pause buttons honge.<br/>" +
+        "3. Har booking complete hone par bot agle patient par move karega.<br/>" +
+        "4. Kisi ek particular patient ki akele booking banani ho toh <b>'Pending Matrix'</b> me jakar uske aage direct <b>'⚡ Tab'</b> ya <b>'↗ Window'</b> dabayein.<br/>" +
+        '<div style="margin-top:6px;display:flex;gap:6px;flex-wrap:wrap;">' +
+          '<button class="botlab-msg-action-btn" onclick="window.botlabSetExecutionMode(\'queue\'); window.botlabLaunchPendingTabs(\'all\');"><span class="material-symbols-outlined" style="font-size:13px;">format_list_numbered</span> Start 1-by-1 Queue</button>' +
+          '<button class="botlab-msg-action-btn" onclick="window.openDispatchMatrix();"><span class="material-symbols-outlined" style="font-size:13px;">ballot</span> Open Dispatch Matrix</button>' +
+        '</div>';
+      _addMsg("bot", singleAnswer, true);
+      return;
+    }
+
+    // C. QC Rejections & Tube Colors
+    if (/(\bqc\b|\breject\b|\breasons\b|\btube\b|\bvial\b|\bcolor\b|\bedta\b|\bserum\b)/i.test(lower) && !/booking|bana/i.test(lower)) {
+      var qcAnswer =
+        "<b>🧪 Quality Control (QC) Rejection Reasons & Vial Protocol:</b><br/>" +
+        "• <b>Standard 8 Rejections:</b> Clotted Sample, Hemolysed Sample, Insufficient Volume (QNS), Label Mismatch, Wrong Tube, Leaked Vial, Lipemic Sample, Delayed Transit (>24h).<br/>" +
+        "• <b>Vial Colors:</b> Lavender (EDTA - CBC/HbA1c), Red/Yellow (Serum - LFT/KFT), Grey (Fluoride - Sugar), Blue (Citrate - PT/INR).<br/>" +
+        '<div style="margin-top:6px;">' +
+          '<button class="botlab-msg-action-btn" onclick="window.switchDashboardTab(\'qc\')"><span class="material-symbols-outlined" style="font-size:13px;">science</span> Open QC Review Tab</button>' +
+        '</div>';
+      _addMsg("bot", qcAnswer, true);
+      return;
+    }
+
+    // D. Challan & Dispatch
+    if (/(\bchallan\b|\bmanifest\b|\bprint\b|\bdispatch\b)/i.test(lower) && !/booking|bana/i.test(lower)) {
+      var challanAnswer =
+        "<b>🧾 Delivery Challan & Dispatch Manifest:</b><br/>" +
+        "Top rail par <b>Challan</b> tab (Key 6) me jakar destination lab select karein, dispatch hone wale samples ko check karein aur <b>'Generate & Print Challan'</b> dabayein.<br/>" +
+        '<div style="margin-top:6px;">' +
+          '<button class="botlab-msg-action-btn" onclick="window.switchDashboardTab(\'challan\')"><span class="material-symbols-outlined" style="font-size:13px;">receipt_long</span> Go to Challan Generator</button>' +
+        '</div>';
+      _addMsg("bot", challanAnswer, true);
+      return;
+    }
+
+    // E. Morepen Booking Help
+    if (lower.indexOf("morepen") !== -1 && (/kaise|help|problem|error|bhopal|ggn/i.test(lower))) {
+      var morepenAnswer =
+        "<b>🏥 Dr. Morepen Labs Booking Guide:</b><br/>" +
+        "Morepen me partner name hamesha <b>'Dr. Morepen Labs'</b> hota hai. VIT Bhopal branch ke liye bot automatically <b>'Order History - VIT Bhopal'</b> select karta hai aur pre-seeded address map karta hai.<br/>" +
+        '<div style="margin-top:6px;">' +
+          '<button class="botlab-msg-action-btn" onclick="window.botlabLaunchPendingTabs(\'morepen\')"><span class="material-symbols-outlined" style="font-size:13px;">rocket_launch</span> Launch Morepen Bookings</button>' +
+        '</div>';
+      _addMsg("bot", morepenAnswer, true);
       return;
     }
 
@@ -6791,95 +6957,453 @@ window.addEventListener('message', function(event) {
     _addMsg("bot", "Opened tab for " + (b.name || "Patient") + " (Row " + b.rowNum + "). Bot will automatically fill form details.");
   };
 
-  // ── Parallel Tabs Launcher in Grid Mode with Auto-Fill ─────
-  window.botlabPendingQueue = [];
-  
-  window.botlabRunNextInQueue = function () {
-    if (!window.botlabPendingQueue || window.botlabPendingQueue.length === 0) {
-      _addMsg("success", "Queue Finished! All pending bookings have been processed.");
-      return;
-    }
-    
-    var b = window.botlabPendingQueue.shift();
-    var pName = b.name || "Patient";
-    var cli = b.client || "Client";
-    var targetUrl = _buildBotBookingUrl(b, 0); // No delay needed for 1-by-1
-    var tabTitle = pName + " (" + (b.rowNum ? "R" + b.rowNum : cli) + ")";
-    
-    // Ensure we only have one tab open (close extras)
-    while (_bl.tabs.length > 1) {
-      window.botlabCloseTab(_bl.tabs[1].id);
-    }
-    
-    // Switch to Single View for better performance
-    if (_bl.viewMode !== "single") {
-      window.toggleBotlabViewMode();
-    }
-    
-    var queueHtml = 
-      '<div style="margin-top: 5px; display: flex; gap: 8px;">' +
-        '<button class="botlab-msg-action-btn" onclick="window.botlabRunNextInQueue()">' +
-          '<span class="material-symbols-outlined" style="font-size:13px;">skip_next</span> Skip to Next' +
-        '</button>' +
-        '<button class="botlab-msg-action-btn" onclick="window.botlabPendingQueue = []; _addMsg(\'bot\', \'Queue stopped.\');" style="background: rgba(239,68,68,0.1); color: #ef4444; border-color: rgba(239,68,68,0.2);">' +
-          '<span class="material-symbols-outlined" style="font-size:13px;">stop</span> Stop Queue' +
-        '</button>' +
-      '</div>';
-      
-    _addMsg("bot", "Queue: Running <b>" + tabTitle + "</b>... (" + window.botlabPendingQueue.length + " remaining)" + queueHtml, true);
-    
-    // Reuse the first tab instead of creating a new one (prevents infinite loop + faster)
-    if (_bl.tabs.length === 1) {
-      _bl.tabs[0].title = tabTitle;
-      _bl.tabs[0].url = targetUrl;
-      var tEl = document.getElementById("botlab-card-title-" + _bl.tabs[0].id);
-      if (tEl) tEl.textContent = tabTitle;
-      
-      var iframe = document.getElementById("botlab-iframe-" + _bl.tabs[0].id);
-      if (iframe) iframe.src = targetUrl;
-      
-      // Update UI active state just in case
-      _switchTab(_bl.tabs[0].id);
+  // ── Dual Execution Mode State ──────────────────────────────
+  window.botlabExecutionMode = "all"; // 'all' (Parallel Grid) or 'queue' (1-by-1 Queue)
+
+  window.botlabSetExecutionMode = function (mode) {
+    window.botlabExecutionMode = (mode === "queue") ? "queue" : "all";
+    var btnAll = document.getElementById("botlab-exec-mode-all");
+    var btnQueue = document.getElementById("botlab-exec-mode-queue");
+    if (btnAll) btnAll.classList.toggle("active", window.botlabExecutionMode === "all");
+    if (btnQueue) btnQueue.classList.toggle("active", window.botlabExecutionMode === "queue");
+
+    if (window.botlabExecutionMode === "all") {
+      _addMsg("bot", "⚡ Mode switched to <b>All at Once (Parallel Grid)</b>. Clicking any pendency chip will launch all matching bookings simultaneously in separate tabs in Grid View.", true);
     } else {
-      window.botlabCreateTab(targetUrl, tabTitle);
+      _addMsg("bot", "🔁 Mode switched to <b>1-by-1 Queue (Step-by-Step)</b>. Clicking any chip will run bookings sequentially with the interactive Queue HUD.", true);
     }
   };
-  
-  window.botlabLaunchPendingTabs = function (filter) {
+
+  // ── Mode A: Parallel Multi-Tab Batch Launcher ("Saari Ek Saath") ──
+  window.botlabLaunchAllParallel = function (filter) {
     var allLogs = [];
     try {
-      if (typeof Qs !== "undefined" && Qs && Array.isArray(Qs.logs)) {
-        allLogs = Qs.logs;
-      } else if (window.Qs && Array.isArray(window.Qs.logs)) {
-        allLogs = window.Qs.logs;
-      }
+      if (typeof Qs !== "undefined" && Qs && Array.isArray(Qs.logs)) allLogs = Qs.logs;
+      else if (window.Qs && Array.isArray(window.Qs.logs)) allLogs = window.Qs.logs;
     } catch (e) {}
 
-    var pending = allLogs.filter(function (log) { return log.isPending === true; });
+    var pending = allLogs.filter(function (l) { return l.isPending === true; });
     if (filter && filter !== "all") {
       var fNorm = filter.toLowerCase().replace(/[^a-z0-9]/g, "");
-      pending = pending.filter(function (log) {
-        var cNorm = (log.client || log.clientName || "").toLowerCase().replace(/[^a-z0-9]/g, "");
+      pending = pending.filter(function (l) {
+        var cNorm = (l.client || l.clientName || "").toLowerCase().replace(/[^a-z0-9]/g, "");
         return cNorm.indexOf(fNorm) !== -1 || fNorm.indexOf(cNorm) !== -1;
       });
     }
 
     if (pending.length === 0) {
-      _addMsg("bot", "No pending bookings found to launch.");
+      _addMsg("bot", "No pending bookings found to launch for " + (filter || "all") + ".");
       return;
     }
 
-    // Limit to 10 max in a queue to prevent runaway bots
-    window.botlabPendingQueue = pending.slice(0, 10); 
-    
-    // Auto-open chat panel so user can see queue progress
-    var panel = document.getElementById("botlab-ai-panel");
-    if (panel && panel.style.display === "none") {
-        window.toggleBotlabAI();
+    // Launch up to 6 concurrent tabs for high-speed parallel booking
+    var batch = pending.slice(0, 6);
+    _addMsg("bot", "⚡ Launching " + batch.length + " pending booking(s) simultaneously in Parallel Grid View...");
+
+    batch.forEach(function (b, idx) {
+      var targetUrl = _buildBotBookingUrl(b, idx * 400);
+      var tabTitle = (b.name || "Patient") + " (R" + (b.rowNum || idx + 1) + ")";
+
+      if (idx === 0 && _bl.tabs.length === 1 && (!_bl.tabs[0].url || _bl.tabs[0].url === "about:blank" || _bl.tabs[0].url.indexOf("google.com") !== -1)) {
+        _bl.tabs[0].title = tabTitle;
+        _bl.tabs[0].url = targetUrl;
+        var tEl = document.getElementById("botlab-card-title-0");
+        if (tEl) tEl.textContent = tabTitle;
+        var iframe = document.getElementById("botlab-iframe-0");
+        if (iframe) iframe.src = targetUrl;
+        var urlInput = document.getElementById("botlab-url-input");
+        if (urlInput) urlInput.value = targetUrl;
+      } else {
+        window.botlabCreateTab(targetUrl, tabTitle);
+      }
+    });
+
+    if (batch.length > 1 && _bl.viewMode !== "grid") {
+      window.toggleBotlabViewMode();
     }
-    
-    _addMsg("bot", "Starting 1-by-1 Queue for " + window.botlabPendingQueue.length + " pending bookings...");
+
+    var popAllHtml =
+      '<div style="margin-top:6px;">' +
+        '<button class="botlab-msg-action-btn" onclick="window.botlabPopoutAllTabs()">' +
+          '<span class="material-symbols-outlined" style="font-size:13px;">open_in_new</span> Pop-out All in External Windows' +
+        '</button>' +
+      '</div>';
+    _addMsg("bot", "⚡ <b>" + batch.length + " parallel bookings running</b> side-by-side in Grid View! Forms are filling automatically." + popAllHtml, true);
+  };
+
+  window.botlabPopoutAllTabs = function () {
+    var count = 0;
+    _bl.tabs.forEach(function (tab) {
+      if (tab.url && tab.url.indexOf("booking?") !== -1) {
+        window.open(tab.url, "_blank");
+        count++;
+      }
+    });
+    _addMsg("bot", "Popped out " + count + " booking(s) in separate browser windows.");
+  };
+
+  // ── Mode B: Step-by-Step 1-by-1 Queue ("Single Single") ─────
+  window.botlabPendingQueue = [];
+  window.botlabQueueTotal = 0;
+
+  window.botlabLaunchPendingQueue = function (filter) {
+    var allLogs = [];
+    try {
+      if (typeof Qs !== "undefined" && Qs && Array.isArray(Qs.logs)) allLogs = Qs.logs;
+      else if (window.Qs && Array.isArray(window.Qs.logs)) allLogs = window.Qs.logs;
+    } catch (e) {}
+
+    var pending = allLogs.filter(function (l) { return l.isPending === true; });
+    if (filter && filter !== "all") {
+      var fNorm = filter.toLowerCase().replace(/[^a-z0-9]/g, "");
+      pending = pending.filter(function (l) {
+        var cNorm = (l.client || l.clientName || "").toLowerCase().replace(/[^a-z0-9]/g, "");
+        return cNorm.indexOf(fNorm) !== -1 || fNorm.indexOf(cNorm) !== -1;
+      });
+    }
+
+    if (pending.length === 0) {
+      _addMsg("bot", "No pending bookings found to queue.");
+      return;
+    }
+
+    window.botlabPendingQueue = pending.slice(0, 15);
+    window.botlabQueueTotal = window.botlabPendingQueue.length;
+
+    var hud = document.getElementById("botlab-queue-hud");
+    if (hud) hud.classList.add("active");
+
+    _addMsg("bot", "🔁 Starting 1-by-1 Sequential Queue for " + window.botlabQueueTotal + " pending booking(s)...");
     window.botlabRunNextInQueue();
+  };
+
+  window.botlabStopQueue = function () {
+    window.botlabPendingQueue = [];
+    window.botlabQueueTotal = 0;
+    var hud = document.getElementById("botlab-queue-hud");
+    if (hud) hud.classList.remove("active");
+    var prog = document.getElementById("botlab-ai-progress");
+    if (prog) prog.classList.add("hidden");
+    _addMsg("bot", "Queue stopped by user.");
+  };
+
+  window.botlabOpenCurrentInWindow = function () {
+    var tab = _bl.tabs.find(function (t) { return t.id === _bl.active; }) || _bl.tabs[0];
+    if (tab && tab.url) {
+      window.open(tab.url, "_blank");
+      _addMsg("bot", "Opened active tab (" + _escHtml(tab.title) + ") in a dedicated browser window.", true);
+    }
+  };
+
+  window.botlabRunNextInQueue = function () {
+    if (!window.botlabPendingQueue || window.botlabPendingQueue.length === 0) {
+      _addMsg("success", "Queue Finished! All pending bookings have been processed.");
+      var hud = document.getElementById("botlab-queue-hud");
+      if (hud) hud.classList.remove("active");
+      var prog = document.getElementById("botlab-ai-progress");
+      if (prog) prog.classList.add("hidden");
+      return;
+    }
+
+    var b = window.botlabPendingQueue.shift();
+    var pName = b.name || "Patient";
+    var cli = b.client || "Client";
+    var targetUrl = _buildBotBookingUrl(b, 0);
+    var tabTitle = pName + " (" + (b.rowNum ? "R" + b.rowNum : cli) + ")";
+
+    var completedCount = (window.botlabQueueTotal - window.botlabPendingQueue.length);
+    var pct = Math.round((completedCount / (window.botlabQueueTotal || 1)) * 100);
+
+    // Update Persistent Queue HUD
+    var hudText = document.getElementById("botlab-queue-hud-text");
+    if (hudText) {
+      hudText.innerHTML = "Running (" + completedCount + "/" + window.botlabQueueTotal + "): <b>" + _escHtml(tabTitle) + "</b> (" + _escHtml(b.location || cli) + ")";
+    }
+    var hud = document.getElementById("botlab-queue-hud");
+    if (hud) hud.classList.add("active");
+
+    // Update AI Chat Progress Bar
+    var prog = document.getElementById("botlab-ai-progress");
+    var progFill = document.getElementById("botlab-progress-fill");
+    var progText = document.getElementById("botlab-progress-text");
+    if (prog && progFill && progText) {
+      prog.classList.remove("hidden");
+      progFill.style.width = pct + "%";
+      progText.textContent = completedCount + " / " + window.botlabQueueTotal + " (" + pct + "%)";
+    }
+
+    if (_bl.viewMode !== "single") {
+      window.toggleBotlabViewMode();
+    }
+
+    var queueHtml =
+      '<div style="margin-top: 6px; display: flex; flex-wrap: wrap; gap: 6px;">' +
+        '<button class="botlab-msg-action-btn" onclick="window.botlabRunNextInQueue()">' +
+          '<span class="material-symbols-outlined" style="font-size:13px;">skip_next</span> Skip to Next' +
+        '</button>' +
+        '<button class="botlab-msg-action-btn" onclick="window.open(\'' + encodeURI(targetUrl) + '\', \'_blank\')" title="Open booking directly in external tab">' +
+          '<span class="material-symbols-outlined" style="font-size:13px;">open_in_new</span> Open in Window' +
+        '</button>' +
+        '<button class="botlab-msg-action-btn" onclick="window.botlabStopQueue()" style="background: rgba(239,68,68,0.1); color: #ef4444; border-color: rgba(239,68,68,0.2);">' +
+          '<span class="material-symbols-outlined" style="font-size:13px;">stop</span> Stop Queue' +
+        '</button>' +
+      '</div>';
+
+    _addMsg("bot", "Queue (" + completedCount + "/" + window.botlabQueueTotal + "): Running <b>" + _escHtml(tabTitle) + "</b>... (" + window.botlabPendingQueue.length + " remaining)" + queueHtml, true);
+
+    var targetTabId = _bl.tabs[0] ? _bl.tabs[0].id : 0;
+    var tab = _bl.tabs.find(function (t) { return t.id === targetTabId; });
+    if (tab) {
+      tab.title = tabTitle;
+      tab.url = targetUrl;
+      var tEl = document.getElementById("botlab-card-title-" + targetTabId);
+      if (tEl) tEl.textContent = tabTitle;
+      var iframe = document.getElementById("botlab-iframe-" + targetTabId);
+      if (iframe) iframe.src = targetUrl;
+      var urlInput = document.getElementById("botlab-url-input");
+      if (urlInput) urlInput.value = targetUrl;
+      _switchTab(targetTabId);
+    } else {
+      window.botlabCreateTab(targetUrl, tabTitle);
+    }
+  };
+
+  // ── Dispatch Matrix State & Handlers ───────────────────────
+  window.matrixSelectedRows = new Set();
+  window.matrixActiveClient = "all";
+
+  window.openDispatchMatrix = function () {
+    var drawer = document.getElementById("modal-dispatch-matrix");
+    if (drawer) {
+      drawer.classList.add("open");
+      window.renderMatrixFilters();
+      window.renderMatrixRows();
+    }
+  };
+
+  window.closeDispatchMatrix = function () {
+    var drawer = document.getElementById("modal-dispatch-matrix");
+    if (drawer) drawer.classList.remove("open");
+  };
+
+  window.setMatrixClientFilter = function (clientKey) {
+    window.matrixActiveClient = clientKey || "all";
+    window.renderMatrixFilters();
+    window.renderMatrixRows();
+  };
+
+  window.renderMatrixFilters = function () {
+    var pillsWrap = document.getElementById("matrix-filter-pills");
+    if (!pillsWrap) return;
+
+    var allLogs = [];
+    try {
+      if (typeof Qs !== "undefined" && Qs && Array.isArray(Qs.logs)) allLogs = Qs.logs;
+      else if (window.Qs && Array.isArray(window.Qs.logs)) allLogs = window.Qs.logs;
+    } catch (e) {}
+
+    var pending = allLogs.filter(function (l) { return l.isPending === true; });
+    var clientCounts = { all: pending.length };
+    pending.forEach(function (l) {
+      var c = l.client || l.clientName || "Other";
+      clientCounts[c] = (clientCounts[c] || 0) + 1;
+    });
+
+    var html = '<button class="botlab-filter-pill ' + (window.matrixActiveClient === "all" ? "active" : "") + '" onclick="window.setMatrixClientFilter(\'all\')">All (' + pending.length + ')</button>';
+    for (var cName in clientCounts) {
+      if (cName !== "all" && clientCounts[cName] > 0) {
+        var isAct = (window.matrixActiveClient === cName);
+        html += '<button class="botlab-filter-pill ' + (isAct ? "active" : "") + '" onclick="window.setMatrixClientFilter(\'' + _escHtml(cName) + '\')">' + _escHtml(cName) + ' (' + clientCounts[cName] + ')</button>';
+      }
+    }
+    pillsWrap.innerHTML = html;
+
+    var countBadge = document.getElementById("matrix-header-count");
+    if (countBadge) countBadge.textContent = pending.length + " Pending";
+    var triggerBadge = document.getElementById("botlab-matrix-badge");
+    if (triggerBadge) triggerBadge.textContent = pending.length;
+  };
+
+  window.renderMatrixRows = function () {
+    var tbody = document.getElementById("matrix-table-body");
+    if (!tbody) return;
+
+    var allLogs = [];
+    try {
+      if (typeof Qs !== "undefined" && Qs && Array.isArray(Qs.logs)) allLogs = Qs.logs;
+      else if (window.Qs && Array.isArray(window.Qs.logs)) allLogs = window.Qs.logs;
+    } catch (e) {}
+
+    var pending = allLogs.filter(function (l) { return l.isPending === true; });
+    if (window.matrixActiveClient && window.matrixActiveClient !== "all") {
+      pending = pending.filter(function (l) {
+        return (l.client || l.clientName || "") === window.matrixActiveClient;
+      });
+    }
+
+    var searchInput = document.getElementById("matrix-search-input");
+    var q = searchInput ? searchInput.value.toLowerCase().trim() : "";
+    if (q) {
+      pending = pending.filter(function (l) {
+        var str = ((l.name || "") + " " + (l.client || "") + " " + (l.rowNum || "") + " " + (l.test || "") + " " + (l.location || "")).toLowerCase();
+        return str.indexOf(q) !== -1;
+      });
+    }
+
+    if (pending.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:32px;color:#94a3b8;font-weight:600;">No matching pending bookings found.</td></tr>';
+      _updateMatrixSummary();
+      return;
+    }
+
+    var html = "";
+    pending.forEach(function (b) {
+      var rNum = b.rowNum || "";
+      var isChecked = window.matrixSelectedRows.has(String(rNum));
+      var clientStr = _escHtml(b.client || "Client");
+      var patientStr = _escHtml(b.name || "Patient");
+      var ageGender = (b.age ? b.age + "y" : "") + (b.gender ? " / " + b.gender : "");
+      var testStr = _escHtml(b.test || "Sample Drop / Booking");
+      var cityStr = _escHtml(b.location || b.sheetName || "N/A");
+
+      html +=
+        '<tr>' +
+          '<td style="text-align:center;">' +
+            '<input type="checkbox" ' + (isChecked ? 'checked' : '') + ' onchange="window.toggleMatrixRowSelect(\'' + rNum + '\', this.checked)" />' +
+          '</td>' +
+          '<td>' +
+            '<div style="font-weight:700;color:#1e293b;">Row ' + rNum + '</div>' +
+            '<span style="display:inline-block;padding:1px 6px;border-radius:4px;font-size:10px;font-weight:700;background:#e0e7ff;color:#3730a3;">' + clientStr + '</span>' +
+          '</td>' +
+          '<td>' +
+            '<div style="font-weight:700;color:#0f172a;">' + patientStr + '</div>' +
+            '<div style="font-size:11px;color:#64748b;">' + ageGender + (b.phone ? ' • ' + b.phone : '') + '</div>' +
+          '</td>' +
+          '<td>' +
+            '<div style="font-size:11.5px;color:#334155;max-width:200px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" title="' + testStr + '">' + testStr + '</div>' +
+          '</td>' +
+          '<td>' +
+            '<div style="font-size:11.5px;color:#475569;">' + cityStr + '</div>' +
+          '</td>' +
+          '<td style="text-align:right;">' +
+            '<div style="display:inline-flex;gap:4px;">' +
+              '<button class="botlab-matrix-action-btn secondary" style="padding:3px 8px;font-size:11px;" onclick="window.botlabLaunchSinglePending(\'' + rNum + '\',\'' + clientStr + '\'); window.closeDispatchMatrix();">' +
+                '<span class="material-symbols-outlined" style="font-size:12px;">bolt</span> Tab' +
+              '</button>' +
+              '<button class="botlab-matrix-action-btn outline" style="padding:3px 8px;font-size:11px;" onclick="window.botlabOpenSingleInExternalWindow(\'' + rNum + '\');">' +
+                '<span class="material-symbols-outlined" style="font-size:12px;">open_in_new</span> Window' +
+              '</button>' +
+            '</div>' +
+          '</td>' +
+        '</tr>';
+    });
+
+    tbody.innerHTML = html;
+    _updateMatrixSummary();
+  };
+
+  window.toggleMatrixRowSelect = function (rowNum, checked) {
+    var str = String(rowNum);
+    if (checked) window.matrixSelectedRows.add(str);
+    else window.matrixSelectedRows.delete(str);
+    _updateMatrixSummary();
+  };
+
+  window.toggleMatrixSelectAll = function (checked) {
+    var allLogs = [];
+    try {
+      if (typeof Qs !== "undefined" && Qs && Array.isArray(Qs.logs)) allLogs = Qs.logs;
+      else if (window.Qs && Array.isArray(window.Qs.logs)) allLogs = window.Qs.logs;
+    } catch (e) {}
+
+    var pending = allLogs.filter(function (l) { return l.isPending === true; });
+    if (window.matrixActiveClient && window.matrixActiveClient !== "all") {
+      pending = pending.filter(function (l) {
+        return (l.client || l.clientName || "") === window.matrixActiveClient;
+      });
+    }
+
+    if (checked) {
+      pending.forEach(function (l) { window.matrixSelectedRows.add(String(l.rowNum)); });
+    } else {
+      window.matrixSelectedRows.clear();
+    }
+    window.renderMatrixRows();
+  };
+
+  function _updateMatrixSummary() {
+    var el = document.getElementById("matrix-selected-summary");
+    if (el) el.textContent = window.matrixSelectedRows.size + " booking(s) selected";
+  }
+
+  window.botlabOpenSingleInExternalWindow = function (rowNum) {
+    var allLogs = [];
+    try {
+      if (typeof Qs !== "undefined" && Qs && Array.isArray(Qs.logs)) allLogs = Qs.logs;
+      else if (window.Qs && Array.isArray(window.Qs.logs)) allLogs = window.Qs.logs;
+    } catch (e) {}
+    var b = allLogs.find(function (l) { return String(l.rowNum) === String(rowNum); });
+    if (b) {
+      var url = _buildBotBookingUrl(b);
+      window.open(url, "_blank");
+      _addMsg("bot", "Opened booking for <b>" + _escHtml(b.name || "Patient") + "</b> (Row " + b.rowNum + ") in dedicated window.", true);
+    }
+  };
+
+  window.handleMatrixBatchAction = function (actionType) {
+    var allLogs = [];
+    try {
+      if (typeof Qs !== "undefined" && Qs && Array.isArray(Qs.logs)) allLogs = Qs.logs;
+      else if (window.Qs && Array.isArray(window.Qs.logs)) allLogs = window.Qs.logs;
+    } catch (e) {}
+
+    var pending = allLogs.filter(function (l) { return l.isPending === true; });
+    var targetList = [];
+
+    if (window.matrixSelectedRows.size > 0) {
+      targetList = pending.filter(function (l) { return window.matrixSelectedRows.has(String(l.rowNum)); });
+    } else {
+      targetList = pending.slice(0, 6);
+    }
+
+    if (targetList.length === 0) {
+      alert("No pending bookings selected.");
+      return;
+    }
+
+    window.closeDispatchMatrix();
+
+    if (actionType === "parallel") {
+      _addMsg("bot", "⚡ Launching " + targetList.length + " selected bookings in Parallel Multi-Tabs...");
+      targetList.forEach(function (b, idx) {
+        var url = _buildBotBookingUrl(b, idx * 400);
+        var title = (b.name || "Patient") + " (R" + (b.rowNum || idx + 1) + ")";
+        window.botlabCreateTab(url, title);
+      });
+      if (_bl.viewMode !== "grid") window.toggleBotlabViewMode();
+    } else if (actionType === "queue") {
+      window.botlabPendingQueue = targetList.slice();
+      window.botlabQueueTotal = targetList.length;
+      var hud = document.getElementById("botlab-queue-hud");
+      if (hud) hud.classList.add("active");
+      _addMsg("bot", "🔁 Starting 1-by-1 Queue for " + targetList.length + " selected bookings...");
+      window.botlabRunNextInQueue();
+    } else if (actionType === "windows") {
+      targetList.forEach(function (b) {
+        var url = _buildBotBookingUrl(b);
+        window.open(url, "_blank");
+      });
+      _addMsg("bot", "Popped out " + targetList.length + " selected booking(s) in separate browser windows.");
+    }
+  };
+
+  // Main launcher delegates to active execution mode
+  window.botlabLaunchPendingTabs = function (filter) {
+    if (window.botlabExecutionMode === "all") {
+      window.botlabLaunchAllParallel(filter);
+    } else {
+      window.botlabLaunchPendingQueue(filter);
+    }
   };
 
   // Immediate init wiring for resizer and frame 0
@@ -6900,7 +7424,7 @@ document.addEventListener("keydown", function(e) {
   // Don't trigger if user is typing in an input or textarea
   if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
   
-  if (e.key >= '1' && e.key <= '8') {
+  if (e.key >= '1' && e.key <= '9') {
     const tabsMap = {
       '1': 'overview',
       '2': 'qc',
@@ -6909,7 +7433,8 @@ document.addEventListener("keydown", function(e) {
       '5': 'medibuddy',
       '6': 'challan',
       '7': 'ops',
-      '8': 'bot-lab'
+      '8': 'bulk-dl',
+      '9': 'bot-lab'
     };
     const tabName = tabsMap[e.key];
     if (tabName && typeof window.switchDashboardTab === 'function') {
@@ -6919,6 +7444,10 @@ document.addEventListener("keydown", function(e) {
     // Close pending modal if open
     if (typeof window.closePendingModal === 'function') {
       window.closePendingModal();
+    }
+    // Close dispatch matrix if open
+    if (typeof window.closeDispatchMatrix === 'function') {
+      window.closeDispatchMatrix();
     }
     // Deselect multi-select if any exist
     if (typeof window.clearBatchSelection === 'function') {

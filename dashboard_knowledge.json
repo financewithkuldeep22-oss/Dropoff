@@ -1,0 +1,219 @@
+{
+  "system": {
+    "name": "Drop-off Operations Dashboard & Bot Lab",
+    "version": "v31.0-Ultimate",
+    "lastUpdated": "2026-09-17",
+    "purpose": "Real-time diagnostic drop-off tracking, quality control verification, partner order synchronization, challan generation, and automated bulk booking creation across partner diagnostic labs."
+  },
+  "modules": [
+    {
+      "id": "overview",
+      "name": "Operations Overview Hub",
+      "tabKey": "overview",
+      "shortcut": "Key 1",
+      "description": "Central real-time cockpit displaying key performance indicators (KPIs), daily booking volume, total pending drop-offs, QC pendency, client-wise breakdowns, and real-time transit status.",
+      "keyMetrics": [
+        "Weekly Processed Samples Volume (Last 7 Days)",
+        "Today's Bookings Count (Created today)",
+        "Pending Drop-offs (Awaiting lab assignment/booking creation)",
+        "QC Pending Samples (Awaiting lab technician review)"
+      ],
+      "syncDetails": {
+        "interval": "Automated background sync every 75 seconds from Google Sheets",
+        "manualRefresh": "Click the sync icon in the top header or press Shift + R",
+        "realtimeIndicators": "Live green/pulsing sync badge in top bar showing elapsed seconds since last sync"
+      }
+    },
+    {
+      "id": "qc",
+      "name": "Quality Control (QC) Hub",
+      "tabKey": "qc",
+      "shortcut": "Key 2",
+      "description": "Laboratory sample quality check and rejection management module. Allows lab technicians and operations managers to inspect incoming vials, verify barcodes, approve clean samples, or log rejections.",
+      "rejectionReasons": [
+        "Clotted Sample (Blood coagulation in EDTA/Citrate vial)",
+        "Hemolysed Sample (Ruptured red blood cells rendering serum unviable)",
+        "Insufficient Volume (Quantity not sufficient for automated analyzer run)",
+        "Label Mismatch (Discrepancy between TRF and tube barcode)",
+        "Wrong Tube / Additive (Sample collected in incorrect vacuum container)",
+        "Leaked / Damaged Vial (Compromised container during transit)",
+        "Lipemic Sample (Excessive turbidity/fat concentration)",
+        "Delayed Transit / Temperature Abuse (Cold chain failure exceeding stability threshold)"
+      ],
+      "tubeColorMapping": {
+        "Lavender / Purple": "EDTA (CBC, HbA1c, ESR, Blood Grouping)",
+        "Red / Yellow (SST)": "Serum / Clot Activator (Biochemistry, Hormones, LFT, KFT, Lipid Profile, Serology)",
+        "Grey": "Sodium Fluoride (Fasting Blood Sugar, Post Prandial Glucose)",
+        "Light Blue": "Sodium Citrate 3.2% (PT/INR, Coagulation Studies, D-Dimer)",
+        "Green": "Sodium/Lithium Heparin (Specialized biochemistry, Cytogenetics)",
+        "Black": "Sodium Citrate 3.8% (Westergren ESR method)"
+      }
+    },
+    {
+      "id": "allo",
+      "name": "AlloHealth & Fleet Transit",
+      "tabKey": "allo",
+      "shortcut": "Key 3",
+      "description": "Dedicated operations tracking for AlloHealth diagnostic bookings and specialized tele-consult drop-offs."
+    },
+    {
+      "id": "bhmc",
+      "name": "BHMC (Bharath Home Medicare)",
+      "tabKey": "bhmc",
+      "shortcut": "Key 4",
+      "description": "Specialized drop-off tracking module for Bharath Home Medicare partner network."
+    },
+    {
+      "id": "medibuddy",
+      "name": "Medibuddy Drop-Off Embedded Portal",
+      "tabKey": "medibuddy",
+      "shortcut": "Key 5",
+      "iframeId": "medibuddy-frame",
+      "description": "Embedded Google Apps Script Web App iframe that connects directly to the Medibuddy order management system.",
+      "troubleshooting": {
+        "whyBlank": "The iframe is lazy-loaded on demand when you first click the Medibuddy tab. If it appears blank, click the Reload button or verify your Google Workspace login session.",
+        "corsHandling": "Medibuddy uses secure sandbox parameters allowing same-origin scripts, forms, and popups."
+      }
+    },
+    {
+      "id": "challan",
+      "name": "Dispatch & Challan Generator",
+      "tabKey": "challan",
+      "shortcut": "Key 6",
+      "iframeId": "challan-frame",
+      "description": "Automated delivery challan and batch manifest generation tool. Aggregates drop-offs by destination lab, generates barcodes, formats printable PDF manifests, and logs courier handovers.",
+      "troubleshooting": {
+        "printing": "Click the Print Challan button within the iframe to launch the native browser print preview."
+      }
+    },
+    {
+      "id": "bot-lab",
+      "name": "Bot Lab (AI-Powered Autonomous Browser & Booking Suite)",
+      "tabKey": "bot-lab",
+      "shortcut": "Key 9",
+      "description": "Next-generation browser emulation and autonomous bot command suite for bulk partner booking creation on partner diagnostic portals.",
+      "features": [
+        "Dual Execution Modes: 'All-at-Once Parallel Batch' (Grid View) vs 'Step-by-Step 1-by-1 Queue'",
+        "Pending Bookings Dispatch Matrix Drawer with multi-selection, partner filters, and 1-click single/batch launch",
+        "Chrome-like dynamic tab strip with instant tab creation, focus, reload, and close",
+        "Unified Omnibox with navigation controls, SSL lock, URL entry, and 1-click external window bypass",
+        "Zero-Reload Tab Architecture: Hidden tabs retain their DOM and script state without reloading when switching tabs",
+        "RedcliffeBot Conversational AI: Answers operational queries in Hindi, Hinglish, and English, checks real-time pendency, launches bookings on voice/text commands",
+        "Real-time Queue Heads-Up Display (HUD) with progress bars, skip, pause, stop, and retry controls"
+      ],
+      "iframes": [
+        {
+          "id": "botlab-iframe-0",
+          "name": "Primary Bot Browser Frame",
+          "targetDomain": "https://partner.redcliffelabs.com/dashboard/corpclientadmin/booking",
+          "notes": "Hosts the partner portal inside the dashboard when the companion extension strips X-Frame-Options."
+        }
+      ]
+    }
+  ],
+  "iframesGuide": {
+    "securityAndHeaders": {
+      "xFrameOptions": "By default, partner.redcliffelabs.com sends 'X-Frame-Options: SAMEORIGIN' and 'Content-Security-Policy: frame-ancestors', which standard browsers block when embedded in an external domain.",
+      "companionExtension": "The companion Chrome Extension ('Bisht Ji Ultimate Bot v10.2') uses declarativeNetRequest rules in Manifest V3 to strip X-Frame-Options and Content-Security-Policy headers from partner.redcliffelabs.com, allowing seamless iframe embedding.",
+      "externalWindowBypass": "If the extension is temporarily disabled or not installed in the active Chrome profile, click the 'Open in External Window' (open_in_new) button on any tab card or in the Omnibox. This opens the exact booking directly in a native browser window, completely bypassing all iframe security headers."
+    },
+    "urlParameters": {
+      "botAutoRun": "true (Signals the extension to immediately begin form-filling and submission without manual clicking)",
+      "botPartner": "Normalized partner name (e.g. 'HCL', 'Flebo.in', 'Medibuddy Drop-Off', 'Tatvacare', 'Dr. Morepen Labs', 'TGHS', 'Betacura', 'Allohealth', 'Bharath Home Medicare')",
+      "botCenter": "Assigned lab center name (e.g. 'HCL - Sample drop', 'Medibuddy Drop-off', 'Dr. Morepen Labs')",
+      "botRow": "Row number in the master Google Sheet to locate and mark upon completion",
+      "botCity": "City name or sub-branch (e.g. 'Lucknow', 'Indore', 'Bhopal', 'Order History - VIT Bhopal')",
+      "botPatientName": "Full name of the patient",
+      "botAge": "Age of the patient",
+      "botGender": "Gender (Male, Female, Other)",
+      "botPhone": "Contact mobile number",
+      "botTest": "Requested diagnostic test / package name",
+      "botLocation": "Pickup or drop-off location address"
+    }
+  },
+  "partnerAliases": {
+    "hcl": {
+      "partnerName": "HCL",
+      "centerName": "HCL - Sample drop",
+      "cityDefault": "Lucknow"
+    },
+    "flebo": {
+      "partnerName": "Flebo.in",
+      "centerName": "Flebo.in",
+      "cityDefault": "Data"
+    },
+    "medibuddy": {
+      "partnerName": "Medibuddy Drop-Off",
+      "centerName": "Medibuddy Drop-off",
+      "cityDefault": "Delhi NCR"
+    },
+    "tatvacare": {
+      "partnerName": "Tatvacare",
+      "centerName": "Tatvacare",
+      "cityDefault": "Form Responses 1"
+    },
+    "morepen": {
+      "partnerName": "Dr. Morepen Labs",
+      "centerName": "Dr. Morepen Labs",
+      "cityDefault": "Order History - VIT Bhopal",
+      "branchOptions": ["Order History - VIT Bhopal", "Order History - Sec 83, GGN", "Bhopal"]
+    },
+    "tghs": {
+      "partnerName": "TGHS",
+      "centerName": "TGHS",
+      "cityDefault": "Delhi"
+    },
+    "betacura": {
+      "partnerName": "Betacura",
+      "centerName": "Betacura",
+      "cityDefault": "Noida"
+    },
+    "allohealth": {
+      "partnerName": "Allohealth",
+      "centerName": "Allohealth",
+      "cityDefault": "Bangalore"
+    },
+    "bhmc": {
+      "partnerName": "Bharath Home Medicare",
+      "centerName": "Bharath Home Medicare",
+      "cityDefault": "Hyderabad"
+    }
+  },
+  "faqs": [
+    {
+      "question": "Iframe blank kyu dikh raha hai ya page load kyu nahi ho raha?",
+      "answer": "Agar Bot Lab me iframe blank white dikh raha hai, iske 2 mukhya kaaran ho sakte hain:<br/>1. <b>Chrome Extension Status:</b> Confirm karein ki 'Bisht Ji Ultimate Bot v10.2' extension enabled hai (chrome://extensions). Ye extension X-Frame-Options headers ko remove karti hai.<br/>2. <b>External Window Bypass (Instant Solution):</b> Tab card ke upar ya Omnibox me <b>'Open in External Window'</b> (<span class='material-symbols-outlined' style='font-size:12px;'>open_in_new</span>) button par click karein. Ye exact booking ko direct Chrome window me open kar dega jisme extension bina kisi restriction ke 100% fast chalegi.",
+      "tags": ["blank", "iframe", "white", "load", "error", "extension"]
+    },
+    {
+      "question": "Saari bookings ek saath kaise banayein (Bulk Parallel Mode)?",
+      "answer": "Saari bookings ek saath banane ke liye:<br/>1. Bot Lab toolbar me <b>'⚡ All at Once'</b> mode select karein.<br/>2. Active Pendency chip (jaise <b>'All Pending'</b> ya client chip) par click karein, ya <b>'📋 Pending Matrix'</b> drawer open karke <b>'⚡ Launch All in Multi-Tabs'</b> dabayein.<br/>3. Dashboard sabhi bookings ko separate tabs me open karega aur automatically <b>Grid View (side-by-side 2x2)</b> me set kar dega jisse saari bookings ek saath parallelly run hongi!",
+      "tags": ["ek saath", "all at once", "bulk", "parallel", "grid", "saari"]
+    },
+    {
+      "question": "Ek-ek karke booking kaise karein (Single-Single / Sequential Mode)?",
+      "answer": "Single single bookings execute karne ke liye:<br/>1. Toolbar me <b>'🔁 1-by-1 Queue'</b> mode select karein.<br/>2. Kisi bhi chip par click karein. Dashboard ek interactive <b>Queue HUD</b> show karega jisme progress bar aur Skip/Pause/Window buttons honge.<br/>3. Jaise hi pehli booking complete hogi, bot automatically agle patient par move karega, ya aap <b>'Skip to Next'</b> click kar sakte hain.<br/>4. Kisi specific patient ki akele booking banani ho toh <b>'Pending Matrix'</b> drawer me uske row ke aage <b>'⚡ Tab'</b> ya <b>'↗ Window'</b> par click karein!",
+      "tags": ["single", "ek ek", "queue", "sequential", "step by step"]
+    },
+    {
+      "question": "Morepen Labs ki booking me error kyu aata hai aur kaise fix karein?",
+      "answer": "Dr. Morepen Labs me partner name hamesha <b>'Dr. Morepen Labs'</b> hota hai. VIT Bhopal branch ke liye bot automatically <b>'Order History - VIT Bhopal'</b> select karta hai aur address match karta hai. Agar portal me dropdown na dikhe, toh 'Open in External Window' karein jisme pre-seeded address mapping activate ho jayegi.",
+      "tags": ["morepen", "bhopal", "vit", "ggn"]
+    },
+    {
+      "question": "Quality Control (QC) me sample reject hone ke kya reasons hain?",
+      "answer": "Standard 8 rejection reasons: Clotted Sample, Hemolysed Sample, Insufficient Volume (QNS), Label Mismatch, Wrong Tube / Additive, Leaked / Damaged Vial, Lipemic Sample, aur Delayed Transit (>24h cold chain failure).",
+      "tags": ["qc", "reject", "reasons", "sample", "tubes"]
+    },
+    {
+      "question": "Delivery Challan kaise print aur generate karein?",
+      "answer": "Challan generate karne ke liye top rail par <b>Challan</b> tab (Key 6) par jayein. Dispatch hone wale samples select karein, Destination Lab chunein aur <b>'Generate & Print Challan'</b> click karein. Barcoded printable manifest instant load ho jayega.",
+      "tags": ["challan", "print", "dispatch", "manifest"]
+    },
+    {
+      "question": "Dashboard ka data kitni der me refresh hota hai?",
+      "answer": "Dashboard automatically har <b>75 seconds</b> me Google Sheets se sync hota hai. Agar aapko instant update chahiye toh top bar me <b>Sync icon</b> click karein ya keyboard se <b>Shift + R</b> dabayein.",
+      "tags": ["sync", "refresh", "interval", "data", "sheet"]
+    }
+  ]
+}

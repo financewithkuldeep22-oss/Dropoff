@@ -137,3 +137,7 @@ hs_err_pid*
 *.tar.xz
 *.tar.zst
 ```
+audit_*.js
+deep_audit.js
+locate_broken_buttons.js
+dev_server.js

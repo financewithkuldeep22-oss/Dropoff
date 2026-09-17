@@ -2073,7 +2073,18 @@ function doPost(e) {
       'getAllohealthPendingCountAndIDs',
       'warmDashboardDataCache',
       'setupDashboardCacheTrigger'
-    ];
+    ,
+      'createLocationDrafts',
+      'processAndGenerateBatchZip',
+      'processRawIdsToBatchZip',
+      'getInhouseRosterData',
+      'updateInhouseRosterStatus',
+      'getOutsourcedRosterData',
+      'addOrEditOutsourcedDuty',
+      'getPhleboMasterDetails',
+      'updatePhleboMasterRecord',
+      'createPhleboPaymentDraft',
+      'updateOutsourcedDutiesStatus'];
     
     if (!allowedActions.includes(action)) {
       return ContentService.createTextOutput(JSON.stringify({ status: 'error', message: "Backend function '" + action + "' does not exist or is not exposed." }))
@@ -2547,3 +2558,494 @@ function formatMailDate() {
   if (!timeZone) timeZone = 'Asia/Kolkata';
   return Utilities.formatDate(new Date(), timeZone, 'dd/MM/yyyy');
 }
+
+
+/**
+ * ============================================================
+ * PHLEBOTOMIST ROSTER & PAYMENT MODULE (Code.js Sync)
+ * ============================================================
+ */
+function getRosterSpreadsheetId() {
+  return "1xX8e_lGE7cWYbvbi4XS-OHwz5xp1wHqk40HHTEUEKK8";
+}
+
+function getSheetSafe(doc, nameVariants) {
+  for (var i = 0; i < nameVariants.length; i++) {
+    var sheet = doc.getSheetByName(nameVariants[i]);
+    if (sheet) return sheet;
+  }
+  return null;
+}
+
+function getInhouseRosterData(filterStartDateStr, filterEndDateStr) {
+  try {
+    var doc = SpreadsheetApp.openById(getRosterSpreadsheetId());
+    var sheet = getSheetSafe(doc, ["Inhouse Phlebo Roaster", "Inhouse Phlebo Roster"]) || doc.getSheets()[0];
+    var lastRow = sheet.getLastRow();
+    var lastCol = sheet.getLastColumn();
+    if (lastRow < 2) return { status: 'success', headers: [], dates: [], data: [] };
+    
+    var rangeValues = sheet.getRange(1, 1, lastRow, lastCol).getValues();
+    var headers = rangeValues[0];
+    
+    // Parse phlebotomists from headers (every odd column starting from B/index 1 represents a phlebo)
+    var phlebos = [];
+    for (var col = 1; col < lastCol; col += 2) {
+      var name = headers[col] ? headers[col].toString().trim() : "";
+      if (name && name.toLowerCase() !== "remarks" && name.toLowerCase() !== "date") {
+        phlebos.push({ name: name, colIndex: col });
+      }
+    }
+    
+    // Parse rows
+    var rowsData = [];
+    for (var r = 1; r < rangeValues.length; r++) {
+      var row = rangeValues[r];
+      var rawDate = row[0];
+      if (!rawDate) continue;
+      
+      var dateStr = normalizeDate(rawDate, 'UK');
+      if (!dateStr) continue;
+      
+      // Date filter
+      if (filterStartDateStr && dateStr < filterStartDateStr) continue;
+      if (filterEndDateStr && dateStr > filterEndDateStr) continue;
+      
+      var attendance = {};
+      phlebos.forEach(function(p) {
+        var status = row[p.colIndex] ? row[p.colIndex].toString().trim() : "";
+        var remark = row[p.colIndex + 1] ? row[p.colIndex + 1].toString().trim() : "";
+        attendance[p.name] = { status: status, remarks: remark };
+      });
+      
+      rowsData.push({
+        rowNum: r + 1,
+        date: dateStr,
+        attendance: attendance
+      });
+    }
+    
+    // Sort rows chronological
+    rowsData.sort(function(a, b) {
+      return a.date.localeCompare(b.date);
+    });
+    
+    return {
+      status: 'success',
+      phlebos: phlebos.map(function(p) { return p.name; }),
+      rows: rowsData
+    };
+  } catch (e) {
+    return { status: 'error', message: 'Inhouse Roster Fetch Error: ' + e.toString() };
+  }
+}
+
+function updateInhouseRosterStatus(rowNum, phleboName, attendanceStatus, remarks) {
+  try {
+    rowNum = parseInt(rowNum, 10);
+    var doc = SpreadsheetApp.openById(getRosterSpreadsheetId());
+    var sheet = getSheetSafe(doc, ["Inhouse Phlebo Roaster", "Inhouse Phlebo Roster"]) || doc.getSheets()[0];
+    var headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
+    
+    var phleboColIndex = -1;
+    for (var col = 1; col < headers.length; col++) {
+      if (headers[col] && headers[col].toString().trim() === phleboName.trim()) {
+        phleboColIndex = col; // 0-based column index
+        break;
+      }
+    }
+    
+    if (phleboColIndex === -1) {
+      return { status: 'error', message: 'Phlebotomist ' + phleboName + ' not found in sheet headers.' };
+    }
+    
+    sheet.getRange(rowNum, phleboColIndex + 1).setValue(attendanceStatus); // 1-based column index
+    sheet.getRange(rowNum, phleboColIndex + 2).setValue(remarks || "");
+    
+    // Append to dashboard action logs
+    var ss = getActiveSpreadsheetSafe();
+    var logSheet = ss.getSheetByName('Dashboard_Logs');
+    if (logSheet) {
+      var ts = Utilities.formatDate(new Date(), "Asia/Kolkata", "yyyy-MM-dd HH:mm:ss");
+      logSheet.appendRow([ts, 'Roster', 'Inhouse Phlebo Roster', rowNum, phleboName, '', remarks || '', attendanceStatus]);
+    }
+    
+    return { status: 'success', message: 'Inhouse roster updated successfully for ' + phleboName + '!' };
+  } catch (e) {
+    return { status: 'error', message: 'Inhouse Roster Update Error: ' + e.toString() };
+  }
+}
+
+function getOutsourcedRosterData(filterStartDateStr, filterEndDateStr) {
+  try {
+    var doc = SpreadsheetApp.openById(getRosterSpreadsheetId());
+    var sheet = getSheetSafe(doc, ["Outsoursed Phlebo Roaster", "Outsoursed Phlebo Roster", "Outsourced Phlebo Roaster", "Outsourced Phlebo Roster"]);
+    if (!sheet) return { status: 'success', data: [] };
+    
+    var lastRow = sheet.getLastRow();
+    if (lastRow < 2) return { status: 'success', data: [] };
+    
+    var lastCol = sheet.getLastColumn();
+    var data = sheet.getRange(2, 1, lastRow - 1, Math.min(lastCol, 11)).getValues();
+    
+    var rowsData = [];
+    for (var r = 0; r < data.length; r++) {
+      var row = data[r];
+      var clinicLoc = row[0] ? row[0].toString().trim() : "";
+      var rawDate = row[1];
+      if (!rawDate) continue;
+      
+      var dateStr = normalizeDate(rawDate, 'UK');
+      if (!dateStr) continue;
+      
+      if (filterStartDateStr && dateStr < filterStartDateStr) continue;
+      if (filterEndDateStr && dateStr > filterEndDateStr) continue;
+      
+      rowsData.push({
+        rowNum: r + 2,
+        clinicLocation: clinicLoc,
+        date: dateStr,
+        phleboName: row[2] ? row[2].toString().trim() : "",
+        phleboPhone: row[3] ? row[3].toString().trim() : "",
+        countReceived: row[4] ? parseInt(row[4], 10) || 0 : 0,
+        charges: row[5] ? parseFloat(row[5]) || 0 : 0,
+        upiId: row[6] ? row[6].toString().trim() : "",
+        status: row[7] ? row[7].toString().trim() : "",
+        payeeName: row[8] ? row[8].toString().trim() : "",
+        remarks: row[9] ? row[9].toString().trim() : ""
+      });
+    }
+    
+    // Sort descending by date
+    rowsData.sort(function(a, b) {
+      return b.date.localeCompare(a.date);
+    });
+    
+    return { status: 'success', data: rowsData };
+  } catch (e) {
+    return { status: 'error', message: 'Outsourced Roster Fetch Error: ' + e.toString() };
+  }
+}
+
+function addOrEditOutsourcedDuty(rowNum, data) {
+  try {
+    var doc = SpreadsheetApp.openById(getRosterSpreadsheetId());
+    var sheet = getSheetSafe(doc, ["Outsoursed Phlebo Roaster", "Outsoursed Phlebo Roster", "Outsourced Phlebo Roaster", "Outsourced Phlebo Roster"]);
+    if (!sheet) {
+      return { status: 'error', message: 'Outsourced tab not found in spreadsheet.' };
+    }
+    
+    var dateVal = data.date;
+    try {
+      var dateParts = data.date.split('-');
+      var dateObj = new Date(dateParts[0], dateParts[1] - 1, dateParts[2]);
+      dateVal = dateObj; // write as date object so spreadsheet formats it correctly
+    } catch(e) {}
+    
+    var vals = [
+      data.clinicLocation || "",
+      dateVal,
+      data.phleboName || "",
+      data.phleboPhone || "",
+      parseInt(data.countReceived, 10) || 0,
+      parseFloat(data.charges) || 0,
+      data.upiId || "",
+      data.status || "Pending",
+      data.payeeName || "",
+      data.remarks || ""
+    ];
+    
+    rowNum = parseInt(rowNum, 10);
+    if (rowNum > 1) {
+      // Edit existing
+      sheet.getRange(rowNum, 1, 1, vals.length).setValues([vals]);
+    } else {
+      // Add new
+      sheet.appendRow(vals);
+      rowNum = sheet.getLastRow();
+    }
+    
+    // Append to dashboard action logs
+    var ss = getActiveSpreadsheetSafe();
+    var logSheet = ss.getSheetByName('Dashboard_Logs');
+    if (logSheet) {
+      var ts = Utilities.formatDate(new Date(), "Asia/Kolkata", "yyyy-MM-dd HH:mm:ss");
+      logSheet.appendRow([ts, 'Roster', 'Outsourced Phlebo Roster', rowNum, data.phleboName, '', data.remarks || '', data.status || 'Updated']);
+    }
+    
+    return { status: 'success', message: 'Outsourced roster row saved successfully!', rowNum: rowNum };
+  } catch (e) {
+    return { status: 'error', message: 'Outsourced Roster Write Error: ' + e.toString() };
+  }
+}
+
+function getPhleboMasterDetails() {
+  try {
+    var doc = SpreadsheetApp.openById(getRosterSpreadsheetId());
+    var sheet = getSheetSafe(doc, ["Phlebo Details", "Phlebo Details Master"]);
+    if (!sheet) return { status: 'success', data: [] };
+    
+    var lastRow = sheet.getLastRow();
+    if (lastRow < 2) return { status: 'success', data: [] };
+    
+    var data = sheet.getRange(2, 1, lastRow - 1, 5).getValues();
+    var list = [];
+    for (var r = 0; r < data.length; r++) {
+      var name = data[r][1] ? data[r][1].toString().trim() : "";
+      if (!name) continue;
+      list.push({
+        rowNum: r + 2,
+        clinicLocation: data[r][0] ? data[r][0].toString().trim() : "",
+        phleboName: name,
+        phleboType: data[r][2] ? data[r][2].toString().trim() : "",
+        phleboPhone: data[r][3] ? data[r][3].toString().trim() : "",
+        charges: data[r][4] ? data[r][4].toString().trim() : ""
+      });
+    }
+    return { status: 'success', data: list };
+  } catch (e) {
+    return { status: 'error', message: 'Phlebo Details Fetch Error: ' + e.toString() };
+  }
+}
+
+function updatePhleboMasterRecord(rowNum, data) {
+  try {
+    rowNum = parseInt(rowNum, 10);
+    var doc = SpreadsheetApp.openById(getRosterSpreadsheetId());
+    var sheet = getSheetSafe(doc, ["Phlebo Details", "Phlebo Details Master"]);
+    if (!sheet) return { status: 'error', message: 'Phlebo Details sheet not found.' };
+    
+    var vals = [
+      data.clinicLocation || "",
+      data.phleboName || "",
+      data.phleboType || "",
+      data.phleboPhone || "",
+      data.charges || ""
+    ];
+    
+    if (rowNum > 1) {
+      sheet.getRange(rowNum, 1, 1, vals.length).setValues([vals]);
+    } else {
+      sheet.appendRow(vals);
+    }
+    
+    return { status: 'success', message: 'Phlebotomist master details updated successfully!' };
+  } catch (e) {
+    return { status: 'error', message: 'Phlebo Details Update Error: ' + e.toString() };
+  }
+}
+
+function createPhleboPaymentDraft(selectedDutiesList, toEmail, ccEmail) {
+  try {
+    if (!selectedDutiesList || selectedDutiesList.length === 0) {
+      return { status: 'error', message: 'No duties selected for email drafting.' };
+    }
+    
+    // Default values matching Kuldeep's specification
+    toEmail = toEmail || "mohit.parnani@redcliffelabs.com";
+    ccEmail = ccEmail || "appointments@redcliffelabs.com, tejpal.kothari@redcliffelabs.com, abhay@redcliffelabs.com, jayraj@redcliffelabs.com, dropoff@redcliffelabs.com, dhruv.baghel@redcliffelabs.com, gaurav.thapar@redcliffelabs.com, sandeep.rawat@redcliffelabs.com";
+    
+    var today = getISTDate();
+    var todayStr = formatDateString(today);
+    
+    // Group duties by Clinic Location (for email subject compilation)
+    var locations = [];
+    var dateStrings = [];
+    selectedDutiesList.forEach(function(d) {
+      if (locations.indexOf(d.clinicLocation) === -1) locations.push(d.clinicLocation);
+      
+      // Parse date format nicely
+      var formattedDate = d.date;
+      try {
+        var dParts = d.date.split('-');
+        var dObj = new Date(dParts[0], dParts[1] - 1, dParts[2]);
+        var suffix = "th";
+        var dateNum = parseInt(dParts[2], 10);
+        if (dateNum === 1 || dateNum === 21 || dateNum === 31) suffix = "st";
+        else if (dateNum === 2 || dateNum === 22) suffix = "nd";
+        else if (dateNum === 3 || dateNum === 23) suffix = "rd";
+        
+        formattedDate = dateNum + suffix + " " + dObj.toLocaleString('en-US', { month: 'long' });
+      } catch (dateErr) {}
+      if (dateStrings.indexOf(formattedDate) === -1) dateStrings.push(formattedDate);
+    });
+    
+    var locationsText = locations.join(", ");
+    var dateText = dateStrings.join(", ");
+    
+    var subject = "Allohealth Phlebo Payment for Outsource Clinic - " + locationsText + " (" + dateText + ")";
+    
+    // Generate styled HTML body table (matching layout exactly)
+    var htmlTableRows = "";
+    selectedDutiesList.forEach(function(d) {
+      var dateVal = d.date;
+      try {
+        var dParts = d.date.split('-');
+        var dObj = new Date(dParts[0], dParts[1] - 1, dParts[2]);
+        var suffix = "th";
+        var dateNum = parseInt(dParts[2], 10);
+        if (dateNum === 1 || dateNum === 21 || dateNum === 31) suffix = "st";
+        else if (dateNum === 2 || dateNum === 22) suffix = "nd";
+        else if (dateNum === 3 || dateNum === 23) suffix = "rd";
+        dateVal = dateNum + suffix + " " + dObj.toLocaleString('en-US', { month: 'long' });
+      } catch (e) {}
+      
+      var chargesVal = parseFloat(d.charges) || 0;
+      var countVal = parseInt(d.countReceived, 10) || 0;
+      var amount = chargesVal * countVal;
+      
+      // Amount format: check if charges are "Salary" or 0
+      var amountText = amount > 0 ? amount.toString() : "000";
+      if (d.charges.toString().toLowerCase() === "salary") amountText = "Salary";
+      
+      htmlTableRows += "<tr style='text-align: center; font-size: 12px; height: 32px;'>" +
+        "<td style='border: 1px solid #000; padding: 4px;'>Allohealth</td>" +
+        "<td style='border: 1px solid #000; padding: 4px;'>" + d.clinicLocation + "</td>" +
+        "<td style='border: 1px solid #000; padding: 4px;'>CORP11694</td>" +
+        "<td style='border: 1px solid #000; padding: 4px;'>" + dateVal + "</td>" +
+        "<td style='border: 1px solid #000; padding: 4px;'>" + countVal + "</td>" +
+        "<td style='border: 1px solid #000; padding: 4px;'>" + (d.payeeName || d.phleboName) + "</td>" +
+        "<td style='border: 1px solid #000; padding: 4px;'>" + d.phleboPhone + "</td>" +
+        "<td style='border: 1px solid #000; padding: 4px;'>" + d.upiId + "</td>" +
+        "<td style='border: 1px solid #000; padding: 4px;'>" + amountText + "</td>" +
+        "<td style='border: 1px solid #000; padding: 4px;'>" + (d.remarks || "") + "</td>" +
+        "</tr>";
+    });
+    
+    var htmlBody = "<div style='font-family: Arial, sans-serif; font-size: 13.5px; color: #000; line-height: 1.5;'>" +
+      "<p>Hi Mohit sir,</p>" +
+      "<p>Greetings from Redcliffe Labs !!!</p>" +
+      "<p><strong>@Jayraj Chauhan</strong> sir, Kindly approve the same.</p>" +
+      "<p><strong>@Mohit Pamnani</strong> sir, Kindly help to release the payment for the given phlebo details below.</p>" +
+      "<table style='border-collapse: collapse; width: 100%; border: 1px solid #000; font-family: Arial, sans-serif; margin: 15px 0;'>" +
+      "<thead>" +
+      "<tr style='background-color: #ffff00; font-weight: bold; font-size: 12.5px; height: 36px; text-align: center;'>" +
+      "<th style='border: 1px solid #000; padding: 6px;'>Partner Name</th>" +
+      "<th style='border: 1px solid #000; padding: 6px;'>Clinic Location</th>" +
+      "<th style='border: 1px solid #000; padding: 6px;'>Client Code</th>" +
+      "<th style='border: 1px solid #000; padding: 6px;'>Date</th>" +
+      "<th style='border: 1px solid #000; padding: 6px;'>Count Received</th>" +
+      "<th style='border: 1px solid #000; padding: 6px;'>Payee Name</th>" +
+      "<th style='border: 1px solid #000; padding: 6px;'>Phlebo Contact No.</th>" +
+      "<th style='border: 1px solid #000; padding: 6px;'>UPI ID</th>" +
+      "<th style='border: 1px solid #000; padding: 6px;'>Amount</th>" +
+      "<th style='border: 1px solid #000; padding: 6px;'>Remarks</th>" +
+      "</tr>" +
+      "</thead>" +
+      "<tbody>" +
+      htmlTableRows +
+      "</tbody>" +
+      "</table>" +
+      "<p style='color: #000; font-weight: bold; margin-bottom: 2px;'>Regards,</p>" +
+      "<p style='font-weight: bold; color: #000; margin: 0;'>Kuldeep Singh Bisht</p>" +
+      "<p style='margin: 0; font-size: 12px; color: #555;'>Strategic Alliances (B2B Operations)</p>" +
+      "<p style='margin-top: 8px;'><img src='https://staticcdn.redcliffelabs.com/media/gallary-file/None/226e8f94-c63a-404c-bce8-dff38b7966af.jpeg' alt='Redcliffe Labs' style='height: 40px; display: block;' /></p>" +
+      "</div>";
+    
+    // Create Gmail Draft
+    var draft = GmailApp.createDraft(toEmail, subject, "", {
+      cc: ccEmail,
+      htmlBody: htmlBody
+    });
+    
+    // Mark status as 'Mail done' in sheets
+    var doc = SpreadsheetApp.openById(getRosterSpreadsheetId());
+    var sheet = getSheetSafe(doc, ["Outsoursed Phlebo Roaster", "Outsoursed Phlebo Roster", "Outsourced Phlebo Roaster", "Outsourced Phlebo Roster"]);
+    if (sheet) {
+      selectedDutiesList.forEach(function(d) {
+        if (d.rowNum > 1) {
+          sheet.getRange(d.rowNum, 8).setValue("Mail done"); // Column H (8)
+        }
+      });
+    }
+    
+    return { status: 'success', message: 'Gmail draft created successfully!', draftId: draft.getId() };
+  } catch (e) {
+    return { status: 'error', message: 'Gmail Draft Composition Error: ' + e.toString() };
+  }
+}
+
+function updateOutsourcedDutiesStatus(rowNums, newStatus) {
+  try {
+    var doc = SpreadsheetApp.openById(getRosterSpreadsheetId());
+    var sheet = getSheetSafe(doc, ["Outsoursed Phlebo Roaster", "Outsoursed Phlebo Roster", "Outsourced Phlebo Roaster", "Outsourced Phlebo Roster"]);
+    if (!sheet) {
+      return { status: 'error', message: 'Outsourced tab not found in spreadsheet.' };
+    }
+    
+    for (var i = 0; i < rowNums.length; i++) {
+      var rowNum = parseInt(rowNums[i], 10);
+      if (rowNum > 1) {
+        sheet.getRange(rowNum, 8).setValue(newStatus);
+      }
+    }
+    
+    return { status: 'success', message: 'Updated status to "' + newStatus + '" for ' + rowNums.length + ' duties.' };
+  } catch (e) {
+    return { status: 'error', message: e.toString() };
+  }
+}
+
+/**
+ * REST API Entry Point for Vercel/Vite Client-side SPA Redirection.
+ * Parses action & parameters payload and routes call to corresponding global backend functions.
+ */
+function doPost(e) {
+  try {
+    if (!e || !e.postData || !e.postData.contents) {
+      throw new Error("No post data contents received.");
+    }
+    
+    var requestData = JSON.parse(e.postData.contents);
+    var action = requestData.action;
+    var parameters = requestData.parameters || [];
+    
+    if (!action) {
+      throw new Error("Missing 'action' parameter in request payload.");
+    }
+    
+    // Locate the function globally
+    var targetFunc = this[action];
+    if (typeof targetFunc !== 'function') {
+      throw new Error("Backend function '" + action + "' does not exist or is not exposed.");
+    }
+    
+    // Execute the action with parameters
+    var result = targetFunc.apply(this, parameters);
+    
+    // Return output as JSON
+    return ContentService.createTextOutput(JSON.stringify(result || {}))
+      .setMimeType(ContentService.MimeType.JSON);
+      
+  } catch (error) {
+    var errResponse = {
+      status: 'error',
+      message: error.toString(),
+      stack: error.stack
+    };
+    return ContentService.createTextOutput(JSON.stringify(errResponse))
+      .setMimeType(ContentService.MimeType.JSON);
+  }
+}
+
+// Supabase integration disabled
+
+/**
+ * ============================================================
+ * BOOKING OPERATIONS SUITE - BACKEND
+ * ============================================================
+ */
+
+
+/* ============================================================
+ * WEB APP
+ * ============================================================ */
+
+function onOpen() {
+  SpreadsheetApp.getUi()
+    .createMenu('🚀 Operations Suite')
+    .addItem('Open App in Sidebar', 'openSidebar')
+    .addToUi();
+}
+
+

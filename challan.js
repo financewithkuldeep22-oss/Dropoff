@@ -380,9 +380,39 @@ function selectSuggestion(val, fieldType) {
     renderDocument();
 }
 
-window.onload = function() {
+function setDocType(type) {
+    currentDocType = type;
+    const menu = document.getElementById('doc-type-menu');
+    if (menu) menu.classList.add('hidden');
+    const lbl = document.getElementById('doc-type-label');
+    if (lbl) lbl.innerText = type === 'DC' ? 'Returnable Delivery Challan' : 'Material Gate Pass';
+    saveDraft();
+    renderLeftForm();
+    renderDocument();
+}
+
+function saveDraft() {
+    try {
+        localStorage.setItem('rcl_draft', JSON.stringify({ sessionData, itemsData, currentDocType }));
+    } catch(e) {}
+}
+
+function loadDraft() {
+    try {
+        const d = JSON.parse(localStorage.getItem('rcl_draft'));
+        if (d) { 
+            sessionData = d.sessionData || sessionData; 
+            itemsData = d.itemsData || itemsData; 
+            currentDocType = d.currentDocType || 'DC'; 
+        }
+    } catch(e) {}
+}
+
+function initChallanApp() {
+    if (!document.getElementById('challan-wrapper')) return;
     loadDraft();
-    updateThemeUI(); try { if (typeof fetchHistoryFromSheet === 'function') fetchHistoryFromSheet(false); } catch(e) {}
+    updateThemeUI(); 
+    try { if (typeof fetchHistoryFromSheet === 'function') fetchHistoryFromSheet(false); } catch(e) {}
     
     // Onboarding Check
     const savedName = localStorage.getItem('rcl_user_name');
@@ -391,40 +421,43 @@ window.onload = function() {
         const obPhone = document.getElementById('onboarding-phone-input');
         const obEmail = document.getElementById('onboarding-email-input');
         const obBtn = document.getElementById('onboarding-save-btn');
-        openModal('onboarding-modal');
+        if (typeof openModal === 'function' && document.getElementById('onboarding-modal')) {
+            openModal('onboarding-modal');
+        }
 
-        obBtn.onclick = () => {
-            const val = obInput.value.trim();
-            const phone = obPhone.value.trim();
-            const email = obEmail.value.trim();
-            
-            if (val) {
-                localStorage.setItem('rcl_user_name', val);
-                if (phone) localStorage.setItem('rcl_user_phone', phone);
-                if (email) localStorage.setItem('rcl_user_email', email);
+        if (obBtn && obInput) {
+            obBtn.onclick = () => {
+                const val = obInput.value.trim();
+                const phone = obPhone ? obPhone.value.trim() : '';
+                const email = obEmail ? obEmail.value.trim() : '';
                 
-                sessionData.requestedBy = val;
-                
-                // Sync new user to Google Sheet
-                fetch(BACKUP_SHEET_URL, {
-                    method: "POST",
-                    mode: "no-cors",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({
-                        action: "registerUser",
-                        name: val,
-                        phone: phone,
-                        email: email,
-                        timestamp: new Date().toISOString()
-                    })
-                }).catch(err => console.error("Error syncing user info", err));
+                if (val) {
+                    localStorage.setItem('rcl_user_name', val);
+                    if (phone) localStorage.setItem('rcl_user_phone', phone);
+                    if (email) localStorage.setItem('rcl_user_email', email);
+                    
+                    sessionData.requestedBy = val;
+                    
+                    fetch(BACKUP_SHEET_URL, {
+                        method: "POST",
+                        mode: "no-cors",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({
+                            action: "registerUser",
+                            name: val,
+                            phone: phone,
+                            email: email,
+                            timestamp: new Date().toISOString()
+                        })
+                    }).catch(err => console.error("Error syncing user info", err));
 
-                closeModal('onboarding-modal');
-                saveDraft();
-                renderLeftForm();
-                renderDocument();
-            }
-        };
+                    if (typeof closeModal === 'function') closeModal('onboarding-modal');
+                    saveDraft();
+                    renderLeftForm();
+                    renderDocument();
+                }
+            };
+        }
     } else if (!sessionData.requestedBy) {
         sessionData.requestedBy = savedName;
     }
@@ -435,29 +468,13 @@ window.onload = function() {
     // Initialize Drag Handles and Canvas Panning
     initResizablePanels();
     initChallanPan();
-};
-
-function saveDraft() {
-    localStorage.setItem('rcl_draft', JSON.stringify({ sessionData, itemsData, currentDocType }));
 }
-function loadDraft() {
-    try {
-        const d = JSON.parse(localStorage.getItem('rcl_draft'));
-        if (d) { 
-            sessionData = d.sessionData; 
-            itemsData = d.itemsData; 
-            currentDocType = d.currentDocType || 'DC'; 
-        }
-    } catch (e) { }
-}
+window.initChallanApp = initChallanApp;
 
-function setDocType(type) {
-    currentDocType = type;
-    document.getElementById('doc-type-menu').classList.add('hidden');
-    document.getElementById('doc-type-label').innerText = type === 'DC' ? 'Returnable Delivery Challan' : 'Material Gate Pass';
-    saveDraft();
-    renderLeftForm();
-    renderDocument();
+if (document.readyState === 'loading') {
+    window.addEventListener('DOMContentLoaded', initChallanApp);
+} else {
+    initChallanApp();
 }
 
 // =====================================================================
@@ -1321,6 +1338,7 @@ function fallbackRandomId(type) {
 
 function renderDocument() {
     const wrapper = document.getElementById('challan-wrapper');
+    if (!wrapper) return;
     wrapper.innerHTML = '';
     const type = currentDocType;
     const maxNormal = type === 'DC' ? 11 : 9;

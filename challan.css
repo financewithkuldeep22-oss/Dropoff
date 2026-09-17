@@ -1,0 +1,12 @@
+/* Challan Maker Supporting Styles */
+.challan-modal {
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+.challan-zoom-container {
+  overflow: auto;
+  user-select: none;
+}
+.challan-sheet-table th, 
+.challan-sheet-table td {
+  border-color: #cbd5e1;
+}
