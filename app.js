@@ -5791,71 +5791,7 @@ setInterval(() => {
   }
 }, 3000);
 
-// =========================================================
-// 3. INTELLIGENT HEADER AUTO-HIDE (TIMER & MOUSE PROXIMITY)
-// =========================================================
-(function initHeaderAutoHideEngine() {
-  let hideTimer = null;
-  const header = document.getElementById("main-app-header");
-  if (!header) return;
-
-  function showHeader() {
-    header.style.transform = "translateY(0)";
-    const mainCont = document.getElementById("main-scroll-container");
-    if (mainCont) mainCont.style.setProperty("margin-top", "48px", "important");
-    resetTimer();
-  }
-
-  function hideHeader() {
-    header.style.transform = "translateY(-100%)";
-    const mainCont = document.getElementById("main-scroll-container");
-    if (mainCont) mainCont.style.setProperty("margin-top", "0px", "important");
-  }
-
-  function resetTimer() {
-    if (hideTimer) clearTimeout(hideTimer);
-    hideTimer = setTimeout(() => {
-      hideHeader();
-    }, 3500); // 3.5 seconds inactivity auto-hide
-  }
-
-  // Reveal when cursor is near top of screen (within 70px)
-  window.addEventListener("mousemove", (e) => {
-    if (e.clientY <= 70) {
-      showHeader();
-    } else {
-      resetTimer();
-    }
-  }, { passive: true });
-
-  header.addEventListener("mouseenter", () => {
-    if (hideTimer) clearTimeout(hideTimer);
-    showHeader();
-  });
-
-  header.addEventListener("mouseleave", () => {
-    resetTimer();
-  });
-
-  window.addEventListener("scroll", () => {
-    showHeader();
-  }, { passive: true });
-
-  // Keyboard shortcut Ctrl+H to toggle header
-  document.addEventListener("keydown", (e) => {
-    if (e.ctrlKey && e.key && e.key.toLowerCase() === "h") {
-      e.preventDefault();
-      if (header.style.transform === "translateY(-100%)") {
-        showHeader();
-      } else {
-        hideHeader();
-      }
-    }
-  });
-
-  // Start initial auto-hide countdown
-  resetTimer();
-})();
+// (Old duplicate header auto-hide engine removed to prevent margin jump)
 
 // Listener for external app messages & badges
 window.addEventListener('message', function(event) {
@@ -5897,7 +5833,7 @@ window.addEventListener('message', function(event) {
     nextId: 1,
     history: { 0: ["https://www.google.com/search?igu=1"] },
     histPos: { 0: 0 },
-    dryRun: true,
+    dryRun: false,
     viewMode: "single", // "single" or "grid"
     initialized: false,
     loaderTimeout: null,
@@ -6302,7 +6238,7 @@ window.addEventListener('message', function(event) {
   }
 
   // ── Tab Creation (Persistent Tab-Card Architecture) ────────
-  window.botlabCreateTab = function (url, title) {
+  window.botlabCreateTab = function (url, title, dontSwitch) {
     var id = _bl.nextId++;
     var tabUrl = (url && url !== "about:blank") ? url : "https://www.google.com/search?igu=1";
     var tabTitle = title || (tabUrl.indexOf("google") !== -1 ? "Google" : "New Tab");
@@ -6320,12 +6256,7 @@ window.addEventListener('message', function(event) {
     header.className = "botlab-card-header";
     header.innerHTML =
       '<div class="flex items-center gap-2 overflow-hidden">' +
-        '<div class="botlab-window-dots">' +
-          '<span class="botlab-dot close"></span>' +
-          '<span class="botlab-dot minimize"></span>' +
-          '<span class="botlab-dot expand"></span>' +
-        '</div>' +
-        '<div class="flex items-center gap-1.5 overflow-hidden pl-1 border-l border-slate-200 dark:border-slate-700">' +
+        '<div class="flex items-center gap-1.5 overflow-hidden">' +
           '<svg class="botlab-svg-xs text-indigo-500 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20M2 12h20"/></svg>' +
           '<span class="botlab-card-title" id="botlab-card-title-' + id + '">' + _escHtml(tabTitle) + '</span>' +
         '</div>' +
@@ -6356,7 +6287,11 @@ window.addEventListener('message', function(event) {
     var wrap = document.getElementById("botlab-iframe-wrap");
     if (wrap) wrap.appendChild(card);
 
-    _switchTab(id);
+    if (!dontSwitch) {
+      _switchTab(id);
+    } else {
+      _renderTabs();
+    }
     return id;
   };
 
@@ -6567,16 +6502,37 @@ window.addEventListener('message', function(event) {
       var loader = document.getElementById("botlab-iframe-loader");
       if (loader) loader.classList.remove("show");
 
-      // URL update from bot iframe reporter
+      // URL update from bot iframe reporter (Multi-tab guarded to prevent URL flickering)
       if (event.data.type === "redcliffe-iframe-url" && event.data.url) {
+        var matchedTabId = null;
+        try {
+          var allIframes = document.querySelectorAll(".botlab-iframe");
+          for (var ifrIdx = 0; ifrIdx < allIframes.length; ifrIdx++) {
+            if (allIframes[ifrIdx].contentWindow === event.source) {
+              matchedTabId = parseInt(allIframes[ifrIdx].id.replace("botlab-iframe-", ""));
+              break;
+            }
+          }
+        } catch (ifrErr) {}
+
+        if (matchedTabId === null && _bl.tabs.length === 1) {
+          matchedTabId = _bl.active;
+        }
+
+        // Update stored URL on specific source tab
+        if (matchedTabId !== null) {
+          var sourceTab = _bl.tabs.find(function (t) { return t.id === matchedTabId; });
+          if (sourceTab) {
+            sourceTab.url = event.data.url;
+          }
+        }
+
+        // ONLY update visible Omnibox input IF this is the active tab AND user is not typing in it
         var urlInput = document.getElementById("botlab-url-input");
-        if (urlInput) urlInput.value = event.data.url;
-        _updateOmniboxLock(event.data.url);
-        var tab = _bl.tabs.find(function (t) { return t.id === _bl.active; });
-        if (tab) {
-          try {
-            tab.url = event.data.url;
-          } catch (e) {}
+        var isUserEditing = urlInput && (document.activeElement === urlInput || urlInput._isUserEditing);
+        if (matchedTabId === _bl.active && !isUserEditing) {
+          if (urlInput) urlInput.value = event.data.url;
+          _updateOmniboxLock(event.data.url);
         }
       }
 
@@ -6612,24 +6568,7 @@ window.addEventListener('message', function(event) {
 
   // ── Dry Run Mode Toggle ────────────────────────────────────
   function _setupModeToggle() {
-    var modeToggle = document.getElementById("botlab-mode-toggle");
-    if (modeToggle && !modeToggle._hasListener) {
-      modeToggle._hasListener = true;
-      var doToggle = function () {
-        _bl.dryRun = !_bl.dryRun;
-        modeToggle.classList.toggle("live", !_bl.dryRun);
-        var label = document.getElementById("botlab-mode-label");
-        if (label) label.textContent = _bl.dryRun ? "DRY RUN" : "LIVE";
-        _addMsg("bot", _bl.dryRun ? "Switched to DRY RUN mode. Forms will be filled without final submission." : "Switched to LIVE mode. Bookings will be submitted directly.");
-      };
-      modeToggle.addEventListener("click", doToggle);
-      modeToggle.addEventListener("keydown", function (e) {
-        if (e.key === "Enter" || e.key === " ") {
-          e.preventDefault();
-          doToggle();
-        }
-      });
-    }
+    _bl.dryRun = false;
   }
 
   // ── Chat Message Functions ─────────────────────────────────
@@ -6676,7 +6615,31 @@ window.addEventListener('message', function(event) {
     return clientName || "Flebo.in";
   }
 
-  function _getBotCenterParam(clientName) {
+  function _getBotCenterParam(b) {
+    if (typeof b === "string") return _getBotCenterParamByName(b);
+    if (!b) return "Flebo.in";
+    if (b.center && b.center !== "N/A") return b.center;
+    var clientStr = b.client || b.clientName || "";
+    var sheetStr = b.sheetName || "";
+    var combined = (clientStr + " " + sheetStr).toLowerCase();
+
+    if (combined.indexOf("morepen") !== -1) {
+      if (combined.indexOf("vit") !== -1 || combined.indexOf("bhopal") !== -1) return "Order History - VIT Bhopal";
+      if (combined.indexOf("ggn") !== -1 || combined.indexOf("83") !== -1) return "Order History - Sec 83, GGN";
+      return "Dr. Morepen Labs";
+    }
+    if (combined.indexOf("hcl") !== -1) return "HCL - Sample drop";
+    if (combined.indexOf("medibuddy") !== -1) return "Medibuddy Drop-off";
+    if (combined.indexOf("flebo") !== -1) return "Flebo.in";
+    if (combined.indexOf("tatva") !== -1) return "Tatvacare";
+    if (combined.indexOf("tghs") !== -1) return "TGHS";
+    if (combined.indexOf("betacura") !== -1) return "Betacura";
+    if (combined.indexOf("allo") !== -1) return "Allohealth";
+    if (combined.indexOf("bharath") !== -1) return "Bharath Home Medicare";
+    return clientStr || "Flebo.in";
+  }
+
+  function _getBotCenterParamByName(clientName) {
     var c = (clientName || "").toLowerCase();
     if (c.indexOf("hcl") !== -1) return "HCL - Sample drop";
     if (c.indexOf("medibuddy") !== -1) return "Medibuddy Drop-off";
@@ -6702,27 +6665,45 @@ window.addEventListener('message', function(event) {
 
   function _buildBotBookingUrl(b, delayMs) {
     var partnerParam = _getBotPartnerParam(b.client || b.clientName);
-    var centerParam = _getBotCenterParam(b.client || b.clientName);
+    var centerParam = _getBotCenterParam(b);
     var cityParam = _getBotCityParam(b, partnerParam);
     var rowNum = b.rowNum || "";
     var p = new URLSearchParams();
     p.set("botAutoRun", "true");
-    // Partner-portal companion script reads botDryRun to skip final booking submission when true
-    p.set("botDryRun", _bl.dryRun ? "true" : "false");
     p.set("botPartner", partnerParam);
     p.set("botCenter", centerParam);
     if (rowNum) p.set("botRow", String(rowNum));
     if (cityParam) p.set("botCity", String(cityParam));
-    if (delayMs) p.set("botDelay", String(delayMs));
 
-    // Direct Patient Payload (Immune to GAS rate limits, network timeouts, or schema mismatches)
-    if (b.name) p.set("botPatientName", b.name);
-    if (b.age) p.set("botAge", String(b.age));
-    if (b.gender) p.set("botGender", b.gender);
-    if (b.phone) p.set("botPhone", String(b.phone));
-    if (b.test) p.set("botTest", b.test);
-    if (b.location) p.set("botLocation", b.location);
-    if (b.address) p.set("botAddress", b.address);
+    // Stagger delay & server wait buffer (allows partner portal AJAX dropdowns to populate from server)
+    var effectiveDelay = Math.max(2500, delayMs || 2500);
+    p.set("botDelay", String(effectiveDelay));
+    p.set("botServerWait", "3000");
+
+    // Direct Patient Payload (strict validation to prevent form rejection)
+    if (b.name && b.name !== "N/A") p.set("botPatientName", b.name);
+    if (b.age && b.age !== "N/A") {
+      var ageNum = String(b.age).replace(/\D/g, "");
+      if (ageNum) p.set("botAge", ageNum);
+    }
+    if (b.gender && b.gender !== "N/A") p.set("botGender", b.gender);
+    
+    // Strict Phone Sanitization: never pass "N/A" into numeric phone inputs
+    if (b.phone && b.phone !== "N/A") {
+      var phoneDigits = String(b.phone).replace(/\D/g, "");
+      if (phoneDigits.length >= 10) {
+        p.set("botPhone", phoneDigits.slice(-10));
+      }
+    }
+    
+    if (b.test && b.test !== "N/A") p.set("botTest", b.test);
+    
+    // Address fallback: if address is undefined, automatically pass location / sheetName
+    var addressVal = b.address || b.location || b.sheetName || "";
+    if (addressVal && addressVal !== "N/A") {
+      p.set("botAddress", addressVal);
+      p.set("botLocation", addressVal);
+    }
 
     return "https://partner.redcliffelabs.com/dashboard/corpclientadmin/booking?" + p.toString();
   }
@@ -7119,7 +7100,7 @@ window.addEventListener('message', function(event) {
       if (tEl) tEl.textContent = tabTitle;
       window.botlabNavigate(targetUrl);
     } else {
-      window.botlabCreateTab(targetUrl, tabTitle);
+      window.botlabCreateTab(targetUrl, tabTitle, idx > 0);
     }
     _addMsg("bot", "Opened tab for " + (b.name || "Patient") + " (Row " + b.rowNum + "). Bot will automatically fill form details.");
   };
@@ -7169,7 +7150,8 @@ window.addEventListener('message', function(event) {
 
     batch.forEach(function (b, idx) {
       setTimeout(function() {
-        var targetUrl = _buildBotBookingUrl(b, idx * 400);
+        var delay = 2500 + (idx * 1500);
+        var targetUrl = _buildBotBookingUrl(b, delay);
         var tabTitle = (b.name || "Patient") + " (R" + (b.rowNum || idx + 1) + ")";
 
         if (idx === 0 && _bl.tabs.length === 1 && (!_bl.tabs[0].url || _bl.tabs[0].url === "about:blank" || _bl.tabs[0].url.indexOf("google.com") !== -1)) {
@@ -7182,7 +7164,7 @@ window.addEventListener('message', function(event) {
           var urlInput = document.getElementById("botlab-url-input");
           if (urlInput) urlInput.value = targetUrl;
         } else {
-          window.botlabCreateTab(targetUrl, tabTitle);
+          window.botlabCreateTab(targetUrl, tabTitle, idx > 0);
         }
       }, idx * 600);
     });
@@ -7546,7 +7528,8 @@ window.addEventListener('message', function(event) {
       _addMsg("bot", "Launching " + targetList.length + " selected bookings in Parallel Multi-Tabs...");
       targetList.forEach(function (b, idx) {
         setTimeout(function() {
-          var url = _buildBotBookingUrl(b, idx * 400);
+          var delay = 2500 + (idx * 1500);
+          var url = _buildBotBookingUrl(b, delay);
           var title = (b.name || "Patient") + " (R" + (b.rowNum || idx + 1) + ")";
           window.botlabCreateTab(url, title);
         }, idx * 600);
