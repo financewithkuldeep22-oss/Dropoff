@@ -203,7 +203,7 @@
   </style>
 
   <!-- CSS Style Overrides -->
-  <link rel="stylesheet" href="style.css?v=31">
+  <link rel="stylesheet" href="style.css?v=32">
   
   <!-- GSAP Animation Library -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
@@ -305,8 +305,8 @@
     <header id="main-app-header" class="fixed top-0 left-0 right-0 z-50 flex items-center h-16 bg-white/70 dark:bg-slate-950/70 backdrop-blur-xl saturate-[1.8] border-b border-slate-200/50 dark:border-slate-800/50 text-slate-900 dark:text-white shadow-[0_4px_30px_rgba(0,0,0,0.05)] dark:shadow-[0_4px_30px_rgba(0,0,0,0.3)] header-wrapper transition-transform duration-500 ease-[cubic-bezier(0.16,1,0.3,1)]">
       <!-- Left Side: Redcliffe Brand Logo & Title -->
       <div class="flex items-center gap-3.5 px-4 md:px-6">
-        <div class="h-10 px-2.5 bg-white dark:bg-slate-900 rounded-xl flex items-center justify-center shadow-[0_2px_8px_rgba(15,23,42,0.06)] border border-slate-200/60 dark:border-slate-800/60">
-          <img src="logo.svg" onerror="this.onerror=null; this.src='allo.png';" alt="Redcliffe Labs" class="h-6 w-auto object-contain">
+        <div class="h-10 px-3 bg-white rounded-xl flex items-center justify-center shadow-[0_2px_8px_rgba(15,23,42,0.06)] border border-slate-200/60 dark:border-slate-800/60">
+          <img src="redcliffe_logo.png" onerror="this.onerror=null; this.src='logo.svg';" alt="Redcliffe Labs" class="h-7 w-auto object-contain">
         </div>
         <div class="flex flex-col">
           <h1 class="font-headline-md text-[17px] md:text-[19px] font-bold tracking-tight leading-tight text-slate-900 dark:text-white">Drop-off Operation</h1>
@@ -1012,20 +1012,20 @@
             <div class="botlab-tab-strip" id="botlab-tab-strip"></div>
 
             <!-- Unified Modern Browser Omnibox & Navigation Toolbar (Arc / Chrome 2024 Style) -->
-            <div class="botlab-omnibox">
+            <div class="botlab-omnibox" role="toolbar" aria-label="Browser navigation and address toolbar">
               <!-- Navigation Controls Cluster -->
-              <div class="botlab-nav-cluster">
-                <button class="botlab-nav-btn" onclick="window.botlabBack()" title="Back (Alt+Left)">
+              <div class="botlab-nav-cluster" role="toolbar" aria-label="Navigation Controls">
+                <button class="botlab-nav-btn" onclick="window.botlabBack()" title="Back (Alt+Left)" aria-label="Back (Alt+Left)">
                   <svg class="botlab-svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
                 </button>
-                <button class="botlab-nav-btn" onclick="window.botlabForward()" title="Forward (Alt+Right)">
+                <button class="botlab-nav-btn" onclick="window.botlabForward()" title="Forward (Alt+Right)" aria-label="Forward (Alt+Right)">
                   <svg class="botlab-svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
                 </button>
-                <button class="botlab-nav-btn" onclick="window.botlabReload()" title="Reload Tab (Ctrl+R)">
+                <button class="botlab-nav-btn" onclick="window.botlabReload()" title="Reload Tab (Ctrl+R)" aria-label="Reload Tab (Ctrl+R)">
                   <svg class="botlab-svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-2.636-6.364M21 3v6h-6"/></svg>
                 </button>
                 <!-- Grid / Split View Toggle -->
-                <button class="botlab-nav-btn botlab-view-toggle" id="botlab-view-toggle" onclick="window.toggleBotlabViewMode()" title="Toggle Single Tab / Grid Multi-View (Side-by-Side)">
+                <button class="botlab-nav-btn botlab-view-toggle" id="botlab-view-toggle" onclick="window.toggleBotlabViewMode()" title="Toggle Single Tab / Grid Multi-View (Side-by-Side)" aria-label="Toggle Single Tab / Grid Multi-View (Side-by-Side)">
                   <span id="botlab-view-icon" class="flex items-center justify-center">
                     <svg class="botlab-svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/></svg>
                   </span>
@@ -1034,76 +1034,76 @@
 
               <!-- Omnibox Address & Command Palette -->
               <div class="botlab-omnibox-shell">
-                <div class="botlab-omnibox-lock" title="Secure Encrypted Connection (HTTPS)">
+                <div class="botlab-omnibox-lock" title="Secure Encrypted Connection (HTTPS)" aria-hidden="true">
                   <svg class="botlab-svg-lock" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
                 </div>
-                <input id="botlab-url-input" class="botlab-url-field" type="text" placeholder="Search Google or type a partner URL..." value="https://www.google.com/search?igu=1" spellcheck="false" autocomplete="off"
+                <input id="botlab-url-input" class="botlab-url-field" type="text" placeholder="Search Google or type a partner URL..." value="https://www.google.com/search?igu=1" spellcheck="false" autocomplete="off" aria-label="Web Address or Search URL"
                   onkeydown="if(event.key==='Enter'){event.preventDefault();window.botlabNavigate(this.value);}" />
                 
                 <!-- Quick In-Omnibox Actions -->
                 <div class="botlab-omnibox-actions">
-                  <button class="botlab-omnibox-action-btn" id="botlab-copy-url-btn" onclick="window.botlabCopyUrl()" title="Copy URL to Clipboard">
+                  <button class="botlab-omnibox-action-btn" id="botlab-copy-url-btn" onclick="window.botlabCopyUrl()" title="Copy URL to Clipboard" aria-label="Copy URL to Clipboard">
                     <svg class="botlab-svg-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
                   </button>
-                  <button class="botlab-omnibox-action-btn" onclick="window.open(document.getElementById('botlab-url-input').value, '_blank')" title="Open URL in dedicated External Window">
+                  <button class="botlab-omnibox-action-btn" onclick="window.open(document.getElementById('botlab-url-input').value, '_blank')" title="Open URL in dedicated External Window" aria-label="Open URL in dedicated External Window">
                     <svg class="botlab-svg-sm text-indigo-500 dark:text-indigo-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
                   </button>
-                  <button class="botlab-go-btn" onclick="window.botlabNavigate(document.getElementById('botlab-url-input').value)" title="Navigate">
+                  <button class="botlab-go-btn" onclick="window.botlabNavigate(document.getElementById('botlab-url-input').value)" title="Navigate" aria-label="Navigate">
                     <svg class="botlab-svg-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
                   </button>
                 </div>
               </div>
 
               <!-- Dual Execution Mode: All-at-Once Batch vs 1-by-1 Queue -->
-              <div class="botlab-exec-mode-wrap" id="botlab-exec-mode-wrap" title="Execution Mode: All at Once (Multi-Tab Grid) vs 1-by-1 Sequential Queue">
-                <button class="botlab-exec-btn active" id="botlab-exec-mode-all" onclick="window.botlabSetExecutionMode('all')">
+              <div class="botlab-exec-mode-wrap" id="botlab-exec-mode-wrap" title="Execution Mode: All at Once (Multi-Tab Grid) vs 1-by-1 Sequential Queue" role="group" aria-label="Execution Mode Selection">
+                <button class="botlab-exec-btn active" id="botlab-exec-mode-all" onclick="window.botlabSetExecutionMode('all')" aria-label="Execution mode: All at Once">
                   <svg class="botlab-svg-xs" viewBox="0 0 24 24" fill="currentColor"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
                   <span>All at Once</span>
                 </button>
-                <button class="botlab-exec-btn" id="botlab-exec-mode-queue" onclick="window.botlabSetExecutionMode('queue')">
+                <button class="botlab-exec-btn" id="botlab-exec-mode-queue" onclick="window.botlabSetExecutionMode('queue')" aria-label="Execution mode: 1-by-1 Queue">
                   <svg class="botlab-svg-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="10" x2="21" y1="6" y2="6"/><line x1="10" x2="21" y1="12" y2="12"/><line x1="10" x2="21" y1="18" y2="18"/><path d="M4 6h1v4"/><path d="M4 10h2"/><path d="M6 18H4c0-1 2-2 2-3s-1-1.5-2-1"/></svg>
                   <span>1-by-1 Queue</span>
                 </button>
               </div>
 
               <!-- Dispatch Matrix Flyout Button -->
-              <button class="botlab-matrix-trigger-btn" id="botlab-matrix-btn" onclick="window.openDispatchMatrix()" title="Open Pending Bookings Dispatch Matrix">
+              <button class="botlab-matrix-trigger-btn" id="botlab-matrix-btn" onclick="window.openDispatchMatrix()" title="Open Pending Bookings Dispatch Matrix" aria-label="Open Pending Bookings Dispatch Matrix">
                 <svg class="botlab-svg-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="m9 12 2 2 4-4"/></svg>
                 <span>Dispatch Matrix</span>
                 <span class="botlab-matrix-badge" id="botlab-matrix-badge">0</span>
               </button>
 
               <!-- Right-Side Extension Actions -->
-              <div class="botlab-mode-toggle" id="botlab-mode-toggle" title="Toggle Dry Run / Live Execution Mode">
+              <div class="botlab-mode-toggle" id="botlab-mode-toggle" title="Toggle Dry Run / Live Execution Mode" role="button" tabindex="0" aria-label="Toggle Dry Run / Live Execution Mode">
                 <span class="botlab-mode-dot" id="botlab-mode-dot"></span>
                 <span class="botlab-mode-label" id="botlab-mode-label">DRY RUN</span>
               </div>
-              <button class="botlab-toolbar-btn stop" onclick="window.botlabStopAllTabs()" title="Emergency Stop All Automations">
+              <button class="botlab-toolbar-btn stop" onclick="window.botlabStopAllTabs()" title="Emergency Stop All Automations" aria-label="Emergency Stop All Automations">
                 <svg class="botlab-svg-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><rect x="9" y="9" width="6" height="6" rx="1"/></svg>
                 <span>Stop</span>
               </button>
-              <button class="botlab-toolbar-btn ai active" id="botlab-ai-bar-btn" onclick="window.toggleBotlabAI()" title="Toggle RedcliffeBot Assistant">
+              <button class="botlab-toolbar-btn ai active" id="botlab-ai-bar-btn" onclick="window.toggleBotlabAI()" title="Toggle RedcliffeBot Assistant" aria-label="Toggle RedcliffeBot Assistant">
                 <svg class="botlab-svg-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3-1.9 5.8a2 2 0 0 1-1.3 1.3L3 12l5.8 1.9a2 2 0 0 1 1.3 1.3L12 21l1.9-5.8a2 2 0 0 1 1.3-1.3L21 12l-5.8-1.9a2 2 0 0 1-1.3-1.3L12 3Z"/></svg>
                 <span>Bot AI</span>
               </button>
             </div>
 
             <!-- Persistent Queue Heads-Up Display (HUD) Banner -->
-            <div class="botlab-queue-hud" id="botlab-queue-hud">
+            <div class="botlab-queue-hud" id="botlab-queue-hud" role="region" aria-label="Queue Execution Status HUD">
               <div class="botlab-queue-hud-info">
                 <svg class="botlab-svg-sm text-indigo-500 animate-spin" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.2"/></svg>
                 <span id="botlab-queue-hud-text">Queue Running: Initializing...</span>
               </div>
               <div class="botlab-queue-hud-actions">
-                <button class="botlab-queue-btn" onclick="window.botlabRunNextInQueue()" title="Skip to Next in Queue">
+                <button class="botlab-queue-btn" onclick="window.botlabRunNextInQueue()" title="Skip to Next in Queue" aria-label="Skip to Next in Queue">
                   <svg class="botlab-svg-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 4 15 12 5 20 5 4"/><line x1="19" x2="19" y1="5" y2="19"/></svg>
                   <span>Skip Next</span>
                 </button>
-                <button class="botlab-queue-btn" onclick="window.botlabOpenCurrentInWindow()" title="Open Current in External Window">
+                <button class="botlab-queue-btn" onclick="window.botlabOpenCurrentInWindow()" title="Open Current in External Window" aria-label="Open Current in External Window">
                   <svg class="botlab-svg-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
                   <span>Pop-out</span>
                 </button>
-                <button class="botlab-queue-btn stop" onclick="window.botlabStopQueue()" title="Stop Entire Queue">
+                <button class="botlab-queue-btn stop" onclick="window.botlabStopQueue()" title="Stop Entire Queue" aria-label="Stop Entire Queue">
                   <svg class="botlab-svg-xs text-rose-500" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="6" width="12" height="12" rx="2"/></svg>
                   <span>Stop</span>
                 </button>
@@ -1131,16 +1131,16 @@
                     </div>
                   </div>
                   <div class="botlab-card-actions">
-                    <button class="botlab-card-btn" onclick="window.botlabFocusTab(0)" title="Focus Tab (Single View)">
+                    <button class="botlab-card-btn" onclick="window.botlabFocusTab(0)" title="Focus Tab (Single View)" aria-label="Focus Tab (Single View)">
                       <svg class="botlab-svg-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg>
                     </button>
-                    <button class="botlab-card-btn" onclick="window.open((document.getElementById('botlab-iframe-0') && document.getElementById('botlab-iframe-0').src) ? document.getElementById('botlab-iframe-0').src : 'https://www.google.com', '_blank')" title="Open in External Window">
+                    <button class="botlab-card-btn" onclick="window.open((document.getElementById('botlab-iframe-0') && document.getElementById('botlab-iframe-0').src) ? document.getElementById('botlab-iframe-0').src : 'https://www.google.com', '_blank')" title="Open in External Window" aria-label="Open in External Window">
                       <svg class="botlab-svg-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
                     </button>
-                    <button class="botlab-card-btn" onclick="window.botlabReloadTab(0)" title="Reload Tab">
+                    <button class="botlab-card-btn" onclick="window.botlabReloadTab(0)" title="Reload Tab" aria-label="Reload Tab">
                       <svg class="botlab-svg-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-2.636-6.364M21 3v6h-6"/></svg>
                     </button>
-                    <button class="botlab-card-btn close-action" onclick="window.botlabCloseTab(0)" title="Close Tab">
+                    <button class="botlab-card-btn close-action" onclick="window.botlabCloseTab(0)" title="Close Tab" aria-label="Close Tab">
                       <svg class="botlab-svg-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
                     </button>
                   </div>
@@ -1177,10 +1177,10 @@
                   <span class="botlab-status-ping"></span>
                   <span class="botlab-ai-status" id="botlab-ai-status">Ready</span>
                 </div>
-                <button class="botlab-ai-icon-btn" onclick="window.botlabClearChat()" title="Clear Chat History">
+                <button class="botlab-ai-icon-btn" onclick="window.botlabClearChat()" title="Clear Chat History" aria-label="Clear Chat History">
                   <svg class="botlab-svg-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
                 </button>
-                <button class="botlab-ai-icon-btn" onclick="window.toggleBotlabAI()" title="Collapse Panel">
+                <button class="botlab-ai-icon-btn" onclick="window.toggleBotlabAI()" title="Collapse Panel" aria-label="Collapse Panel">
                   <svg class="botlab-svg-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
                 </button>
               </div>
@@ -1193,7 +1193,7 @@
                   <svg class="botlab-svg-xs text-indigo-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>
                   <span>Active Pendency</span>
                 </span>
-                <button class="botlab-ai-chips-refresh" onclick="if(window.botAICommand) window.botAICommand('all', true);" title="Sync real-time data from Sheets">
+                <button class="botlab-ai-chips-refresh" onclick="if(window.botAICommand) window.botAICommand('all', true);" title="Sync real-time data from Sheets" aria-label="Sync real-time data from Sheets">
                   <svg class="botlab-svg-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.2"/></svg>
                 </button>
               </div>
@@ -1248,7 +1248,7 @@
                   onkeydown="if(event.key==='Enter'){event.preventDefault();window.sendBotlabCommand(this.value);this.value='';}" />
                 <div class="botlab-composer-right">
                   <kbd class="botlab-kbd-hint">↵ Enter</kbd>
-                  <button class="botlab-ai-send" onclick="var i=document.getElementById('botlab-ai-input');window.sendBotlabCommand(i.value);i.value='';" title="Send Command">
+                  <button class="botlab-ai-send" onclick="var i=document.getElementById('botlab-ai-input');window.sendBotlabCommand(i.value);i.value='';" title="Send Command" aria-label="Send Command">
                     <svg class="botlab-svg-xs text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
                   </button>
                 </div>
@@ -1258,7 +1258,7 @@
           </div>
 
           <!-- Floating AI Restore Button (shows when AI panel is collapsed) -->
-          <button class="botlab-ai-float-btn" id="botlab-ai-float-btn" onclick="window.toggleBotlabAI()" title="Open RedcliffeBot AI Assistant">
+          <button class="botlab-ai-float-btn" id="botlab-ai-float-btn" onclick="window.toggleBotlabAI()" title="Open RedcliffeBot AI Assistant" aria-label="Open RedcliffeBot AI Assistant">
             <svg class="botlab-svg-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3-1.9 5.8a2 2 0 0 1-1.3 1.3L3 12l5.8 1.9a2 2 0 0 1 1.3 1.3L12 21l1.9-5.8a2 2 0 0 1 1.3-1.3L21 12l-5.8-1.9a2 2 0 0 1-1.3-1.3L12 3Z"/></svg>
             <span>Open RedcliffeBot</span>
           </button>
@@ -1273,7 +1273,7 @@
        ========================================== -->
 
   <!-- Modal: Bot Lab Pending Dispatch Matrix -->
-  <div id="modal-dispatch-matrix" class="botlab-matrix-drawer" onclick="window.closeDispatchMatrix()">
+  <div id="modal-dispatch-matrix" class="botlab-matrix-drawer" onclick="window.closeDispatchMatrix()" role="dialog" aria-modal="true" aria-labelledby="matrix-modal-title">
     <div class="botlab-matrix-content" onclick="event.stopPropagation()">
       <!-- Header -->
       <div class="botlab-matrix-header">
@@ -1282,14 +1282,14 @@
             <span class="material-symbols-outlined text-[20px]">ballot</span>
           </div>
           <div>
-            <h3 class="text-sm font-extrabold text-slate-900 dark:text-white flex items-center gap-2">
+            <h3 class="text-sm font-extrabold text-slate-900 dark:text-white flex items-center gap-2" id="matrix-modal-title">
               Bot Lab: Pending Bookings Dispatch Matrix
               <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-indigo-100 dark:bg-indigo-950/70 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800" id="matrix-header-count">0 Pending</span>
             </h3>
             <p class="text-[11px] text-slate-500 dark:text-slate-400">Launch all at once in parallel multi-tabs, run a 1-by-1 step queue, or launch individual patients.</p>
           </div>
         </div>
-        <button class="w-8 h-8 rounded-lg bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-500 dark:text-slate-400 flex items-center justify-center transition-colors cursor-pointer" onclick="window.closeDispatchMatrix()" title="Close (Esc)">
+        <button class="w-8 h-8 rounded-lg bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-500 dark:text-slate-400 flex items-center justify-center transition-colors cursor-pointer" onclick="window.closeDispatchMatrix()" title="Close (Esc)" aria-label="Close (Esc)">
           <span class="material-symbols-outlined text-[18px]">close</span>
         </button>
       </div>
@@ -1299,7 +1299,7 @@
         <div class="botlab-matrix-filter-pills" id="matrix-filter-pills">
           <button class="botlab-filter-pill active" onclick="window.setMatrixClientFilter('all')">All</button>
         </div>
-        <input type="text" class="botlab-matrix-search" id="matrix-search-input" placeholder="Search patient, row, test, city..." oninput="window.renderMatrixRows()" />
+        <input type="text" class="botlab-matrix-search" id="matrix-search-input" placeholder="Search patient, row, test, city..." oninput="window.renderMatrixRows()" aria-label="Search patient, row, test, city" />
       </div>
 
       <!-- Body / Table -->
@@ -1308,7 +1308,7 @@
           <thead>
             <tr>
               <th style="width:40px;text-align:center;">
-                <input type="checkbox" id="matrix-select-all" onchange="window.toggleMatrixSelectAll(this.checked)" title="Select / Deselect All" />
+                <input type="checkbox" id="matrix-select-all" onchange="window.toggleMatrixSelectAll(this.checked)" title="Select / Deselect All" aria-label="Select or deselect all bookings" />
               </th>
               <th>Row & Client</th>
               <th>Patient Details</th>
@@ -1329,15 +1329,15 @@
           0 bookings selected
         </div>
         <div class="flex items-center gap-2 flex-wrap">
-          <button class="botlab-matrix-action-btn primary" onclick="window.handleMatrixBatchAction('parallel')" title="Open selected bookings in separate tabs and activate Grid View">
+          <button class="botlab-matrix-action-btn primary" onclick="window.handleMatrixBatchAction('parallel')" title="Open selected bookings in separate tabs and activate Grid View" aria-label="Open selected bookings in separate tabs and activate Grid View">
             <span class="material-symbols-outlined text-[15px]">bolt</span>
             <span>Launch All Selected (Grid View)</span>
           </button>
-          <button class="botlab-matrix-action-btn secondary" onclick="window.handleMatrixBatchAction('queue')" title="Run selected bookings in 1-by-1 sequential queue">
+          <button class="botlab-matrix-action-btn secondary" onclick="window.handleMatrixBatchAction('queue')" title="Run selected bookings in 1-by-1 sequential queue" aria-label="Run selected bookings in 1-by-1 sequential queue">
             <span class="material-symbols-outlined text-[15px]">format_list_numbered</span>
             <span>Queue 1-by-1</span>
           </button>
-          <button class="botlab-matrix-action-btn outline" onclick="window.handleMatrixBatchAction('windows')" title="Open each selected booking in a real external browser window">
+          <button class="botlab-matrix-action-btn outline" onclick="window.handleMatrixBatchAction('windows')" title="Open each selected booking in a real external browser window" aria-label="Open each selected booking in a real external browser window">
             <span class="material-symbols-outlined text-[15px]">open_in_new</span>
             <span>Pop-out in Windows</span>
           </button>
@@ -1797,7 +1797,7 @@
       <!-- Header with Official Redcliffe Logo -->
       <div class="px-8 pt-7 pb-4 text-center">
         <div class="inline-flex items-center justify-center p-3 bg-white rounded-2xl shadow-sm border border-slate-200/80 mb-3.5 transform hover:scale-105 transition-transform">
-          <img src="logo_doc.png" alt="Redcliffe Labs" class="h-7 w-auto object-contain">
+          <img src="redcliffe_logo.png" onerror="this.onerror=null; this.src='logo_doc.png';" alt="Redcliffe Labs" class="h-9 w-auto object-contain">
         </div>
         <h2 class="text-xl font-black text-[#023B68] tracking-tight leading-tight">Drop-off Operations</h2>
         <p class="text-slate-500 text-xs font-semibold mt-1">Enterprise Management Portal â€¢ Sign In</p>
@@ -2279,7 +2279,7 @@
   <script src="offline-game.js"></script>
   <script src="auth.js?v=6"></script>
   <script src="api_v2.js?v=4"></script>
-  <script src="app.js?v=31"></script>
+  <script src="app.js?v=32"></script>
   <!-- <script src="challan.js?v=6"></script> -->
 </body>
 </html>

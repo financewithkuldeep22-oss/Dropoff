@@ -1396,7 +1396,7 @@ function renderDocument() {
                 <div class="flex justify-between items-start mb-4 text-black">
                     <div class="w-2/3">
                         <div class="flex items-center gap-4 mb-3">
-                            <img src="logo_doc.png" alt="Redcliffe Logo" class="h-12 w-auto object-contain">
+                            <img src="redcliffe_logo.png" onerror="this.onerror=null; this.src='logo_doc.png';" alt="Redcliffe Logo" class="h-12 w-auto object-contain">
                             <div class="h-10 w-px bg-black opacity-20"></div>
                             <h2 class="text-2xl font-black text-black tracking-tighter leading-none uppercase">Redcliffe Lifetech<br>Private Limited</h2>
                         </div>
