@@ -46,6 +46,7 @@ The application supports standard browser history navigation (`pushState` and `p
 | Modal Identifier | Trigger Action | Access | Functionality |
 | :--- | :--- | :--- | :--- |
 | `#modal-dispatch-matrix` | "Dispatch Matrix" button in Bot Lab toolbar | Logged In | Batch operations console, multi-select rows, parallel tab launch, queue launch, and popup windows |
+| `#modal-manual-booking` | "Manual Booking" button in Bot Lab toolbar | Logged In | Dual-mode manual booking dialog: Mode A (Sheet Append) & Mode B (Guided Portal Assist) with lossless toggle |
 | `#modal-pending-view` | "Pending Bookings" button in navigation rail / header | Logged In | Client breakdown and quick copy for pending requisition bookings |
 | `#login-overlay` | Initial load if unauthenticated / Logout | Public | Secure username/password authentication modal |
 | `#modal-client-config`| "Config" button in navigation rail | Admin | Dynamic client spreadsheet URL, tab name, and status editor |

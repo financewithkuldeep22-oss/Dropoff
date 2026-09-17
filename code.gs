@@ -3154,3 +3154,197 @@ function getBotlabKnowledgeBase() {
   // (e.g. a new BotlabKnowledgeBase.gs), not in Script Properties or Drive.
   return typeof BOTLAB_KB_TEXT !== 'undefined' ? BOTLAB_KB_TEXT : "";
 }
+
+// ============================================================
+// MANUAL BOOKING CREATION ENGINE (Mode A: Sheet Append)
+// ============================================================
+
+function addManualPendingRow(clientName, tabName, rowData) {
+  try {
+    if (!clientName) {
+      return { status: 'error', message: 'Client name is required.' };
+    }
+    if (!rowData || typeof rowData !== 'object') {
+      return { status: 'error', message: 'Patient row data is required.' };
+    }
+
+    var ss = getActiveSpreadsheetSafe();
+    var configSheet = ss.getSheetByName('Client_Config');
+    if (!configSheet) return { status: 'error', message: 'Configuration sheet not found.' };
+
+    var configRows = configSheet.getDataRange().getValues();
+    var spreadsheetId = '';
+    var configClientName = clientName;
+    if (clientName && clientName.indexOf(" - ") !== -1) {
+      configClientName = clientName.split(" - ")[0].trim();
+    }
+
+    function cleanClientStr(str) {
+      return (str || '').toString().toLowerCase().replace(/[^a-z0-9]/g, '');
+    }
+
+    for (var i = 1; i < configRows.length; i++) {
+      var rowClient = configRows[i][0] ? configRows[i][0].toString().trim() : '';
+      if (!rowClient) continue;
+      if (rowClient === clientName || rowClient === configClientName ||
+          rowClient.toLowerCase() === configClientName.toLowerCase() ||
+          cleanClientStr(rowClient) === cleanClientStr(configClientName) ||
+          cleanClientStr(rowClient) === cleanClientStr(clientName)) {
+        var urlOrId = configRows[i][1].toString().trim();
+        spreadsheetId = urlOrId;
+        if (urlOrId.indexOf('docs.google.com') !== -1) {
+          var match = urlOrId.match(/\/d\/([a-zA-Z0-9-_]+)/);
+          if (match) spreadsheetId = match[1];
+        }
+        if (!tabName && configRows[i][2]) {
+          tabName = configRows[i][2].toString().trim();
+        }
+        break;
+      }
+    }
+
+    if (!spreadsheetId) {
+      return { status: 'error', message: 'Could not find spreadsheet mapping for client: ' + clientName };
+    }
+
+    var clientDoc = SpreadsheetApp.openById(spreadsheetId);
+    var targetSheet = null;
+    if (tabName) {
+      targetSheet = clientDoc.getSheetByName(tabName);
+      if (!targetSheet) {
+        var allSheets = clientDoc.getSheets();
+        for (var s = 0; s < allSheets.length; s++) {
+          if (allSheets[s].getName().toLowerCase().trim() === tabName.toLowerCase().trim()) {
+            targetSheet = allSheets[s];
+            break;
+          }
+        }
+      }
+    }
+    if (!targetSheet) {
+      targetSheet = clientDoc.getSheets()[0];
+    }
+
+    var map = getSheetColumnMap(targetSheet, clientName);
+    var lastCol = targetSheet.getLastColumn() || (map ? map.lastCol : 12);
+    if (lastCol < 1) lastCol = 12;
+
+    var newRow = new Array(lastCol);
+    for (var c = 0; c < lastCol; c++) {
+      newRow[c] = '';
+    }
+
+    var now = new Date();
+    var dateStr = Utilities.formatDate(now, "Asia/Kolkata", map && map.datePref === 'US' ? "MM/dd/yyyy" : "dd-MM-yyyy");
+
+    if (map) {
+      if (map.date !== -1 && map.date < lastCol) newRow[map.date] = dateStr;
+      if (map.name !== -1 && map.name < lastCol) newRow[map.name] = rowData.patientName || '';
+      if (map.age !== -1 && map.age < lastCol) newRow[map.age] = rowData.patientAge || '';
+      if (map.gender !== -1 && map.gender < lastCol) newRow[map.gender] = rowData.patientGender || '';
+      if (map.phone !== -1 && map.phone < lastCol) newRow[map.phone] = rowData.patientPhone || '';
+      if (map.test !== -1 && map.test < lastCol) newRow[map.test] = rowData.testPackage || '';
+      if (map.location !== -1 && map.location < lastCol) newRow[map.location] = rowData.location || '';
+      if (map.colTime !== -1 && map.colTime < lastCol) newRow[map.colTime] = rowData.collectionTime || '';
+      if (map.status !== -1 && map.status < lastCol) newRow[map.status] = 'Pending';
+      if (map.referredBy !== -1 && map.referredBy < lastCol && !newRow[map.referredBy]) newRow[map.referredBy] = 'Manual Entry';
+    } else {
+      newRow[0] = dateStr;
+      newRow[1] = '';
+      newRow[2] = 'MAN-' + Date.now().toString().slice(-6);
+      newRow[3] = rowData.patientName || '';
+      newRow[4] = rowData.patientAge || '';
+      newRow[5] = rowData.patientGender || '';
+      newRow[6] = rowData.patientPhone || '';
+      newRow[7] = rowData.testPackage || '';
+      newRow[8] = rowData.location || '';
+      newRow[9] = 'Pending';
+    }
+
+    // Distinguishing flag: append [Manual] tag in remarks or notes
+    var noteText = (rowData.notes || '').toString().trim();
+    var manualFlag = '[Manual Entry]';
+    if (noteText) {
+      noteText = manualFlag + ' ' + noteText;
+    } else {
+      noteText = manualFlag;
+    }
+
+    var headers = targetSheet.getRange(1, 1, 1, lastCol).getValues()[0];
+    var notesCol = -1;
+    for (var h = 0; h < headers.length; h++) {
+      var hStr = (headers[h] || '').toString().toLowerCase();
+      if (hStr.indexOf('remark') !== -1 || hStr.indexOf('note') !== -1 || hStr.indexOf('comment') !== -1) {
+        notesCol = h;
+        break;
+      }
+    }
+    if (notesCol !== -1 && notesCol < lastCol) {
+      newRow[notesCol] = noteText;
+    } else if (map && map.test !== -1 && !String(newRow[map.test]).includes('[Manual Entry]')) {
+      newRow[map.test] = (newRow[map.test] || '') + ' ' + manualFlag;
+    }
+
+    targetSheet.appendRow(newRow);
+    var insertedRow = targetSheet.getLastRow();
+
+    var logSheet = ss.getSheetByName('Dashboard_Logs');
+    if (logSheet) {
+      var ts = Utilities.formatDate(now, "Asia/Kolkata", "yyyy-MM-dd HH:mm:ss");
+      logSheet.appendRow([ts, clientName, targetSheet.getName(), insertedRow, rowData.patientName || '', '', 'Manual Pending Booking Added: ' + noteText, 'Success']);
+    }
+
+    clearDashboardCache();
+
+    return {
+      status: 'success',
+      message: 'Pending booking successfully added to ' + clientName + ' (' + targetSheet.getName() + ' Row ' + insertedRow + ')!',
+      rowNum: insertedRow,
+      clientName: clientName,
+      tabName: targetSheet.getName()
+    };
+  } catch (e) {
+    return { status: 'error', message: 'Failed to add manual booking: ' + e.toString() };
+  }
+}
+
+function getClientTabs(clientName) {
+  try {
+    var ss = getActiveSpreadsheetSafe();
+    var configSheet = ss.getSheetByName('Client_Config');
+    if (!configSheet) return { status: 'error', message: 'Client_Config not found.' };
+
+    var configRows = configSheet.getDataRange().getValues();
+    var spreadsheetId = '';
+    var configClientName = clientName;
+    if (clientName && clientName.indexOf(" - ") !== -1) {
+      configClientName = clientName.split(" - ")[0].trim();
+    }
+    function cleanClientStr(str) {
+      return (str || '').toString().toLowerCase().replace(/[^a-z0-9]/g, '');
+    }
+
+    for (var i = 1; i < configRows.length; i++) {
+      var rowClient = configRows[i][0] ? configRows[i][0].toString().trim() : '';
+      if (!rowClient) continue;
+      if (rowClient === clientName || rowClient === configClientName ||
+          cleanClientStr(rowClient) === cleanClientStr(clientName)) {
+        var urlOrId = configRows[i][1].toString().trim();
+        spreadsheetId = urlOrId;
+        if (urlOrId.indexOf('docs.google.com') !== -1) {
+          var match = urlOrId.match(/\/d\/([a-zA-Z0-9-_]+)/);
+          if (match) spreadsheetId = match[1];
+        }
+        break;
+      }
+    }
+    if (!spreadsheetId) return { status: 'error', message: 'Client not mapped.' };
+
+    var clientDoc = SpreadsheetApp.openById(spreadsheetId);
+    var sheets = clientDoc.getSheets();
+    var tabNames = sheets.map(function(s) { return s.getName(); });
+    return { status: 'success', tabs: tabNames };
+  } catch (e) {
+    return { status: 'error', message: e.toString() };
+  }
+}

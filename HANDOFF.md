@@ -59,3 +59,51 @@
 - **Verification**:
   - `node --check app.js` passed with code 0.
 
+### Phase 3: Part 5 & Part 2 — Manual Booking Creation, Extension Assist & Prompt Refinements
+- **Files Modified**:
+  - `code.gs`:
+    - Added `addManualPendingRow(clientName, tabName, rowData)`: Resolves partner sheet ID via `Client_Config`, dynamic column mapping via `getSheetColumnMap`, tags entry with `[Manual Entry]`, appends to target sheet tab, writes audit entry to `Dashboard_Logs`, and clears cache.
+    - Added `getClientTabs(clientName)`: Returns array of sheet tab names for selected client.
+  - `index.html`:
+    - Added "Manual Booking" toolbar button (`#botlab-manual-booking-btn`) in Bot Lab.
+    - Added `#modal-manual-booking` dialog drawer with dual-mode tabs (Mode A: Sheet Append vs. Mode B: Guided Portal Fill), informative mode banners, complete patient form grid, and success summary card.
+  - `style.css`:
+    - Added `.botlab-toolbar-btn.manual-booking` styles with hover and dark-mode support.
+    - Added `.manual-booking-content`, `.manual-booking-mode-tabs`, `.manual-booking-mode-tab`, `.manual-mode-banner`, `.manual-form-grid`, `.manual-form-input`, `.manual-booking-success`, `.manual-summary-box`, and `.manual-summary-btn` with dark mode support.
+  - `app.js`:
+    - Updated `_buildBotBookingUrl` to accept `(b, delayMs, isAssistOnly)`: Sets `botManualAssist=true` in assist mode, and handles both naming conventions (`name`/`patientName`, `test`/`testPackage`, `age`/`patientAge`, `gender`/`patientGender`, `phone`/`patientPhone`).
+    - Added `_manualBookingState` to hold form data and guarantee lossless tab switching between Mode A and Mode B.
+    - Added `window.openManualBookingModal(initialData)`: Populates client dropdown dynamically from known partners, `Qs.clientStats`, and recent logs.
+    - Added `window.closeManualBookingModal()`.
+    - Added `window.switchManualBookingMode(mode)`: Losslessly syncs form fields into memory and toggles UI elements/action buttons.
+    - Added `window.onManualBookingClientChange(clientName)`: Queries `getClientTabs` and pre-populates active tab.
+    - Added `window.handleManualBookingSubmit()` (Mode A): Appends pending row via `google.script.run` (or Web App fetch fallback) and renders interactive summary card.
+    - Added `window.launchGuidedPortalFill()` (Mode B): Launches partner booking portal in Bot Lab with `botManualAssist=true`.
+    - Added `window.switchGuidedToAutofill()`: Instantly switches Mode B to full automation (`botAutoRun=true`) without re-entering any data.
+    - Added Success Card actions:
+      - `window.duplicateManualBooking()`: Preserves client & test, clears patient details for rapid entry.
+      - `window.shareManualBookingSummary()`: Copies formatted WhatsApp/text booking summary to clipboard.
+      - `window.modifyManualBooking()`: Reopens form pre-filled with current booking data.
+      - `window.openManualBookingInBotLab()`: Directly opens booking tab in Bot Lab.
+      - `window.resetManualBookingForm()`: Clears form for fresh entry.
+    - Added Escape key handler to dismiss `#modal-manual-booking`.
+  - `..\Redcliffe_Bot\redcliffe.js`:
+    - Line 3988: Handled `botManualAssist=true` to highlight and focus portal input fields without firing auto-submission.
+  - `..\Redcliffe_Bot\Code.gs`:
+    - Added maintainability comment referencing `redcliffe.js` test list synchronization.
+    - Added explicit confidence threshold (>=80%) guidance to `serverMapTestsWithGemini` and `parsePatientDataWithGemini` prompts.
+- **Verification**:
+  - `node --check app.js` passed with code 0.
+  - `Get-Content code.gs -Raw | node --input-type=commonjs --check` passed with code 0.
+  - `node --check ..\Redcliffe_Bot\redcliffe.js` passed with code 0.
+  - `Get-Content ..\Redcliffe_Bot\Code.gs -Raw | node --input-type=commonjs --check` passed with code 0.
+  - Executed `test_manual_booking.js` simulating `_buildBotBookingUrl` (both assist and auto modes), `addManualPendingRow`, and `getClientTabs` against mock Google Apps Script environment — all test assertions passed.
+
+---
+
+## 4. Current Repository Status & Next Steps
+- All requested features across Part 1, Part 2, Part 3, Part 4, Part 5, and Part 6 are fully implemented and verified.
+- The repository is on branch `uiux-overhaul/dashboard`.
+- Ready for user inspection upon wake-up.
+
+

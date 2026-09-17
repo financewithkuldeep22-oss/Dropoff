@@ -40,3 +40,7 @@ Standard response format:
 | `saveClientConfigRow` | Yes | `POST` | 20s | 1 | `[clientName, sheetUrl, tabName, status]` | `{ status: 'success', message: '...' }` | `saveClientConfig` | Adds or updates a client spreadsheet connection |
 | `deleteClientConfigRow` | Yes | `POST` | 20s | 1 | `[clientName]` | `{ status: 'success', message: '...' }` | `deleteClientConfig` | Deletes a client connection |
 | `warmDashboardDataCache` | Yes | `POST` | 28s | 0 | `[]` | `{ status: 'success', cachedClients: N }` | Background Trigger / Admin | Pre-warms cache chunks across all client sheets |
+| `botlabChat` | Yes | `POST` | 30s | 1 | `[userMessage, historyJson]` | `{ status: 'success', reply: '...' }` | `botlabAskAI` | Bot Lab Gemini AI Assistant grounded in single-source knowledge base |
+| `getBotlabKnowledgeBase` | Yes | `POST` | 10s | 1 | `[]` | `{ status: 'success', kb: '...' }` | Server/Internal | Retrieves grounded knowledge base constant `BOTLAB_KB_TEXT` |
+| `addManualPendingRow` | Yes | `POST` | 25s | 1 | `[clientName, tabName, rowData]` | `{ status: 'success', message: '...', rowNum: N, clientName, tabName }` | `handleManualBookingSubmit` | Mode A: Appends pending booking to client Google Sheet with `[Manual Entry]` flag |
+| `getClientTabs` | Yes | `POST` | 15s | 1 | `[clientName]` | `{ status: 'success', tabs: [...] }` | `onManualBookingClientChange` | Fetches sheet tab names dynamically for selected client |

@@ -1083,6 +1083,12 @@
                 <span class="botlab-matrix-badge" id="botlab-matrix-badge">0</span>
               </button>
 
+              <!-- Manual Booking Trigger Button -->
+              <button class="botlab-toolbar-btn manual-booking" id="botlab-manual-booking-btn" onclick="window.openManualBookingModal()" title="Create Manual Booking (Sheet Append / Guided Portal)" aria-label="Create Manual Booking">
+                <svg class="botlab-svg-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
+                <span>Manual Booking</span>
+              </button>
+
               <!-- Stop & Bot AI Toolbar Buttons -->
               <button class="botlab-toolbar-btn stop" onclick="window.botlabStopAllTabs()" title="Emergency Stop All Automations" aria-label="Emergency Stop All Automations">
                 <svg class="botlab-svg-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><rect x="9" y="9" width="6" height="6" rx="1"/></svg>
@@ -1339,6 +1345,220 @@
           <button class="botlab-matrix-action-btn outline" onclick="window.handleMatrixBatchAction('windows')" title="Open each selected booking in a real external browser window" aria-label="Open each selected booking in a real external browser window">
             <span class="material-symbols-outlined text-[15px]">open_in_new</span>
             <span>Pop-out in Windows</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Manual Booking Creation (Dual Mode: Sheet Append & Guided Portal) -->
+  <div id="modal-manual-booking" class="botlab-matrix-drawer" onclick="window.closeManualBookingModal()" role="dialog" aria-modal="true" aria-labelledby="manual-booking-modal-title">
+    <div class="botlab-matrix-content manual-booking-content" onclick="event.stopPropagation()">
+      
+      <!-- Modal Header -->
+      <div class="botlab-matrix-header">
+        <div class="flex items-center gap-3">
+          <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-indigo-600 to-blue-500 text-white flex items-center justify-center shadow-md shadow-indigo-500/25">
+            <span class="material-symbols-outlined text-[20px]">add_circle</span>
+          </div>
+          <div>
+            <h3 class="text-sm font-extrabold text-slate-900 dark:text-white flex items-center gap-2" id="manual-booking-modal-title">
+              Create Manual Booking
+              <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-indigo-100 dark:bg-indigo-950/70 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800" id="manual-booking-mode-badge">Mode A: Sheet</span>
+            </h3>
+            <p class="text-[11px] text-slate-500 dark:text-slate-400">Append pending row to client tracking sheet or launch guided manual-fill in partner portal.</p>
+          </div>
+        </div>
+        <button class="w-8 h-8 rounded-lg bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-500 dark:text-slate-400 flex items-center justify-center transition-colors cursor-pointer" onclick="window.closeManualBookingModal()" title="Close (Esc)" aria-label="Close (Esc)">
+          <span class="material-symbols-outlined text-[18px]">close</span>
+        </button>
+      </div>
+
+      <!-- Mode Switcher Tabs (Lossless toggle) -->
+      <div class="manual-booking-mode-tabs">
+        <button type="button" class="manual-booking-mode-tab active" id="tab-mode-sheet" onclick="window.switchManualBookingMode('sheet')">
+          <span class="material-symbols-outlined text-[16px]">table_rows</span>
+          <span>Mode A: Append to Sheet</span>
+        </button>
+        <button type="button" class="manual-booking-mode-tab" id="tab-mode-portal" onclick="window.switchManualBookingMode('portal')">
+          <span class="material-symbols-outlined text-[16px]">open_in_browser</span>
+          <span>Mode B: Guided Portal Fill</span>
+        </button>
+      </div>
+
+      <!-- Modal Body (Form & Success Card) -->
+      <div class="manual-booking-body">
+        <!-- Form View -->
+        <form id="form-manual-booking" onsubmit="event.preventDefault();" novalidate>
+          <!-- Mode Description Alerts -->
+          <div class="manual-mode-banner" id="manual-mode-banner-sheet">
+            <span class="material-symbols-outlined text-[18px] text-indigo-500 shrink-0">info</span>
+            <div class="text-[11.5px] text-slate-600 dark:text-slate-300 leading-snug">
+              <b>Mode A (Sheet Append):</b> Appends a pending booking row directly into the partner's Google Sheet tab with a <code>[Manual Entry]</code> flag. RedcliffeBot can pick it up as a normal pending row.
+            </div>
+          </div>
+          <div class="manual-mode-banner hidden" id="manual-mode-banner-portal">
+            <span class="material-symbols-outlined text-[18px] text-indigo-500 shrink-0">lightbulb</span>
+            <div class="text-[11.5px] text-slate-600 dark:text-slate-300 leading-snug">
+              <b>Mode B (Guided Portal Assist):</b> Opens the partner booking portal with field highlighting and guidance. You can also switch to full automation at any moment without retyping.
+            </div>
+          </div>
+
+          <!-- Form Fields Grid -->
+          <div class="manual-form-grid">
+            <!-- Client / Partner -->
+            <div class="manual-form-group">
+              <label for="manual-client-select" class="manual-form-label">
+                Client / Partner <span class="text-rose-500 font-bold">*</span>
+              </label>
+              <select id="manual-client-select" class="manual-form-input" onchange="window.onManualBookingClientChange(this.value)">
+                <option value="">Select Partner Client...</option>
+              </select>
+            </div>
+
+            <!-- Sheet Tab / City -->
+            <div class="manual-form-group">
+              <div class="flex items-center justify-between">
+                <label for="manual-tab-select" class="manual-form-label">
+                  Target Tab / City
+                </label>
+                <span class="text-[10px] text-slate-400 font-medium" id="manual-tab-loading"></span>
+              </div>
+              <select id="manual-tab-select" class="manual-form-input">
+                <option value="">Default Tab</option>
+              </select>
+            </div>
+
+            <!-- Patient Name -->
+            <div class="manual-form-group">
+              <label for="manual-patient-name" class="manual-form-label">
+                Patient Name <span class="text-rose-500 font-bold">*</span>
+              </label>
+              <input type="text" id="manual-patient-name" class="manual-form-input" placeholder="e.g. Ramesh Kumar" required />
+            </div>
+
+            <!-- Patient Phone -->
+            <div class="manual-form-group">
+              <label for="manual-patient-phone" class="manual-form-label">
+                Phone Number
+              </label>
+              <input type="tel" id="manual-patient-phone" class="manual-form-input" placeholder="10-digit mobile number" maxlength="10" />
+            </div>
+
+            <!-- Age & Gender -->
+            <div class="manual-form-group">
+              <label class="manual-form-label">Age & Gender</label>
+              <div class="flex gap-2">
+                <input type="number" id="manual-patient-age" class="manual-form-input w-1/2" placeholder="Age" min="1" max="120" />
+                <select id="manual-patient-gender" class="manual-form-input w-1/2">
+                  <option value="Male">Male</option>
+                  <option value="Female">Female</option>
+                  <option value="Other">Other</option>
+                </select>
+              </div>
+            </div>
+
+            <!-- Test / Package -->
+            <div class="manual-form-group">
+              <label for="manual-test-package" class="manual-form-label">
+                Test / Package Name
+              </label>
+              <input type="text" id="manual-test-package" class="manual-form-input" placeholder="e.g. Smart Full Body Checkup, CBC..." />
+            </div>
+
+            <!-- Location / Address -->
+            <div class="manual-form-group col-span-full">
+              <label for="manual-location" class="manual-form-label">
+                Address / Area / Location
+              </label>
+              <input type="text" id="manual-location" class="manual-form-input" placeholder="e.g. Sector 14, Gurgaon or Full Address" />
+            </div>
+
+            <!-- Collection Time -->
+            <div class="manual-form-group">
+              <label for="manual-collection-time" class="manual-form-label">
+                Collection Time Slot
+              </label>
+              <input type="text" id="manual-collection-time" class="manual-form-input" placeholder="e.g. 07:00 AM - 08:00 AM" />
+            </div>
+
+            <!-- Notes / Remarks -->
+            <div class="manual-form-group">
+              <label for="manual-notes" class="manual-form-label">
+                Notes / Special Remarks
+              </label>
+              <input type="text" id="manual-notes" class="manual-form-input" placeholder="Special instructions (auto-tagged [Manual Entry])" />
+            </div>
+          </div>
+        </form>
+
+        <!-- Success / Summary View Card (Hidden initially) -->
+        <div id="manual-booking-success-card" class="manual-booking-success hidden">
+          <div class="flex items-center gap-3 mb-4">
+            <div class="w-10 h-10 rounded-xl bg-emerald-500/15 text-emerald-600 flex items-center justify-center font-bold">
+              <span class="material-symbols-outlined text-[24px]">check_circle</span>
+            </div>
+            <div>
+              <h4 class="text-sm font-bold text-slate-900 dark:text-white" id="manual-success-title">
+                Booking Logged Successfully!
+              </h4>
+              <p class="text-[11.5px] text-slate-500" id="manual-success-subtitle">
+                Row appended to Google Sheet with [Manual Entry] flag.
+              </p>
+            </div>
+          </div>
+
+          <!-- Summary Key-Value Details -->
+          <div class="manual-summary-box" id="manual-summary-details">
+            <!-- Populated via JavaScript -->
+          </div>
+
+          <!-- Action Buttons on Success -->
+          <div class="manual-summary-actions">
+            <button type="button" class="manual-summary-btn" onclick="window.duplicateManualBooking()" title="Keep client & test, enter new patient name">
+              <span class="material-symbols-outlined text-[15px]">content_copy</span>
+              <span>Duplicate for Next Patient</span>
+            </button>
+            <button type="button" class="manual-summary-btn" onclick="window.shareManualBookingSummary()" title="Copy WhatsApp/text summary to clipboard">
+              <span class="material-symbols-outlined text-[15px]">share</span>
+              <span>Share Summary</span>
+            </button>
+            <button type="button" class="manual-summary-btn" onclick="window.modifyManualBooking()" title="Reopen form with current data to modify">
+              <span class="material-symbols-outlined text-[15px]">edit</span>
+              <span>Modify</span>
+            </button>
+            <button type="button" class="manual-summary-btn primary" onclick="window.openManualBookingInBotLab()" id="manual-btn-open-botlab" title="Load booking directly in Bot Lab tab">
+              <span class="material-symbols-outlined text-[15px]">tab</span>
+              <span>Open in Bot Lab</span>
+            </button>
+            <button type="button" class="manual-summary-btn" onclick="window.resetManualBookingForm()" title="Clear form and create fresh booking">
+              <span class="material-symbols-outlined text-[15px]">add</span>
+              <span>New Booking</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Modal Footer Actions -->
+      <div class="botlab-matrix-footer" id="manual-booking-footer">
+        <button type="button" class="botlab-matrix-action-btn outline" onclick="window.closeManualBookingModal()">
+          Cancel
+        </button>
+        <div class="flex items-center gap-2">
+          <!-- Mode A Button -->
+          <button type="button" class="botlab-matrix-action-btn primary" id="btn-submit-mode-sheet" onclick="window.handleManualBookingSubmit()">
+            <span class="material-symbols-outlined text-[15px]">playlist_add</span>
+            <span>Add Pending Row to Sheet</span>
+          </button>
+
+          <!-- Mode B Buttons -->
+          <button type="button" class="botlab-matrix-action-btn secondary hidden" id="btn-submit-mode-autofill" onclick="window.switchGuidedToAutofill()" title="Fill portal completely using automated RedcliffeBot">
+            <span class="material-symbols-outlined text-[15px]">bolt</span>
+            <span>Instant Auto-Fill</span>
+          </button>
+          <button type="button" class="botlab-matrix-action-btn primary hidden" id="btn-submit-mode-portal" onclick="window.launchGuidedPortalFill()" title="Open portal with assist-only highlighting">
+            <span class="material-symbols-outlined text-[15px]">highlight</span>
+            <span>Launch Guided Portal Fill</span>
           </button>
         </div>
       </div>

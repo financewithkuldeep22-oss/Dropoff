@@ -6735,13 +6735,20 @@ window.addEventListener('message', function(event) {
     return b.location || "";
   }
 
-  function _buildBotBookingUrl(b, delayMs) {
+  function _buildBotBookingUrl(b, delayMs, isAssistOnly) {
     var partnerParam = _getBotPartnerParam(b.client || b.clientName);
     var centerParam = _getBotCenterParam(b);
     var cityParam = _getBotCityParam(b, partnerParam);
     var rowNum = b.rowNum || "";
     var p = new URLSearchParams();
-    p.set("botAutoRun", "true");
+
+    if (isAssistOnly) {
+      p.set("botManualAssist", "true");
+    } else {
+      p.set("botAutoRun", "true");
+      p.set("botDryRun", (_bl && _bl.dryRun) ? "true" : "false");
+    }
+
     p.set("botPartner", partnerParam);
     p.set("botCenter", centerParam);
     if (rowNum) p.set("botRow", String(rowNum));
@@ -6753,22 +6760,29 @@ window.addEventListener('message', function(event) {
     p.set("botServerWait", "3000");
 
     // Direct Patient Payload (strict validation to prevent form rejection)
-    if (b.name && b.name !== "N/A") p.set("botPatientName", b.name);
-    if (b.age && b.age !== "N/A") {
-      var ageNum = String(b.age).replace(/\D/g, "");
+    var pName = b.name || b.patientName;
+    if (pName && pName !== "N/A") p.set("botPatientName", pName);
+
+    var pAge = b.age || b.patientAge;
+    if (pAge && pAge !== "N/A") {
+      var ageNum = String(pAge).replace(/\D/g, "");
       if (ageNum) p.set("botAge", ageNum);
     }
-    if (b.gender && b.gender !== "N/A") p.set("botGender", b.gender);
+
+    var pGender = b.gender || b.patientGender;
+    if (pGender && pGender !== "N/A") p.set("botGender", pGender);
     
     // Strict Phone Sanitization: never pass "N/A" into numeric phone inputs
-    if (b.phone && b.phone !== "N/A") {
-      var phoneDigits = String(b.phone).replace(/\D/g, "");
+    var pPhone = b.phone || b.patientPhone;
+    if (pPhone && pPhone !== "N/A") {
+      var phoneDigits = String(pPhone).replace(/\D/g, "");
       if (phoneDigits.length >= 10) {
         p.set("botPhone", phoneDigits.slice(-10));
       }
     }
     
-    if (b.test && b.test !== "N/A") p.set("botTest", b.test);
+    var pTest = b.test || b.testPackage;
+    if (pTest && pTest !== "N/A") p.set("botTest", pTest);
     
     // Address fallback: if address is undefined, automatically pass location / sheetName
     var addressVal = b.address || b.location || b.sheetName || "";
@@ -7713,6 +7727,595 @@ window.addEventListener('message', function(event) {
     }
   };
 
+  // ============================================================
+  // MANUAL BOOKING CREATION & EXTENSION ASSIST (Part 5)
+  // ============================================================
+  var _manualBookingState = {
+    mode: "sheet", // 'sheet' (Mode A) or 'portal' (Mode B)
+    clientName: "",
+    tabName: "",
+    patientName: "",
+    patientPhone: "",
+    patientAge: "",
+    patientGender: "Male",
+    testPackage: "",
+    location: "",
+    collectionTime: "",
+    notes: "",
+    lastResult: null
+  };
+
+  // Known partners list to guarantee instant dropdown options
+  var _knownPartners = [
+    "Flebo.in",
+    "HCL",
+    "Dr. Morepen Labs",
+    "Medibuddy Drop-Off",
+    "Tatvacare",
+    "TGHS",
+    "Betacura",
+    "Allohealth",
+    "Bharath Home Medicare"
+  ];
+
+  window.openManualBookingModal = function (initialData) {
+    var modal = document.getElementById("modal-manual-booking");
+    if (!modal) return;
+
+    // Reset or populate state
+    if (initialData && typeof initialData === "object") {
+      Object.assign(_manualBookingState, initialData);
+    }
+
+    // Populate Client dropdown
+    var clientSel = document.getElementById("manual-client-select");
+    if (clientSel) {
+      var clientOptions = new Set(_knownPartners);
+      try {
+        if (typeof Qs !== "undefined" && Qs) {
+          if (Qs.clientStats) {
+            Object.keys(Qs.clientStats).forEach(function (k) { clientOptions.add(k); });
+          }
+          if (Array.isArray(Qs.logs)) {
+            Qs.logs.forEach(function (l) {
+              if (l.client) clientOptions.add(l.client);
+              if (l.clientName) clientOptions.add(l.clientName);
+            });
+          }
+        }
+      } catch (e) {}
+
+      var currClient = _manualBookingState.clientName || clientSel.value || "Flebo.in";
+      clientSel.innerHTML = "";
+      clientOptions.forEach(function (c) {
+        if (!c) return;
+        var opt = document.createElement("option");
+        opt.value = c;
+        opt.textContent = c;
+        if (c === currClient) opt.selected = true;
+        clientSel.appendChild(opt);
+      });
+      _manualBookingState.clientName = clientSel.value;
+    }
+
+    // Populate inputs from state
+    var nameInput = document.getElementById("manual-patient-name");
+    if (nameInput) nameInput.value = _manualBookingState.patientName || "";
+    var phoneInput = document.getElementById("manual-patient-phone");
+    if (phoneInput) phoneInput.value = _manualBookingState.patientPhone || "";
+    var ageInput = document.getElementById("manual-patient-age");
+    if (ageInput) ageInput.value = _manualBookingState.patientAge || "";
+    var genderInput = document.getElementById("manual-patient-gender");
+    if (genderInput) genderInput.value = _manualBookingState.patientGender || "Male";
+    var testInput = document.getElementById("manual-test-package");
+    if (testInput) testInput.value = _manualBookingState.testPackage || "";
+    var locInput = document.getElementById("manual-location");
+    if (locInput) locInput.value = _manualBookingState.location || "";
+    var colTimeInput = document.getElementById("manual-collection-time");
+    if (colTimeInput) colTimeInput.value = _manualBookingState.collectionTime || "";
+    var notesInput = document.getElementById("manual-notes");
+    if (notesInput) notesInput.value = _manualBookingState.notes || "";
+
+    // Show form, hide success card
+    var formEl = document.getElementById("form-manual-booking");
+    if (formEl) formEl.classList.remove("hidden");
+    var successCard = document.getElementById("manual-booking-success-card");
+    if (successCard) successCard.classList.add("hidden");
+    var footer = document.getElementById("manual-booking-footer");
+    if (footer) footer.classList.remove("hidden");
+
+    // Switch to initial mode without data loss
+    window.switchManualBookingMode(_manualBookingState.mode || "sheet");
+
+    // Populate tabs for current client
+    window.onManualBookingClientChange(_manualBookingState.clientName);
+
+    modal.classList.add("open");
+  };
+
+  window.closeManualBookingModal = function () {
+    var modal = document.getElementById("modal-manual-booking");
+    if (modal) modal.classList.remove("open");
+  };
+
+  window.switchManualBookingMode = function (mode) {
+    // Lossless: save form values into state first
+    _syncFormToState();
+    _manualBookingState.mode = (mode === "portal" ? "portal" : "sheet");
+
+    var isSheet = (_manualBookingState.mode === "sheet");
+    var tabSheet = document.getElementById("tab-mode-sheet");
+    var tabPortal = document.getElementById("tab-mode-portal");
+    if (tabSheet) tabSheet.classList.toggle("active", isSheet);
+    if (tabPortal) tabPortal.classList.toggle("active", !isSheet);
+
+    var bannerSheet = document.getElementById("manual-mode-banner-sheet");
+    var bannerPortal = document.getElementById("manual-mode-banner-portal");
+    if (bannerSheet) bannerSheet.classList.toggle("hidden", !isSheet);
+    if (bannerPortal) bannerPortal.classList.toggle("hidden", isSheet);
+
+    var badge = document.getElementById("manual-booking-mode-badge");
+    if (badge) {
+      badge.textContent = isSheet ? "Mode A: Sheet" : "Mode B: Portal Assist";
+      badge.className = isSheet
+        ? "px-2 py-0.5 rounded-full text-[10px] font-bold bg-indigo-100 dark:bg-indigo-950/70 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800"
+        : "px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 dark:bg-amber-950/70 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-800";
+    }
+
+    var btnSheet = document.getElementById("btn-submit-mode-sheet");
+    var btnPortal = document.getElementById("btn-submit-mode-portal");
+    var btnAuto = document.getElementById("btn-submit-mode-autofill");
+    if (btnSheet) btnSheet.classList.toggle("hidden", !isSheet);
+    if (btnPortal) btnPortal.classList.toggle("hidden", isSheet);
+    if (btnAuto) btnAuto.classList.toggle("hidden", isSheet);
+  };
+
+  function _syncFormToState() {
+    var clientSel = document.getElementById("manual-client-select");
+    if (clientSel) _manualBookingState.clientName = clientSel.value;
+    var tabSel = document.getElementById("manual-tab-select");
+    if (tabSel) _manualBookingState.tabName = tabSel.value;
+    var nameInput = document.getElementById("manual-patient-name");
+    if (nameInput) _manualBookingState.patientName = nameInput.value.trim();
+    var phoneInput = document.getElementById("manual-patient-phone");
+    if (phoneInput) _manualBookingState.patientPhone = phoneInput.value.trim();
+    var ageInput = document.getElementById("manual-patient-age");
+    if (ageInput) _manualBookingState.patientAge = ageInput.value.trim();
+    var genderInput = document.getElementById("manual-patient-gender");
+    if (genderInput) _manualBookingState.patientGender = genderInput.value;
+    var testInput = document.getElementById("manual-test-package");
+    if (testInput) _manualBookingState.testPackage = testInput.value.trim();
+    var locInput = document.getElementById("manual-location");
+    if (locInput) _manualBookingState.location = locInput.value.trim();
+    var colTimeInput = document.getElementById("manual-collection-time");
+    if (colTimeInput) _manualBookingState.collectionTime = colTimeInput.value.trim();
+    var notesInput = document.getElementById("manual-notes");
+    if (notesInput) _manualBookingState.notes = notesInput.value.trim();
+  }
+
+  window.onManualBookingClientChange = function (clientName) {
+    if (!clientName) return;
+    _manualBookingState.clientName = clientName;
+
+    var tabSel = document.getElementById("manual-tab-select");
+    var loadingIndicator = document.getElementById("manual-tab-loading");
+    if (!tabSel) return;
+
+    tabSel.innerHTML = '<option value="">Default Tab</option>';
+
+    // Check if clientStats has tabName
+    try {
+      if (typeof Qs !== "undefined" && Qs && Qs.clientStats && Qs.clientStats[clientName]) {
+        var defaultTab = Qs.clientStats[clientName].tabName;
+        if (defaultTab) {
+          var o = document.createElement("option");
+          o.value = defaultTab;
+          o.textContent = defaultTab + " (Active Tab)";
+          o.selected = true;
+          tabSel.appendChild(o);
+        }
+      }
+    } catch (e) {}
+
+    // Check client logs for distinct sheet tab names
+    try {
+      if (typeof Qs !== "undefined" && Qs && Array.isArray(Qs.logs)) {
+        var existingTabs = new Set();
+        Qs.logs.forEach(function (l) {
+          if ((l.client === clientName || l.clientName === clientName) && l.sheetName) {
+            existingTabs.add(l.sheetName);
+          }
+        });
+        existingTabs.forEach(function (t) {
+          if (!Array.from(tabSel.options).some(function (opt) { return opt.value === t; })) {
+            var o = document.createElement("option");
+            o.value = t;
+            o.textContent = t;
+            tabSel.appendChild(o);
+          }
+        });
+      }
+    } catch (e) {}
+
+    // Asynchronously query backend getClientTabs
+    if (typeof google !== "undefined" && google.script && google.script.run) {
+      if (loadingIndicator) loadingIndicator.textContent = "Loading tabs...";
+      google.script.run
+        .withSuccessHandler(function (res) {
+          if (loadingIndicator) loadingIndicator.textContent = "";
+          if (res && res.status === "success" && Array.isArray(res.tabs)) {
+            var selectedVal = tabSel.value;
+            tabSel.innerHTML = '<option value="">Default Tab</option>';
+            res.tabs.forEach(function (t) {
+              var opt = document.createElement("option");
+              opt.value = t;
+              opt.textContent = t;
+              if (t === selectedVal || t === _manualBookingState.tabName) opt.selected = true;
+              tabSel.appendChild(opt);
+            });
+            _manualBookingState.tabName = tabSel.value;
+          }
+        })
+        .withFailureHandler(function () {
+          if (loadingIndicator) loadingIndicator.textContent = "";
+        })
+        .getClientTabs(clientName);
+    }
+  };
+
+  // ── Mode A: Sheet Append Submission ─────────────────────────
+  window.handleManualBookingSubmit = function () {
+    _syncFormToState();
+
+    if (!_manualBookingState.clientName) {
+      if (window.wr) window.wr("Please select a client/partner.", true);
+      return;
+    }
+    if (!_manualBookingState.patientName) {
+      if (window.wr) window.wr("Patient Name is required.", true);
+      var nInput = document.getElementById("manual-patient-name");
+      if (nInput) nInput.focus();
+      return;
+    }
+
+    if (_manualBookingState.patientPhone) {
+      var digits = _manualBookingState.patientPhone.replace(/\D/g, "");
+      if (digits.length > 0 && digits.length < 10) {
+        if (window.wr) window.wr("Please enter a valid 10-digit mobile number.", true);
+        var pInput = document.getElementById("manual-patient-phone");
+        if (pInput) pInput.focus();
+        return;
+      }
+    }
+
+    var submitBtn = document.getElementById("btn-submit-mode-sheet");
+    var origText = submitBtn ? submitBtn.innerHTML : "";
+    if (submitBtn) {
+      submitBtn.disabled = true;
+      submitBtn.innerHTML = '<svg class="botlab-svg-xs animate-spin" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.2"/></svg> Appending to Sheet...';
+    }
+
+    var rowData = {
+      patientName: _manualBookingState.patientName,
+      patientAge: _manualBookingState.patientAge,
+      patientGender: _manualBookingState.patientGender,
+      patientPhone: _manualBookingState.patientPhone,
+      testPackage: _manualBookingState.testPackage,
+      location: _manualBookingState.location,
+      collectionTime: _manualBookingState.collectionTime,
+      notes: _manualBookingState.notes
+    };
+
+    function onComplete(res) {
+      if (submitBtn) {
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = origText;
+      }
+
+      if (res && res.status === "success") {
+        _manualBookingState.lastResult = {
+          clientName: _manualBookingState.clientName,
+          tabName: res.tabName || _manualBookingState.tabName || "Main Sheet",
+          rowNum: res.rowNum || "New",
+          patientName: _manualBookingState.patientName,
+          phone: _manualBookingState.patientPhone,
+          ageGender: (_manualBookingState.patientAge ? _manualBookingState.patientAge + " / " : "") + _manualBookingState.patientGender,
+          testPackage: _manualBookingState.testPackage || "Standard Panel",
+          location: _manualBookingState.location || "N/A",
+          time: _manualBookingState.collectionTime || "Pending",
+          mode: "Mode A (Sheet Append)"
+        };
+
+        if (window.wr) window.wr(res.message || "Manual booking added to sheet!", false);
+        _addMsg("bot", "Manual booking created: <b>" + _escHtml(_manualBookingState.patientName) + "</b> added to <b>" + _escHtml(_manualBookingState.clientName) + "</b> (Row " + res.rowNum + ") with <code>[Manual Entry]</code> flag.", true);
+
+        _showManualSuccessCard(_manualBookingState.lastResult);
+
+        // Background refresh dashboard data after short delay
+        if (typeof window.syncAllDashboardData === "function") {
+          setTimeout(function () { window.syncAllDashboardData(true); }, 800);
+        }
+      } else {
+        var msg = (res && res.message) ? res.message : "Failed to write row to sheet.";
+        if (window.wr) window.wr(msg, true);
+      }
+    }
+
+    function onError(err) {
+      if (submitBtn) {
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = origText;
+      }
+      var msg = (err && err.message) ? err.message : String(err);
+      if (window.wr) window.wr("Failed to add manual booking: " + msg, true);
+    }
+
+    if (typeof google !== "undefined" && google.script && google.script.run) {
+      google.script.run
+        .withSuccessHandler(onComplete)
+        .withFailureHandler(onError)
+        .addManualPendingRow(_manualBookingState.clientName, _manualBookingState.tabName, rowData);
+    } else {
+      // Direct Web App / fetch fallback
+      var gasUrl = typeof getActiveGasUrl === "function" ? getActiveGasUrl() : DEFAULT_GAS_URL;
+      fetch(gasUrl, {
+        method: "POST",
+        headers: { "Content-Type": "text/plain;charset=utf-8" },
+        body: JSON.stringify({
+          action: "addManualPendingRow",
+          parameters: [_manualBookingState.clientName, _manualBookingState.tabName, rowData]
+        })
+      })
+      .then(function (r) { return r.json(); })
+      .then(onComplete)
+      .catch(onError);
+    }
+  };
+
+  // ── Mode B: Guided Portal Fill Launch ───────────────────────
+  window.launchGuidedPortalFill = function () {
+    _syncFormToState();
+
+    if (!_manualBookingState.clientName) {
+      if (window.wr) window.wr("Please select a client/partner.", true);
+      return;
+    }
+    if (!_manualBookingState.patientName) {
+      if (window.wr) window.wr("Patient Name is required.", true);
+      return;
+    }
+
+    var bObj = {
+      client: _manualBookingState.clientName,
+      name: _manualBookingState.patientName,
+      age: _manualBookingState.patientAge,
+      gender: _manualBookingState.patientGender,
+      phone: _manualBookingState.patientPhone,
+      test: _manualBookingState.testPackage,
+      location: _manualBookingState.location,
+      address: _manualBookingState.location,
+      sheetName: _manualBookingState.tabName
+    };
+
+    var portalUrl = _buildBotBookingUrl(bObj, 2500, true);
+    var tabTitle = _manualBookingState.patientName + " (Guided Assist)";
+
+    // Open inside Bot Lab
+    if (_bl.tabs.length === 1 && (!_bl.tabs[0].url || _bl.tabs[0].url === "about:blank" || _bl.tabs[0].url.indexOf("google.com") !== -1)) {
+      _bl.tabs[0].title = tabTitle;
+      _bl.tabs[0].url = portalUrl;
+      var tEl = document.getElementById("botlab-card-title-0");
+      if (tEl) tEl.textContent = tabTitle;
+      window.botlabNavigate(portalUrl);
+    } else {
+      window.botlabCreateTab(portalUrl, tabTitle);
+    }
+
+    _manualBookingState.lastResult = {
+      clientName: _manualBookingState.clientName,
+      tabName: _manualBookingState.tabName || "Portal Assist",
+      rowNum: "In-Browser",
+      patientName: _manualBookingState.patientName,
+      phone: _manualBookingState.patientPhone,
+      ageGender: (_manualBookingState.patientAge ? _manualBookingState.patientAge + " / " : "") + _manualBookingState.patientGender,
+      testPackage: _manualBookingState.testPackage || "Standard Panel",
+      location: _manualBookingState.location || "N/A",
+      time: _manualBookingState.collectionTime || "Immediate",
+      mode: "Mode B (Guided Portal Assist)",
+      portalUrl: portalUrl
+    };
+
+    if (window.wr) window.wr("Launched Guided Portal Assist mode in Bot Lab!", false);
+    _addMsg("bot", "Guided Portal Assist launched for <b>" + _escHtml(_manualBookingState.patientName) + "</b> (" + _escHtml(_manualBookingState.clientName) + "). Portal opened with field highlighting — type manually or toggle auto-fill.", true);
+
+    _showManualSuccessCard(_manualBookingState.lastResult);
+  };
+
+  // ── Lossless Mode Switch: Guided to Instant Auto-Fill ──────
+  window.switchGuidedToAutofill = function () {
+    _syncFormToState();
+
+    var bObj = {
+      client: _manualBookingState.clientName,
+      name: _manualBookingState.patientName,
+      age: _manualBookingState.patientAge,
+      gender: _manualBookingState.patientGender,
+      phone: _manualBookingState.patientPhone,
+      test: _manualBookingState.testPackage,
+      location: _manualBookingState.location,
+      address: _manualBookingState.location,
+      sheetName: _manualBookingState.tabName
+    };
+
+    var autoUrl = _buildBotBookingUrl(bObj, 2500, false);
+    var tabTitle = _manualBookingState.patientName + " (Auto-Run)";
+
+    window.botlabCreateTab(autoUrl, tabTitle);
+
+    if (window.wr) window.wr("RedcliffeBot Auto-Runner triggered with patient data!", false);
+    _addMsg("bot", "Switched to <b>Instant Auto-Fill</b> for <b>" + _escHtml(_manualBookingState.patientName) + "</b>. RedcliffeBot is auto-completing the portal form.", true);
+
+    window.closeManualBookingModal();
+  };
+
+  // ── Success Summary Card Display & Actions ─────────────────
+  function _showManualSuccessCard(res) {
+    var formEl = document.getElementById("form-manual-booking");
+    if (formEl) formEl.classList.add("hidden");
+    var footer = document.getElementById("manual-booking-footer");
+    if (footer) footer.classList.add("hidden");
+
+    var card = document.getElementById("manual-booking-success-card");
+    if (!card) return;
+
+    var titleEl = document.getElementById("manual-success-title");
+    var subEl = document.getElementById("manual-success-subtitle");
+    var detailsEl = document.getElementById("manual-summary-details");
+
+    if (res.mode.indexOf("Mode A") !== -1) {
+      if (titleEl) titleEl.textContent = "Booking Logged to Sheet Successfully!";
+      if (subEl) subEl.textContent = "Row appended with [Manual Entry] flag. RedcliffeBot can process it anytime.";
+    } else {
+      if (titleEl) titleEl.textContent = "Guided Portal Session Active!";
+      if (subEl) subEl.textContent = "Partner portal tab opened with assist-only highlighting.";
+    }
+
+    if (detailsEl) {
+      detailsEl.innerHTML =
+        '<div class="manual-summary-item">' +
+          '<span class="manual-summary-item-label">Client & Tab</span>' +
+          '<span class="manual-summary-item-value">' + _escHtml(res.clientName) + ' (' + _escHtml(res.tabName) + ')</span>' +
+        '</div>' +
+        '<div class="manual-summary-item">' +
+          '<span class="manual-summary-item-label">Row Status</span>' +
+          '<span class="manual-summary-item-value font-mono">' + _escHtml(res.rowNum) + ' &bull; ' + _escHtml(res.mode) + '</span>' +
+        '</div>' +
+        '<div class="manual-summary-item">' +
+          '<span class="manual-summary-item-label">Patient Details</span>' +
+          '<span class="manual-summary-item-value">' + _escHtml(res.patientName) + ' (' + _escHtml(res.ageGender) + ')</span>' +
+        '</div>' +
+        '<div class="manual-summary-item">' +
+          '<span class="manual-summary-item-label">Contact</span>' +
+          '<span class="manual-summary-item-value font-mono">' + _escHtml(res.phone || "N/A") + '</span>' +
+        '</div>' +
+        '<div class="manual-summary-item">' +
+          '<span class="manual-summary-item-label">Test / Package</span>' +
+          '<span class="manual-summary-item-value">' + _escHtml(res.testPackage) + '</span>' +
+        '</div>' +
+        '<div class="manual-summary-item">' +
+          '<span class="manual-summary-item-label">Location</span>' +
+          '<span class="manual-summary-item-value">' + _escHtml(res.location) + '</span>' +
+        '</div>';
+    }
+
+    card.classList.remove("hidden");
+  }
+
+  // Duplicate for next patient: keep client, test, location; clear name & phone
+  window.duplicateManualBooking = function () {
+    _manualBookingState.patientName = "";
+    _manualBookingState.patientPhone = "";
+    _manualBookingState.patientAge = "";
+    _manualBookingState.notes = "";
+
+    var nameInput = document.getElementById("manual-patient-name");
+    if (nameInput) { nameInput.value = ""; nameInput.focus(); }
+    var phoneInput = document.getElementById("manual-patient-phone");
+    if (phoneInput) phoneInput.value = "";
+    var ageInput = document.getElementById("manual-patient-age");
+    if (ageInput) ageInput.value = "";
+    var notesInput = document.getElementById("manual-notes");
+    if (notesInput) notesInput.value = "";
+
+    var card = document.getElementById("manual-booking-success-card");
+    if (card) card.classList.add("hidden");
+    var formEl = document.getElementById("form-manual-booking");
+    if (formEl) formEl.classList.remove("hidden");
+    var footer = document.getElementById("manual-booking-footer");
+    if (footer) footer.classList.remove("hidden");
+
+    if (window.wr) window.wr("Form ready for next patient!", false);
+  };
+
+  // Share formatted booking summary (WhatsApp style) to clipboard
+  window.shareManualBookingSummary = function () {
+    var r = _manualBookingState.lastResult || _manualBookingState;
+    var lines = [
+      "*DROP-OFF MANUAL BOOKING*",
+      "Client: " + (r.clientName || "N/A") + (r.tabName ? " (" + r.tabName + ")" : ""),
+      "Patient: " + (r.patientName || "N/A") + (r.ageGender ? " (" + r.ageGender + ")" : ""),
+      "Phone: " + (r.phone || r.patientPhone || "N/A"),
+      "Test: " + (r.testPackage || "N/A"),
+      "Location: " + (r.location || "N/A"),
+      "Slot: " + (r.time || r.collectionTime || "Pending"),
+      "Status: Pending [Manual Entry]"
+    ];
+    var text = lines.join("\n");
+
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(function () {
+        if (window.wr) window.wr("Booking summary copied to clipboard!", false);
+      }).catch(function () {
+        if (window.wr) window.wr("Failed to copy to clipboard", true);
+      });
+    } else {
+      if (window.wr) window.wr("Clipboard not accessible.", true);
+    }
+  };
+
+  // Modify current booking: reopen form with current data
+  window.modifyManualBooking = function () {
+    var card = document.getElementById("manual-booking-success-card");
+    if (card) card.classList.add("hidden");
+    var formEl = document.getElementById("form-manual-booking");
+    if (formEl) formEl.classList.remove("hidden");
+    var footer = document.getElementById("manual-booking-footer");
+    if (footer) footer.classList.remove("hidden");
+  };
+
+  // Open booking in Bot Lab tab
+  window.openManualBookingInBotLab = function () {
+    var r = _manualBookingState.lastResult || _manualBookingState;
+    var bObj = {
+      client: r.clientName,
+      name: r.patientName,
+      age: r.patientAge || r.ageGender,
+      gender: r.patientGender,
+      phone: r.phone || r.patientPhone,
+      test: r.testPackage,
+      location: r.location,
+      sheetName: r.tabName,
+      rowNum: r.rowNum
+    };
+    var url = _buildBotBookingUrl(bObj, 2500, false);
+    var title = (r.patientName || "Patient") + " (Manual)";
+    window.botlabCreateTab(url, title);
+    window.closeManualBookingModal();
+    if (window.wr) window.wr("Opened booking in Bot Lab tab!", false);
+  };
+
+  // Reset form completely
+  window.resetManualBookingForm = function () {
+    _manualBookingState.patientName = "";
+    _manualBookingState.patientPhone = "";
+    _manualBookingState.patientAge = "";
+    _manualBookingState.testPackage = "";
+    _manualBookingState.location = "";
+    _manualBookingState.collectionTime = "";
+    _manualBookingState.notes = "";
+    _manualBookingState.lastResult = null;
+
+    var formEl = document.getElementById("form-manual-booking");
+    if (formEl) {
+      formEl.reset();
+      formEl.classList.remove("hidden");
+    }
+    var card = document.getElementById("manual-booking-success-card");
+    if (card) card.classList.add("hidden");
+    var footer = document.getElementById("manual-booking-footer");
+    if (footer) footer.classList.remove("hidden");
+  };
+
   // Immediate init wiring for resizer and frame 0
   try {
     _setupPanelResizer();
@@ -7755,6 +8358,10 @@ document.addEventListener("keydown", function(e) {
     // Close dispatch matrix if open
     if (typeof window.closeDispatchMatrix === 'function') {
       window.closeDispatchMatrix();
+    }
+    // Close manual booking modal if open
+    if (typeof window.closeManualBookingModal === 'function') {
+      window.closeManualBookingModal();
     }
     // Deselect multi-select if any exist
     if (typeof window.clearBatchSelection === 'function') {
