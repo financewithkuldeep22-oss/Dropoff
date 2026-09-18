@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="64" y2="64" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#0F172A"/>
+      <stop offset="100%" stop-color="#1E293B"/>
+    </linearGradient>
+    <linearGradient id="flowCyan" x1="16" y1="16" x2="48" y2="48" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#38BDF8"/>
+      <stop offset="100%" stop-color="#0284C7"/>
+    </linearGradient>
+    <linearGradient id="flowIndigo" x1="48" y1="16" x2="16" y2="48" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#818CF8"/>
+      <stop offset="100%" stop-color="#4F46E5"/>
+    </linearGradient>
+    <linearGradient id="flowEmerald" x1="20" y1="40" x2="44" y2="40" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#34D399"/>
+      <stop offset="100%" stop-color="#059669"/>
+    </linearGradient>
+  </defs>
+  
+  <!-- Crisp Squircle Background -->
+  <rect width="64" height="64" rx="14" fill="url(#bg)"/>
+  <rect x="0.75" y="0.75" width="62.5" height="62.5" rx="13.25" stroke="#334155" stroke-width="1.5"/>
+
+  <!-- Enterprise Precision Operations Matrix (Hexagon / Routing Flow) -->
+  <!-- Top Left Prism -->
+  <path d="M18 22L32 14L32 34L18 42Z" fill="url(#flowCyan)"/>
+  
+  <!-- Top Right Prism -->
+  <path d="M46 22L32 14L32 34L46 42Z" fill="url(#flowIndigo)"/>
+  
+  <!-- Bottom Base Prism -->
+  <path d="M18 42L32 34L46 42L32 50Z" fill="url(#flowEmerald)"/>
+  
+  <!-- Central Precision Data Pivot -->
+  <circle cx="32" cy="34" r="3.5" fill="#FFFFFF" stroke="#0F172A" stroke-width="1.5"/>
+</svg>
