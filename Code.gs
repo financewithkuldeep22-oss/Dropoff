@@ -67,17 +67,19 @@ function triggerGoogleAuthorizationPrompt() {
  * and test live conversational AI response.
  */
 function testAIChat() {
-  Logger.log("Testing UrlFetchApp & AI Chat authorization...");
+  // RAW UNCAUGHT CALL: This forces Google Apps Script to display the "Authorization required" popup!
+  var ping = UrlFetchApp.fetch("https://www.google.com", { muteHttpExceptions: true });
+  Logger.log("UrlFetchApp authorization verified! HTTP Status: " + ping.getResponseCode());
+  
   var res = botlabChat("Hello, are you online?", "[]");
   Logger.log("AI Test Result: " + JSON.stringify(res));
   return res;
 }
 
 function testExternalFetch() {
-  Logger.log("Testing UrlFetchApp permission...");
-  var res = UrlFetchApp.fetch("https://www.google.com", { muteHttpExceptions: true });
-  Logger.log("UrlFetchApp status: " + res.getResponseCode());
-  return "Success: UrlFetchApp authorized (code " + res.getResponseCode() + ")";
+  var ping = UrlFetchApp.fetch("https://www.google.com", { muteHttpExceptions: true });
+  Logger.log("UrlFetchApp authorized: " + ping.getResponseCode());
+  return "Success: " + ping.getResponseCode();
 }
 
 function runDiagnostics() {
