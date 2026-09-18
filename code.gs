@@ -1342,11 +1342,16 @@ function updateBookingIdInSourceSheet(clientName, sheetTab, rowNum, newBookingId
   var configSheet = ss.getSheetByName('Client_Config');
   if (!configSheet) return { status: 'error', message: 'Configuration sheet not found.' };
   
+  clientName = (clientName || '').toString().trim();
+  if (!clientName) {
+    return { status: 'error', message: 'Client name is required.' };
+  }
+  
   var configRows = configSheet.getDataRange().getValues();
   var spreadsheetId = '';
   
   var configClientName = clientName;
-  if (clientName && clientName.indexOf(" - ") !== -1) {
+  if (clientName.indexOf(" - ") !== -1) {
     configClientName = clientName.split(" - ")[0].trim();
   }
   
@@ -1354,14 +1359,19 @@ function updateBookingIdInSourceSheet(clientName, sheetTab, rowNum, newBookingId
     return (str || '').toString().toLowerCase().replace(/[^a-z0-9]/g, '');
   }
   
+  var cleanClient = cleanClientStr(clientName);
+  var cleanConfigClient = cleanClientStr(configClientName);
+  var lowerClient = clientName.toLowerCase();
+  var lowerConfigClient = configClientName.toLowerCase();
+  
   for (var i = 1; i < configRows.length; i++) {
     var rowClient = configRows[i][0] ? configRows[i][0].toString().trim() : '';
     if (!rowClient) continue;
+    var lowerRow = rowClient.toLowerCase();
+    var cleanRow = cleanClientStr(rowClient);
     if (rowClient === clientName || rowClient === configClientName ||
-        rowClient.toLowerCase() === configClientName.toLowerCase() ||
-        rowClient.toLowerCase() === clientName.toLowerCase() ||
-        cleanClientStr(rowClient) === cleanClientStr(configClientName) ||
-        cleanClientStr(rowClient) === cleanClientStr(clientName)) {
+        lowerRow === lowerConfigClient || lowerRow === lowerClient ||
+        cleanRow === cleanConfigClient || cleanRow === cleanClient) {
       var urlOrId = configRows[i][1].toString().trim();
       spreadsheetId = urlOrId;
       if (urlOrId.indexOf('docs.google.com') !== -1) {
@@ -2998,7 +3008,7 @@ function doPost(e) {
     
     var requestData = JSON.parse(e.postData.contents);
     var action = requestData.action;
-    var parameters = requestData.parameters || [];
+    var parameters = requestData.parameters || requestData.args || [];
     
     if (!action) {
       throw new Error("Missing 'action' parameter in request payload.");
@@ -3310,6 +3320,11 @@ function addManualPendingRow(clientName, tabName, rowData) {
 
 function getClientTabs(clientName) {
   try {
+    clientName = (clientName || '').toString().trim();
+    if (!clientName) {
+      return { status: 'success', tabs: ['Main', 'Sheet1'], fallback: true };
+    }
+
     var ss = getActiveSpreadsheetSafe();
     var configSheet = ss.getSheetByName('Client_Config');
     if (!configSheet) return { status: 'error', message: 'Client_Config not found.' };
@@ -3317,18 +3332,26 @@ function getClientTabs(clientName) {
     var configRows = configSheet.getDataRange().getValues();
     var spreadsheetId = '';
     var configClientName = clientName;
-    if (clientName && clientName.indexOf(" - ") !== -1) {
+    if (clientName.indexOf(" - ") !== -1) {
       configClientName = clientName.split(" - ")[0].trim();
     }
     function cleanClientStr(str) {
       return (str || '').toString().toLowerCase().replace(/[^a-z0-9]/g, '');
     }
 
+    var cleanClient = cleanClientStr(clientName);
+    var cleanConfigClient = cleanClientStr(configClientName);
+    var lowerClient = clientName.toLowerCase();
+    var lowerConfigClient = configClientName.toLowerCase();
+
     for (var i = 1; i < configRows.length; i++) {
       var rowClient = configRows[i][0] ? configRows[i][0].toString().trim() : '';
       if (!rowClient) continue;
+      var lowerRow = rowClient.toLowerCase();
+      var cleanRow = cleanClientStr(rowClient);
       if (rowClient === clientName || rowClient === configClientName ||
-          cleanClientStr(rowClient) === cleanClientStr(clientName)) {
+          lowerRow === lowerConfigClient || lowerRow === lowerClient ||
+          cleanRow === cleanConfigClient || cleanRow === cleanClient) {
         var urlOrId = configRows[i][1].toString().trim();
         spreadsheetId = urlOrId;
         if (urlOrId.indexOf('docs.google.com') !== -1) {
@@ -3338,13 +3361,15 @@ function getClientTabs(clientName) {
         break;
       }
     }
-    if (!spreadsheetId) return { status: 'error', message: 'Client not mapped.' };
+    if (!spreadsheetId) {
+      return { status: 'success', tabs: ['Main', 'Sheet1'], fallback: true, message: 'Client not mapped; returning default tabs.' };
+    }
 
     var clientDoc = SpreadsheetApp.openById(spreadsheetId);
     var sheets = clientDoc.getSheets();
     var tabNames = sheets.map(function(s) { return s.getName(); });
     return { status: 'success', tabs: tabNames };
   } catch (e) {
-    return { status: 'error', message: e.toString() };
+    return { status: 'success', tabs: ['Main', 'Sheet1'], fallback: true, message: e.toString() };
   }
 }

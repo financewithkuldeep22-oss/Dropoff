@@ -46,8 +46,8 @@ function getSafeLocalStorage(key, defaultVal) {
   }
   ((window.onerror = function (e, t, n, s, r) {
     const errStr = (e || "").toString();
-    if (errStr.includes("onRedcliffeIframeLoad") || errStr.includes("onBrowserIframeLoad")) {
-      return true; // Suppress harmless cross-origin iframe handler lookup error
+    if (errStr.includes("onRedcliffeIframeLoad") || errStr.includes("onBrowserIframeLoad") || errStr.includes("handover")) {
+      return true; // Suppress harmless cross-origin iframe handler lookup and route error
     }
     if(typeof wr === 'function') wr("Error: " + e + " (line " + n + ")", !0);
     return (
@@ -59,6 +59,11 @@ function getSafeLocalStorage(key, defaultVal) {
     );
   }),
     window.addEventListener("unhandledrejection", function (e) {
+      const reasonStr = (e && e.reason ? (e.reason.message || String(e.reason)) : "");
+      if (reasonStr.includes("onRedcliffeIframeLoad") || reasonStr.includes("onBrowserIframeLoad") || reasonStr.includes("handover")) {
+        if (e.preventDefault) e.preventDefault();
+        return;
+      }
       Vs("Unhandled Promise Rejection", e.reason);
     }));
   let zs = null, Qs = null,
@@ -2668,8 +2673,8 @@ if(syncBtnEl && !syncBtnEl.dataset.fix) {
               if (key === 'bhmc') {
                 try {
                   const frame = document.getElementById('bhmc-frame');
-                  if (frame && (!frame.getAttribute('src') || frame.getAttribute('src') === '')) {
-                    frame.src = 'https://bhmc-redcliffelabs.vercel.app';
+                  if (frame && (!frame.getAttribute('src') || frame.getAttribute('src') === '' || frame.getAttribute('src') === 'about:blank')) {
+                    frame.src = frame.getAttribute('data-src') || 'https://bhmc-redcliffelabs.vercel.app';
                   }
                 } catch(e) {}
               }
@@ -7958,6 +7963,9 @@ window.addEventListener('message', function(event) {
         })
         .withFailureHandler(function () {
           if (loadingIndicator) loadingIndicator.textContent = "";
+          if (tabSel && tabSel.options.length === 0) {
+            tabSel.innerHTML = '<option value="">Default Tab</option>';
+          }
         })
         .getClientTabs(clientName);
     }

@@ -4,11 +4,22 @@
   <base href="/" />
   <script>
     // Global guards for background iframe handlers & tab switching
-    var onRedcliffeIframeLoad = window.onRedcliffeIframeLoad = window.onRedcliffeIframeLoad || function() {};
-    var onBrowserIframeLoad = window.onBrowserIframeLoad = window.onBrowserIframeLoad || function() {};
+    window.onRedcliffeIframeLoad = function() {};
+    window.onBrowserIframeLoad = function() {};
+    var onRedcliffeIframeLoad = window.onRedcliffeIframeLoad;
+    var onBrowserIframeLoad = window.onBrowserIframeLoad;
     window.switchDashboardTab = window.switchDashboardTab || function(tab) {
       window._pendingTabSwitch = tab;
     };
+    // Early error capturing filter for benign cross-origin iframe events
+    window.addEventListener('error', function(e) {
+      var msg = (e && (e.message || (e.error && e.error.message))) || '';
+      if (typeof msg === 'string' && (msg.includes('onRedcliffeIframeLoad') || msg.includes('onBrowserIframeLoad') || msg.includes('handover'))) {
+        if (e.preventDefault) e.preventDefault();
+        if (e.stopImmediatePropagation) e.stopImmediatePropagation();
+        return true;
+      }
+    }, true);
   </script>
   <link rel="icon" type="image/svg+xml" href="logo.svg" />
   <link rel="apple-touch-icon" href="logo.svg" />
@@ -206,8 +217,8 @@
   </style>
 
   <!-- Design System Tokens & CSS Style Overrides -->
-  <link rel="stylesheet" href="tokens.css?v=2">
-  <link rel="stylesheet" href="style.css?v=37">
+  <link rel="stylesheet" href="tokens.css?v=3">
+  <link rel="stylesheet" href="style.css?v=38">
   
   <!-- GSAP Animation Library -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
@@ -1004,7 +1015,7 @@
       </div>
 
       <div id="tab-content-bhmc" class="tab-content flex flex-col flex-1 w-full h-full relative bg-[#f8fafc]" style="display:none;">
-        <iframe id="bhmc-frame" src="https://bhmc-redcliffelabs.vercel.app" class="w-full flex-1 border-0" title="Bharath Home Medicare Tracker" allow="clipboard-read; clipboard-write; fullscreen"></iframe>
+        <iframe id="bhmc-frame" src="about:blank" data-src="https://bhmc-redcliffelabs.vercel.app" class="w-full flex-1 border-0" title="Bharath Home Medicare Tracker" allow="clipboard-read; clipboard-write; fullscreen"></iframe>
       </div>
 
       <div id="tab-content-medibuddy" class="tab-content flex flex-col flex-1 w-full h-full relative bg-[#f8fafc] dark:bg-slate-900" style="display:none;">
@@ -2497,8 +2508,8 @@
 
   <script src="offline-game.js"></script>
   <script src="auth.js?v=6"></script>
-  <script src="api_v2.js?v=4"></script>
-  <script src="app.js?v=37"></script>
+  <script src="api_v2.js?v=5"></script>
+  <script src="app.js?v=38"></script>
   <!-- <script src="challan.js?v=6"></script> -->
 </body>
 </html>

@@ -43,9 +43,17 @@ function createRunContext(successHandler = null, failureHandler = null) {
         if (prop === 'updateAllohealthQC') {
           args[3] = username;
         } else if (prop === 'updateBookingIdInSourceSheet') {
+          args[0] = (args[0] || '').toString().trim();
+          args[1] = (args[1] || '').toString().trim();
+          args[2] = parseInt(args[2], 10) || 0;
+          args[3] = (args[3] || '').toString().trim();
+          args[4] = (args[4] || 'Updated via Dashboard').toString();
           args[5] = username;
+          args[6] = (args[6] || '').toString().trim();
+        } else if (prop === 'getClientTabs') {
+          args[0] = (args[0] || '').toString().trim();
         }
-        const payload = { action: prop, args: args };
+        const payload = { action: prop, parameters: args, args: args };
         const isHeavyRead = (prop === 'getDashboardLogsData' || prop === 'getAllohealthQCData');
         const maxRetries = isHeavyRead ? 0 : 1;
         let lastError = null;
@@ -94,6 +102,12 @@ function createRunContext(successHandler = null, failureHandler = null) {
               if (prop === 'getGoogleDriveImageBase64') {
                 if (successHandler) {
                   successHandler(result);
+                  return;
+                }
+              }
+              if (prop === 'getClientTabs') {
+                if (successHandler) {
+                  successHandler({ status: 'success', tabs: ['Main', 'Sheet1'], fallback: true });
                   return;
                 }
               }
@@ -190,6 +204,11 @@ function createRunContext(successHandler = null, failureHandler = null) {
           // Photo fetching has built-in UI fallback to drive thumbnails
           if (successHandler) {
             successHandler({ status: 'fallback', message: errorMsg });
+            return;
+          }
+        } else if (prop === 'getClientTabs') {
+          if (successHandler) {
+            successHandler({ status: 'success', tabs: ['Main', 'Sheet1'], fallback: true });
             return;
           }
         }
