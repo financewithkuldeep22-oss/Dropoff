@@ -3053,62 +3053,26 @@ function updateOutsourcedDutiesStatus(rowNums, newStatus) {
 // ============================================================
 
 function callGroqAPI(prompt, temperature) {
-  if (temperature === undefined) temperature = 0.1;
+  if (temperature === undefined) temperature = 0.2;
   var apiKey = PropertiesService.getScriptProperties().getProperty('GROQ_API_KEY'); 
   if (!apiKey) return "⚠️ AI Error: GROQ_API_KEY is missing in Apps Script Properties.";
   
+  // Try stable Groq models
+  var groqModels = ["llama-3.1-8b-instant", "llama3-70b-8192", "llama-3.3-70b-versatile", "mixtral-8x7b-32768"];
   var url = "https://api.groq.com/openai/v1/chat/completions";
-  var payload = {
-    "model": "llama-3.3-70b-versatile", 
-    "messages": [{ "role": "user", "content": prompt }],
-    "temperature": temperature,
-    "max_tokens": 4096
-  };
   
-  var options = {
-    "method": "post",
-    "headers": { "Authorization": "Bearer " + apiKey },
-    "contentType": "application/json",
-    "payload": JSON.stringify(payload),
-    "muteHttpExceptions": true
-  };
-  
-  try {
-    var response = UrlFetchApp.fetch(url, options);
-    if (response.getResponseCode() === 429) return "⏳ Groq API is taking a breath! Please wait 10 seconds."; 
-    
-    var json = JSON.parse(response.getContentText());
-    if (json.error) return "⚠️ API Error: " + json.error.message;
-    return json.choices[0].message.content;
-    
-  } catch(e) { 
-    return "Network error: " + e.toString(); 
-  }
-}
-
-function callGeminiAPI(prompt, temperature) {
-  if (temperature === undefined) temperature = 0.1;
-  var apiKey = PropertiesService.getScriptProperties().getProperty('GEMINI_API_KEY'); 
-  if (!apiKey) return callGroqAPI(prompt, temperature); // Fallback to Groq if key missing
-  
-  // Try Gemini models in priority order: 2.5-flash, 2.0-flash, 1.5-flash
-  var models = ["gemini-2.5-flash", "gemini-2.0-flash", "gemini-1.5-flash"];
-  for (var i = 0; i < models.length; i++) {
-    var modelName = models[i];
-    var url = "https://generativelanguage.googleapis.com/v1beta/models/" + modelName + ":generateContent?key=" + apiKey;
+  for (var i = 0; i < groqModels.length; i++) {
+    var modelName = groqModels[i];
     var payload = {
-      "contents": [{
-        "parts": [{
-          "text": prompt
-        }]
-      }],
-      "generationConfig": {
-        "temperature": temperature
-      }
+      "model": modelName, 
+      "messages": [{ "role": "user", "content": prompt }],
+      "temperature": temperature,
+      "max_tokens": 1024
     };
     
     var options = {
       "method": "post",
+      "headers": { "Authorization": "Bearer " + apiKey },
       "contentType": "application/json",
       "payload": JSON.stringify(payload),
       "muteHttpExceptions": true
@@ -3116,20 +3080,80 @@ function callGeminiAPI(prompt, temperature) {
     
     try {
       var response = UrlFetchApp.fetch(url, options);
+      var code = response.getResponseCode();
+      if (code === 429) continue;
       var json = JSON.parse(response.getContentText());
-      if (json && json.candidates && json.candidates[0] && json.candidates[0].content && json.candidates[0].content.parts[0]) {
-        return json.candidates[0].content.parts[0].text;
+      if (json && json.choices && json.choices[0] && json.choices[0].message && json.choices[0].message.content) {
+        return json.choices[0].message.content;
       }
-    } catch(e) {
-      // Continue to next model or fallback
+    } catch(e) {}
+  }
+  
+  return "⚠️ API Error: Groq service unavailable.";
+}
+
+function callGeminiAPI(prompt, temperature) {
+  if (temperature === undefined) temperature = 0.2;
+  var props = PropertiesService.getScriptProperties();
+  
+  // Dual-Key Support: Try GEMINI_API_KEY first, then GEMINI_API_KEY2
+  var rawKeys = [
+    props.getProperty('GEMINI_API_KEY'),
+    props.getProperty('GEMINI_API_KEY2')
+  ];
+  var geminiKeys = [];
+  for (var k = 0; k < rawKeys.length; k++) {
+    if (rawKeys[k] && rawKeys[k].trim().length > 0) {
+      geminiKeys.push(rawKeys[k].trim());
     }
   }
 
-  // Gracefully fallback to Groq if Gemini model returns an error or quota is exhausted
+  // Gemini is Primary: gemini-1.5-flash is stable, fast, and high-quota
+  var models = ["gemini-1.5-flash", "gemini-2.0-flash", "gemini-1.5-pro"];
+
+  for (var k = 0; k < geminiKeys.length; k++) {
+    var apiKey = geminiKeys[k];
+    for (var m = 0; m < models.length; m++) {
+      var modelName = models[m];
+      var url = "https://generativelanguage.googleapis.com/v1beta/models/" + modelName + ":generateContent?key=" + apiKey;
+      var payload = {
+        "contents": [{
+          "parts": [{ "text": prompt }]
+        }],
+        "generationConfig": {
+          "temperature": temperature,
+          "maxOutputTokens": 1024
+        }
+      };
+      
+      var options = {
+        "method": "post",
+        "contentType": "application/json",
+        "payload": JSON.stringify(payload),
+        "muteHttpExceptions": true
+      };
+      
+      try {
+        var response = UrlFetchApp.fetch(url, options);
+        var json = JSON.parse(response.getContentText());
+        if (json && json.candidates && json.candidates[0] && json.candidates[0].content && json.candidates[0].content.parts[0]) {
+          Logger.log("[AI Success] Gemini " + modelName + " responded using Key #" + (k + 1));
+          return json.candidates[0].content.parts[0].text;
+        } else if (json && json.error) {
+          Logger.log("[AI Warn] Gemini " + modelName + " (Key #" + (k + 1) + "): " + json.error.message);
+        }
+      } catch(e) {
+        Logger.log("[AI Exception] Gemini " + modelName + ": " + e.toString());
+      }
+    }
+  }
+
+  // If both Gemini keys/models fail, fall back to Groq as backup
+  Logger.log("[AI Fallback] Gemini exhausted, invoking Groq backup");
   return callGroqAPI(prompt, temperature);
 }
 
-function botlabChat(userMessage, historyJson) {
+function botlabChat(userMessage, historyJson, liveContextJson) {
   try {
     var kb = getBotlabKnowledgeBase();
     var history = [];
@@ -3138,13 +3162,47 @@ function botlabChat(userMessage, historyJson) {
       return (m.role === "user" ? "User: " : "Assistant: ") + m.text;
     }).join("\n");
 
-    var prompt = kb + "\n\n---\nRecent conversation:\n" + historyText +
-      "\n\nUser's new message: \"" + userMessage + "\"\n\n" +
-      "Answer as the Bot Lab AI, following every rule in the knowledge base above. " +
-      "Keep it short — this renders in a narrow chat panel, not a document. " +
-      "Reply in the same language mix (Hindi/Hinglish/English) the user used. No emojis.";
+    // Format real-time metrics currently displayed on user's dashboard screen
+    var liveDataSection = "";
+    if (liveContextJson) {
+      try {
+        var ctx = typeof liveContextJson === "string" ? JSON.parse(liveContextJson) : liveContextJson;
+        if (ctx) {
+          liveDataSection = "\n\n=== LIVE DASHBOARD METRICS (CURRENTLY DISPLAYED ON USER'S SCREEN) ===\n";
+          if (ctx.kpis) {
+            liveDataSection += "- Total Pending Drop-offs: " + (ctx.kpis.pendingDropoffs !== undefined ? ctx.kpis.pendingDropoffs : "0") + "\n";
+            liveDataSection += "- Today's Bookings: " + (ctx.kpis.todayBookings || "N/A") + " (Pending today: " + (ctx.kpis.todayPending !== undefined ? ctx.kpis.todayPending : "0") + ")\n";
+            liveDataSection += "- QC Review Pending Queue: " + (ctx.kpis.qcPending !== undefined ? ctx.kpis.qcPending : "0") + " samples\n";
+            liveDataSection += "- Processed Samples (Last 7 Days): " + (ctx.kpis.processedSamples || "0") + "\n";
+          }
+          if (Array.isArray(ctx.clientBreakdown) && ctx.clientBreakdown.length > 0) {
+            var pendingClients = ctx.clientBreakdown.filter(function(c) { return c.pending > 0; });
+            if (pendingClients.length > 0) {
+              liveDataSection += "- Clients with Pending Drop-offs:\n";
+              pendingClients.forEach(function(c) {
+                liveDataSection += "  • " + c.client + ": " + c.pending + " pending drop-offs\n";
+              });
+            } else {
+              liveDataSection += "- All clients currently clear (0 pending).\n";
+            }
+          }
+        }
+      } catch (e) {}
+    }
 
-    var responseText = callGeminiAPI(prompt, 0.3);
+    var systemInstructions = "You are BishtJiBot, the senior operations & booking AI assistant for Redcliffe Labs Logistics Operations Dashboard.\n" +
+      "PERSONA & COMMUNICATION RULES:\n" +
+      "1. Speak naturally, warmly, and smartly like a knowledgeable operations lead. Talk in the same language mix (Hinglish/Hindi/English) the user speaks.\n" +
+      "2. CRITICAL ACCURACY: Always answer questions about pending drop-offs, bookings, QC, or client stats using the exact LIVE DASHBOARD METRICS provided above. Never say 0 pending if the live metrics show pending drop-offs.\n" +
+      "3. When reporting pending drop-offs, clearly name which client has pending items (e.g. 'HCL ke 6 drop-offs pending hain').\n" +
+      "4. Be actionable: Offer next operational steps when helpful (e.g. 'Aap Dispatch Matrix khol kar inhein process kar sakte hain', ya 'QC Review tab me jakar photos verify kar sakte hain').\n" +
+      "5. No emojis in your response. Keep answers concise, direct, and well-structured with bullet points where appropriate.";
+
+    var prompt = systemInstructions + "\n\n" + kb + liveDataSection + "\n\n---\nRecent conversation:\n" + historyText +
+      "\n\nUser's new message: \"" + userMessage + "\"\n\n" +
+      "Respond as BishtJiBot following all instructions above:";
+
+    var responseText = callGeminiAPI(prompt, 0.2);
     
     if (!responseText || typeof responseText !== "string") {
       return { status: "error", message: "Empty or invalid response from AI service." };
