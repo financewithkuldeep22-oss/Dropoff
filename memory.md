@@ -401,6 +401,9 @@ Initializes dashboard data sync
 | **Operations Tool (Ops)** | Deep operations tracking & phlebo assignment | `ops.html`, `app.js` | `Rishabhcodegs.txt` | Operations Master Sheets | Sandboxed Iframe |
 | **Bulk Manifest Exporter** | Mass export of collection logs to CSV/Excel | `app.js` (`bulk-dl`) | Client-side Blob generator | Normalized `Qs.logs` | FileSaver / Blob API |
 | **Client Registry Config** | Admin management of connected Google Sheets | `app.js` (`#modal-client-config`) | `saveClientConfigRow`, `deleteClientConfigRow` | `Client_Config` Tab | Google Sheets API |
+| **Bot Lab Multi-Tab Workspace** | Automated partner portal booking, Grid Multi-View, sequential Queue HUD | `app.js` (`_bl`, `botlabLaunchAllParallel`, `botlabRunNextInQueue`), `index.html` | Client-side DOM automation & query bridging | Partner Portal Booking APIs | External Partner Booking Portal |
+| **Dispatch Matrix Drawer** | Bulk triage drawer with client filtering and multi-row launch | `app.js` (`openDispatchMatrix`, `renderMatrixRows`), `index.html` | Client-side memory matrix | Normalized `Qs.logs` | Internal Bot Lab Runner |
+| **BishtJiBot Global AI** | Enterprise operational intelligence assistant (Gemini-powered) | `app.js` (`_globalAIChatState`), `index.html` (`#global-ai-fab`), `style.css` | `botlabChat` (`Code.gs`) via GAS Web App | System Knowledge Base & Qs logs | Google Gemini API (2.5 Flash) |
 
 ---
 
