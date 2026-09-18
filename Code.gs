@@ -38,6 +38,7 @@ function onOpen() {
     .addItem('🖥️ Open Operations Dashboard', 'showDashboard')
     .addItem('🚀 Open App in Sidebar', 'openSidebar')
     .addSeparator()
+    .addItem('🤖 Authorize & Test AI Chat', 'testAIChat')
     .addItem('🔍 Run Data Sync Diagnostics', 'runDiagnostics')
     .addItem('⚙️ Initialize Config & Log Sheets', 'initializeDashboardSheets')
     .addItem('🔑 Authorize Spreadsheet Scopes', 'triggerGoogleAuthorizationPrompt')
@@ -61,9 +62,17 @@ function triggerGoogleAuthorizationPrompt() {
 }
 
 /**
- * 1-click test function for the Apps Script Editor:
- * Run this directly from the Apps Script editor toolbar to grant UrlFetchApp permissions.
+ * 1-click test & authorization function for the Apps Script Editor:
+ * Run this directly from the Apps Script editor toolbar to grant UrlFetchApp permissions
+ * and test live conversational AI response.
  */
+function testAIChat() {
+  Logger.log("Testing UrlFetchApp & AI Chat authorization...");
+  var res = botlabChat("Hello, are you online?", "[]");
+  Logger.log("AI Test Result: " + JSON.stringify(res));
+  return res;
+}
+
 function testExternalFetch() {
   Logger.log("Testing UrlFetchApp permission...");
   var res = UrlFetchApp.fetch("https://www.google.com", { muteHttpExceptions: true });
