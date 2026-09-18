@@ -8995,20 +8995,51 @@ document.addEventListener('change', function(e) {
     try {
       var gasUrl = typeof getActiveGasUrl === "function" ? getActiveGasUrl() : (typeof DEFAULT_GAS_URL !== "undefined" ? DEFAULT_GAS_URL : "https://script.google.com/macros/s/AKfycbw91MSWxgTmiSGZTxlgDkniCbPFEZMUpQFiCwu6AnDd13bTfCquZJVDP6sut3JF9Eri/exec");
       var liveContext = _gatherLiveDashboardContext();
-      const res = await fetch(gasUrl, {
-        method: "POST",
-        headers: { "Content-Type": "text/plain;charset=utf-8" },
-        body: JSON.stringify({
-          action: "botlabChat",
-          parameters: [
-            text,
-            JSON.stringify(window._globalAIChatState.history || []),
-            JSON.stringify(liveContext)
-          ]
-        })
+      var payload = JSON.stringify({
+        action: "botlabChat",
+        parameters: [
+          text,
+          JSON.stringify(window._globalAIChatState.history || []),
+          JSON.stringify(liveContext)
+        ]
       });
-      const data = await res.json();
-      if (!_isAIErrorResponse(data)) {
+
+      var data = null;
+      var controller = new AbortController();
+      var timeoutTimer = setTimeout(function () { controller.abort(); }, 15000); // 15s max timeout
+
+      try {
+        var res = await fetch(gasUrl, {
+          method: "POST",
+          headers: { "Content-Type": "text/plain;charset=utf-8" },
+          body: payload,
+          redirect: "follow",
+          signal: controller.signal
+        });
+        clearTimeout(timeoutTimer);
+        data = await res.json();
+      } catch (fetchErr) {
+        clearTimeout(timeoutTimer);
+        console.warn("[BishtJiBot] Direct GAS fetch aborted or failed, attempting server proxy...", fetchErr);
+        
+        // Fallback to Vercel proxy if direct fetch is blocked by browser CORS/redirects
+        try {
+          var proxyController = new AbortController();
+          var proxyTimeout = setTimeout(function () { proxyController.abort(); }, 12000);
+          var proxyRes = await fetch("/api/proxy?url=" + encodeURIComponent(gasUrl), {
+            method: "POST",
+            headers: { "Content-Type": "text/plain;charset=utf-8" },
+            body: payload,
+            signal: proxyController.signal
+          });
+          clearTimeout(proxyTimeout);
+          data = await proxyRes.json();
+        } catch (proxyErr) {
+          console.warn("[BishtJiBot] Server proxy also timed out or failed:", proxyErr);
+        }
+      }
+
+      if (data && !_isAIErrorResponse(data)) {
         var r = data.reply.trim();
         window._globalAIChatState.history.push({ role: "assistant", text: r });
         _addGlobalAIMsg("bot", r);
