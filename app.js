@@ -6132,6 +6132,94 @@ window.addEventListener('message', function(event) {
     wrap.appendChild(banner);
   }
 
+  function _removeLoginBanner(id) {
+    var card = document.getElementById("botlab-card-" + id);
+    if (!card) return;
+    var wrap = card.querySelector(".botlab-card-frame-wrap");
+    if (!wrap) return;
+    var banner = wrap.querySelector(".botlab-login-banner");
+    if (banner) banner.remove();
+  }
+
+  function _showLoginBanner(iframe, id) {
+    var card = document.getElementById("botlab-card-" + id);
+    if (!card) return;
+    var wrap = card.querySelector(".botlab-card-frame-wrap");
+    if (!wrap) return;
+    if (wrap.querySelector(".botlab-login-banner")) return; // already showing
+    _removeRecoveryBanner(id);
+
+    var banner = document.createElement("div");
+    banner.className = "botlab-recovery-banner botlab-login-banner";
+    banner.setAttribute("role", "alert");
+    banner.style.background = "#fffbeb";
+    banner.style.borderColor = "#fde68a";
+    banner.innerHTML =
+      '<div class="botlab-recovery-content">' +
+        '<svg class="botlab-svg-xs text-amber-600 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>' +
+        '<span style="color:#92400e;font-weight:600;">Aap partner.redcliffelabs.com pe login nahi hain</span>' +
+        '<div style="display:flex;gap:6px;align-items:center;">' +
+          '<button class="botlab-recovery-btn botlab-login-btn" style="background:#fef3c7;color:#92400e;border:1px solid #fcd34d;" title="Open Login Page">' +
+            '<svg class="botlab-svg-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>' +
+            '<span>Open Login</span>' +
+          '</button>' +
+          '<button class="botlab-recovery-btn botlab-resume-btn" style="background:#023B68;color:#ffffff;border:none;" title="Resume Booking">' +
+            '<svg class="botlab-svg-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg>' +
+            '<span>Resume</span>' +
+          '</button>' +
+        '</div>' +
+      '</div>' +
+      '<button class="botlab-recovery-close" aria-label="Dismiss banner" title="Dismiss">' +
+        '<svg class="botlab-svg-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6L6 18M6 6l12 12"/></svg>' +
+      '</button>';
+
+    var openBtn = banner.querySelector(".botlab-login-btn");
+    if (openBtn) {
+      openBtn.onclick = function (e) {
+        e.stopPropagation();
+        window.open("https://partner.redcliffelabs.com/login", "_blank");
+      };
+    }
+
+    var resumeBtn = banner.querySelector(".botlab-resume-btn");
+    if (resumeBtn) {
+      resumeBtn.onclick = function (e) {
+        e.stopPropagation();
+        banner.remove();
+        window.botlabResumeIntendedBooking(id);
+      };
+    }
+
+    var closeBtn = banner.querySelector(".botlab-recovery-close");
+    if (closeBtn) {
+      closeBtn.onclick = function (e) {
+        e.stopPropagation();
+        banner.remove();
+      };
+    }
+
+    wrap.appendChild(banner);
+  }
+
+  window.botlabResumeIntendedBooking = function (id) {
+    var stored = (_bl.intendedBookings && _bl.intendedBookings[id]) || window._lastIntendedBooking;
+    if (!stored || !stored.url) {
+      _addMsg("bot", "Koi pending intended booking memory me nahi mili.");
+      return;
+    }
+    _addMsg("bot", "Resuming booking in partner portal: <b>" + _escHtml(stored.booking && (stored.booking.name || stored.booking.patientName) || "Selected Patient") + "</b>...");
+    _removeLoginBanner(id);
+    _removeRecoveryBanner(id);
+    var targetId = (id !== undefined && document.getElementById("botlab-iframe-" + id)) ? id : _bl.active;
+    var iframe = document.getElementById("botlab-iframe-" + targetId);
+    if (iframe) {
+      iframe.src = stored.url;
+      _wireIframeLoadHandler(iframe, targetId);
+    } else {
+      window.botlabCreateTab(stored.url, "Resumed Booking", false);
+    }
+  };
+
   // ── Helper to wire iframe load handler (Tab 0 & Dynamic Tabs) ──
   function _wireIframeLoadHandler(iframe, id) {
     if (!iframe) return;
@@ -6160,6 +6248,25 @@ window.addEventListener('message', function(event) {
           _renderTabs();
         } else if (iframe.contentDocument && iframe.contentDocument.body) {
           accessible = true;
+        }
+
+        var isLoginRedirect = false;
+        if (iframe.contentWindow && iframe.contentWindow.location) {
+          var pth = iframe.contentWindow.location.pathname || "";
+          var href = iframe.contentWindow.location.href || "";
+          if (pth.includes("/login") || href.includes("/login") || href.includes("/auth")) {
+            isLoginRedirect = true;
+          }
+        }
+        var docTitle = (iframe.contentDocument && iframe.contentDocument.title) || "";
+        if (docTitle.toLowerCase().includes("login") || docTitle.toLowerCase().includes("sign in")) {
+          isLoginRedirect = true;
+        }
+        if (isLoginRedirect) {
+          _clearRecoveryTimer(id);
+          _removeRecoveryBanner(id);
+          _showLoginBanner(iframe, id);
+          return;
         }
       } catch (e) {
         accessible = false; /* cross-origin / blocked */
@@ -6291,8 +6398,8 @@ window.addEventListener('message', function(event) {
     // "All Pending" chip
     var allBtn = document.createElement("button");
     allBtn.className = "botlab-ai-chip all-chip";
-    allBtn.title = "View all " + totalPending + " pending bookings";
-    allBtn.onclick = function () { window.botlabLaunchPendingTabs("all"); };
+    allBtn.title = "Actions for all " + totalPending + " pending bookings";
+    allBtn.onclick = function (e) { window.openPendencyChipMenu(e, "all", totalPending); };
     allBtn.innerHTML =
       '<svg class="botlab-svg-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/></svg>' +
       '<span>All Pending</span>' +
@@ -6306,8 +6413,8 @@ window.addEventListener('message', function(event) {
         (function (cName, count) {
           var btn = document.createElement("button");
           btn.className = "botlab-ai-chip";
-          btn.title = "View " + count + " pending for " + cName;
-          btn.onclick = function () { window.botlabLaunchPendingTabs(cName); };
+          btn.title = "Actions for " + count + " pending for " + cName;
+          btn.onclick = function (e) { window.openPendencyChipMenu(e, cName, count); };
 
           var clow = cName.toLowerCase();
           var iconSvg = '<svg class="botlab-svg-xs text-slate-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="2" width="16" height="20" rx="2" ry="2"/><path d="M9 22v-4h6v4"/><path d="M8 6h.01"/><path d="M16 6h.01"/><path d="M12 6h.01"/><path d="M12 10h.01"/><path d="M12 14h.01"/><path d="M16 10h.01"/><path d="M16 14h.01"/><path d="M8 10h.01"/><path d="M8 14h.01"/></svg>';
@@ -6336,6 +6443,89 @@ window.addEventListener('message', function(event) {
     var matrixHeadCount = document.getElementById("matrix-header-count");
     if (matrixHeadCount) matrixHeadCount.textContent = totalPending + " Pending";
   };
+
+  // ── Pendency Chip Progressive Disclosure Anchored Menu ──────
+  window.closePendencyChipMenu = function () {
+    var m = document.getElementById("botlab-chip-dropdown-menu");
+    if (m) m.remove();
+  };
+
+  window.openPendencyChipMenu = function (e, clientKey, count) {
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+    window.closePendencyChipMenu();
+
+    var chipBtn = (e && (e.currentTarget || (e.target && e.target.closest(".botlab-ai-chip")))) || e.target;
+    if (!chipBtn) return;
+
+    var rect = chipBtn.getBoundingClientRect();
+    var menu = document.createElement("div");
+    menu.id = "botlab-chip-dropdown-menu";
+    menu.className = "botlab-chip-dropdown";
+
+    var title = (clientKey === "all") ? "All Pending" : clientKey;
+    var countText = (count !== undefined && count !== null) ? count : "";
+
+    menu.innerHTML =
+      '<div class="botlab-chip-dropdown-header">' +
+        '<span>' + _escHtml(title) + '</span>' +
+        (countText !== "" ? '<span style="font-size:10px;font-weight:700;background:var(--surface-subtle,#f1f5f9);padding:1px 6px;border-radius:10px;">' + _escHtml(String(countText)) + '</span>' : '') +
+      '</div>' +
+      '<button class="botlab-chip-dropdown-item primary" id="botlab-chip-action-all">' +
+        '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>' +
+        '<span>Launch All at Once</span>' +
+      '</button>' +
+      '<button class="botlab-chip-dropdown-item" id="botlab-chip-action-queue">' +
+        '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="10" y1="6" x2="21" y2="6"/><line x1="10" y1="12" x2="21" y2="12"/><line x1="10" y1="18" x2="21" y2="18"/><path d="M4 6h1v4"/><path d="M4 10h2"/><path d="M6 18H4c0-1 2-2 2-3s-1-1.5-2-1"/></svg>' +
+        '<span>Start 1-by-1 Queue</span>' +
+      '</button>' +
+      '<button class="botlab-chip-dropdown-item" id="botlab-chip-action-matrix">' +
+        '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="3" y1="15" x2="21" y2="15"/><line x1="9" y1="3" x2="9" y2="21"/><line x1="15" y1="3" x2="15" y2="21"/></svg>' +
+        '<span>Open in Dispatch Matrix</span>' +
+      '</button>';
+
+    menu.querySelector("#botlab-chip-action-all").onclick = function (ev) {
+      ev.stopPropagation();
+      window.closePendencyChipMenu();
+      window.botlabSetExecutionMode("all");
+      window.botlabLaunchAllParallel(clientKey);
+    };
+
+    menu.querySelector("#botlab-chip-action-queue").onclick = function (ev) {
+      ev.stopPropagation();
+      window.closePendencyChipMenu();
+      window.botlabSetExecutionMode("queue");
+      window.botlabLaunchPendingQueue(clientKey);
+    };
+
+    menu.querySelector("#botlab-chip-action-matrix").onclick = function (ev) {
+      ev.stopPropagation();
+      window.closePendencyChipMenu();
+      if (typeof window.openDispatchMatrix === "function") {
+        window.openDispatchMatrix(clientKey);
+      }
+    };
+
+    var topPos = rect.bottom + 6;
+    var leftPos = Math.max(10, Math.min(window.innerWidth - 240, rect.left));
+    menu.style.top = topPos + "px";
+    menu.style.left = leftPos + "px";
+
+    document.body.appendChild(menu);
+  };
+
+  document.addEventListener("click", function (e) {
+    if (!e.target.closest("#botlab-chip-dropdown-menu") && !e.target.closest(".botlab-ai-chip")) {
+      window.closePendencyChipMenu();
+    }
+  });
+  document.addEventListener("keydown", function (e) {
+    if (e.key === "Escape") {
+      window.closePendencyChipMenu();
+    }
+  });
 
   // ── 1-Click Copy URL to Clipboard ─────────────────────────
   window.botlabCopyUrl = function () {
@@ -6537,6 +6727,7 @@ window.addEventListener('message', function(event) {
     if (_bl.tabs.length <= 1) return;
     _clearRecoveryTimer(id);
     _removeRecoveryBanner(id);
+    _removeLoginBanner(id);
     _bl.tabs = _bl.tabs.filter(function (t) { return t.id !== id; });
     delete _bl.history[id];
     delete _bl.histPos[id];
@@ -6557,6 +6748,7 @@ window.addEventListener('message', function(event) {
   window.botlabReloadTab = function (id) {
     _clearRecoveryTimer(id);
     _removeRecoveryBanner(id);
+    _removeLoginBanner(id);
     var iframe = document.getElementById("botlab-iframe-" + id);
     if (iframe) {
       var loader = document.getElementById("botlab-iframe-loader");
@@ -6590,14 +6782,17 @@ window.addEventListener('message', function(event) {
 
   window.botlabFocusTab = function (id) {
     _switchTab(id);
-    if (_bl.viewMode === "grid") {
-      window.toggleBotlabViewMode();
-    }
+    window.toggleBotlabViewMode("single");
   };
 
   // ── Grid / Single View Mode Toggle ─────────────────────────
-  window.toggleBotlabViewMode = function () {
-    _bl.viewMode = (_bl.viewMode === "single" ? "grid" : "single");
+  window.toggleBotlabViewMode = function (targetMode) {
+    var prevMode = _bl.viewMode;
+    if (targetMode === "grid" || targetMode === "single") {
+      _bl.viewMode = targetMode;
+    } else {
+      _bl.viewMode = (_bl.viewMode === "single" ? "grid" : "single");
+    }
     var wrap = document.getElementById("botlab-iframe-wrap");
     var toggleBtn = document.getElementById("botlab-view-toggle");
     var toggleIcon = document.getElementById("botlab-view-icon");
@@ -6614,9 +6809,11 @@ window.addEventListener('message', function(event) {
         : '<svg class="botlab-svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/></svg>');
     }
 
-    _addMsg("bot", _bl.viewMode === "grid"
-      ? "Switched to Grid Multi-View. All " + _bl.tabs.length + " tabs visible side-by-side."
-      : "Switched to Single Tab View.");
+    if (prevMode !== _bl.viewMode || !targetMode) {
+      _addMsg("bot", _bl.viewMode === "grid"
+        ? "Switched to Grid Multi-View. All " + _bl.tabs.length + " tabs visible side-by-side."
+        : "Switched to Single Tab View.");
+    }
   };
 
   // ── Navigation ─────────────────────────────────────────────
@@ -6761,6 +6958,35 @@ window.addEventListener('message', function(event) {
 
         if (matchedTabId === null && _bl.tabs.length === 1) {
           matchedTabId = _bl.active;
+        }
+
+        // Detect partner login redirect via cross-origin reported URL
+        if (event.data.url.indexOf("/login") !== -1 || event.data.url.indexOf("/auth") !== -1) {
+          var targetTabId = (matchedTabId !== null) ? matchedTabId : _bl.active;
+          var ifr = document.getElementById("botlab-iframe-" + targetTabId);
+          if (ifr) {
+            _clearRecoveryTimer(targetTabId);
+            _removeRecoveryBanner(targetTabId);
+            _showLoginBanner(ifr, targetTabId);
+          }
+          if (!_bl._loginNotified || (Date.now() - _bl._loginNotified > 15000)) {
+            _bl._loginNotified = Date.now();
+            _addMsg("bot",
+              'Aap <b>partner.redcliffelabs.com</b> pe login nahi hain.<br>' +
+              '<span style="font-size:11.5px;color:#64748b;">Pehle login karein, fir "Resume" click karein:</span>' +
+              '<div style="display:flex;gap:6px;margin-top:8px;flex-wrap:wrap;">' +
+                '<a class="botlab-msg-action-btn" href="https://partner.redcliffelabs.com/login" target="_blank" rel="noopener noreferrer" style="text-decoration:none;">' +
+                  '<svg class="botlab-svg-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>' +
+                  ' Open Login Page' +
+                '</a>' +
+                '<button class="botlab-msg-action-btn" onclick="window.botlabResumeIntendedBooking(' + targetTabId + ')">' +
+                  '<svg class="botlab-svg-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg>' +
+                  ' Resume Booking' +
+                '</button>' +
+              '</div>',
+              true
+            );
+          }
         }
 
         // Update stored URL on specific source tab
@@ -6963,7 +7189,15 @@ window.addEventListener('message', function(event) {
       p.set("botLocation", addressVal);
     }
 
-    return "https://partner.redcliffelabs.com/dashboard/corpclientadmin/booking?" + p.toString();
+    var targetUrl = "https://partner.redcliffelabs.com/dashboard/corpclientadmin/booking?" + p.toString();
+    if (typeof _bl !== "undefined") {
+      if (!_bl.intendedBookings) _bl.intendedBookings = {};
+      if (_bl.active !== undefined) {
+        _bl.intendedBookings[_bl.active] = { url: targetUrl, booking: b };
+      }
+    }
+    window._lastIntendedBooking = { url: targetUrl, booking: b };
+    return targetUrl;
   }
 
   // ── Chat Reset / Clear ─────────────────────────────────────
@@ -7478,21 +7712,28 @@ window.addEventListener('message', function(event) {
         if (idx === 0 && _bl.tabs.length === 1 && (!_bl.tabs[0].url || _bl.tabs[0].url === "about:blank" || _bl.tabs[0].url.indexOf("google.com") !== -1)) {
           _bl.tabs[0].title = tabTitle;
           _bl.tabs[0].url = targetUrl;
+          if (_bl.intendedBookings) _bl.intendedBookings[0] = { url: targetUrl, booking: b };
           var tEl = document.getElementById("botlab-card-title-0");
           if (tEl) tEl.textContent = tabTitle;
           var iframe = document.getElementById("botlab-iframe-0");
-          if (iframe) iframe.src = targetUrl;
+          if (iframe) {
+            iframe.src = targetUrl;
+            _wireIframeLoadHandler(iframe, 0);
+          }
           var urlInput = document.getElementById("botlab-url-input");
           var isUserEditing = urlInput && (document.activeElement === urlInput || urlInput._isUserEditing);
           if (urlInput && !isUserEditing) urlInput.value = targetUrl;
         } else {
-          window.botlabCreateTab(targetUrl, tabTitle, idx > 0);
+          var newTabId = window.botlabCreateTab(targetUrl, tabTitle, idx > 0);
+          if (_bl.intendedBookings && newTabId !== undefined) {
+            _bl.intendedBookings[newTabId] = { url: targetUrl, booking: b };
+          }
         }
       }, idx * 600);
     });
 
-    if (batch.length > 1 && _bl.viewMode !== "grid") {
-      window.toggleBotlabViewMode();
+    if (batch.length > 1) {
+      window.toggleBotlabViewMode("grid");
     }
 
     var popAllHtml =
@@ -7618,9 +7859,7 @@ window.addEventListener('message', function(event) {
       progText.textContent = completedCount + " / " + window.botlabQueueTotal + " (" + pct + "%)";
     }
 
-    if (_bl.viewMode !== "single") {
-      window.toggleBotlabViewMode();
-    }
+    window.toggleBotlabViewMode("single");
 
     var queueHtml =
       '<div style="margin-top: 6px; display: flex; flex-wrap: wrap; gap: 6px;">' +
@@ -7647,16 +7886,25 @@ window.addEventListener('message', function(event) {
     if (tab) {
       tab.title = tabTitle;
       tab.url = targetUrl;
+      if (_bl.intendedBookings) {
+        _bl.intendedBookings[targetTabId] = { url: targetUrl, booking: b };
+      }
       var tEl = document.getElementById("botlab-card-title-" + targetTabId);
       if (tEl) tEl.textContent = tabTitle;
       var iframe = document.getElementById("botlab-iframe-" + targetTabId);
-      if (iframe) iframe.src = targetUrl;
+      if (iframe) {
+        iframe.src = targetUrl;
+        _wireIframeLoadHandler(iframe, targetTabId);
+      }
       var urlInput = document.getElementById("botlab-url-input");
       var isUserEditing = urlInput && (document.activeElement === urlInput || urlInput._isUserEditing);
       if (urlInput && !isUserEditing) urlInput.value = targetUrl;
       _switchTab(targetTabId);
     } else {
-      window.botlabCreateTab(targetUrl, tabTitle);
+      var newTabId = window.botlabCreateTab(targetUrl, tabTitle);
+      if (_bl.intendedBookings && newTabId !== undefined) {
+        _bl.intendedBookings[newTabId] = { url: targetUrl, booking: b };
+      }
     }
   };
 
@@ -7664,7 +7912,12 @@ window.addEventListener('message', function(event) {
   window.matrixSelectedRows = new Set();
   window.matrixActiveClient = "all";
 
-  window.openDispatchMatrix = function () {
+  window.openDispatchMatrix = function (clientFilter) {
+    if (clientFilter && clientFilter !== "all") {
+      window.matrixActiveClient = clientFilter;
+    } else if (clientFilter === "all") {
+      window.matrixActiveClient = "all";
+    }
     var drawer = document.getElementById("modal-dispatch-matrix");
     if (drawer) {
       drawer.classList.add("open");
