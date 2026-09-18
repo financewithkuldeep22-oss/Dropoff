@@ -44,18 +44,30 @@ function onOpen() {
 }
 
 /**
- * Force-triggers the Google authorization popup inside Sheets by calling openById.
- * This resolves any "Authorization required" blocks instantly!
+ * Force-triggers the Google authorization popup inside Sheets by calling openById and UrlFetchApp.
+ * This resolves any "Authorization required" blocks instantly for both Sheets and external AI requests!
  */
 function triggerGoogleAuthorizationPrompt() {
   var ui = SpreadsheetApp.getUi();
   var testId = "1MJKP8Jet9z6V815Zlna5aogmTnrLlaH_3UlUJz5NDxc";
   try {
     var doc = SpreadsheetApp.openById(testId);
-    ui.alert('🔑 Scope Authorization Success', 'Your Google account has successfully authorized external sheets access! You can now open the dashboard.', ui.ButtonSet.OK);
+    var fetchTest = UrlFetchApp.fetch("https://www.google.com", { muteHttpExceptions: true });
+    ui.alert('🔑 Scope Authorization Success', 'Your Google account has successfully authorized external sheets and AI network access! You can now use all dashboard features.', ui.ButtonSet.OK);
   } catch (e) {
     ui.alert('🔑 Authorization Action Needed', 'Please open the Apps Script editor (Extensions -> Apps Script), select "triggerGoogleAuthorizationPrompt" in the top toolbar dropdown, and click the "Run" button to complete the Google security prompt.', ui.ButtonSet.OK);
   }
+}
+
+/**
+ * 1-click test function for the Apps Script Editor:
+ * Run this directly from the Apps Script editor toolbar to grant UrlFetchApp permissions.
+ */
+function testExternalFetch() {
+  Logger.log("Testing UrlFetchApp permission...");
+  var res = UrlFetchApp.fetch("https://www.google.com", { muteHttpExceptions: true });
+  Logger.log("UrlFetchApp status: " + res.getResponseCode());
+  return "Success: UrlFetchApp authorized (code " + res.getResponseCode() + ")";
 }
 
 function runDiagnostics() {
@@ -2561,6 +2573,15 @@ function normalizeBookingRecord(row) {
     age: String(age || '').trim(),
     gender: String(gender || '').trim()
   };
+}
+
+function firstNonEmptyValue(values) {
+  for (var i = 0; i < values.length; i++) {
+    if (values[i] !== undefined && values[i] !== null && String(values[i]).trim() !== '') {
+      return values[i];
+    }
+  }
+  return '';
 }
 
 function formatMailDate() {
