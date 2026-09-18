@@ -8804,8 +8804,8 @@ window.clearBatchSelection = function() {
   const bar = document.getElementById('floating-batch-bar');
   if (bar) bar.classList.remove('show');
   
-  // Uncheck all checkboxes
-  document.querySelectorAll('input[type="checkbox"]').forEach(cb => {
+  // Uncheck all booking-selection checkboxes
+  document.querySelectorAll('.booking-select-checkbox').forEach(cb => {
     cb.checked = false;
   });
   
@@ -8821,10 +8821,10 @@ window.handleBatchSync = function() {
   window.clearBatchSelection();
 };
 
-// Global checkbox listener to show/hide the floating batch bar
+// Scoped checkbox listener to show/hide the floating batch bar
 document.addEventListener('change', function(e) {
-  if (e.target && e.target.type === 'checkbox') {
-    const checkedBoxes = document.querySelectorAll('input[type="checkbox"]:checked');
+  if (e.target && e.target.classList && e.target.classList.contains('booking-select-checkbox')) {
+    const checkedBoxes = document.querySelectorAll('.booking-select-checkbox:checked');
     const bar = document.getElementById('floating-batch-bar');
     const countEl = document.getElementById('batch-selected-count');
     
