@@ -2101,9 +2101,72 @@ if(syncBtnEl && !syncBtnEl.dataset.fix) {
     _r = [];
   const Er = new Map(),
     Sr = new Set();
+
+  // ── IndexedDB QC Photo Cache Layer (DropoffQCCache, 24h TTL) ──
+  const QcPhotoCache = (function () {
+    const DB_NAME = "DropoffQCCache";
+    const STORE_NAME = "photos";
+    const TTL_MS = 24 * 60 * 60 * 1000; // 24 hours
+
+    function getDB() {
+      return new Promise(function (resolve) {
+        if (!window.indexedDB) return resolve(null);
+        try {
+          var req = indexedDB.open(DB_NAME, 1);
+          req.onerror = function () { resolve(null); };
+          req.onsuccess = function () { resolve(req.result); };
+          req.onupgradeneeded = function (e) {
+            var db = e.target.result;
+            if (!db.objectStoreNames.contains(STORE_NAME)) {
+              db.createObjectStore(STORE_NAME);
+            }
+          };
+        } catch (e) {
+          resolve(null);
+        }
+      });
+    }
+
+    return {
+      get: async function (key) {
+        try {
+          var db = await getDB();
+          if (!db) return null;
+          return new Promise(function (resolve) {
+            var tx = db.transaction(STORE_NAME, "readonly");
+            var store = tx.objectStore(STORE_NAME);
+            var req = store.get(key);
+            req.onsuccess = function () {
+              var rec = req.result;
+              if (rec && rec.data && (Date.now() - (rec.timestamp || 0) < TTL_MS)) {
+                resolve(rec.data);
+              } else {
+                resolve(null);
+              }
+            };
+            req.onerror = function () { resolve(null); };
+          });
+        } catch (e) {
+          return null;
+        }
+      },
+      set: async function (key, data) {
+        if (!key || !data) return;
+        try {
+          var db = await getDB();
+          if (!db) return;
+          var tx = db.transaction(STORE_NAME, "readwrite");
+          var store = tx.objectStore(STORE_NAME);
+          store.put({ data: data, timestamp: Date.now() }, key);
+        } catch (e) {}
+      }
+    };
+  })();
+  window.QcPhotoCache = QcPhotoCache;
+
   let base64PreloadQueue = [];
   let activeBase64Requests = 0;
-  const MAX_BASE64_CONCURRENCY = 1;
+  const MAX_BASE64_CONCURRENCY = 2;
 
   function getDriveIdFromUrl(url) {
     if (!url) return null;
@@ -2155,30 +2218,43 @@ if(syncBtnEl && !syncBtnEl.dataset.fix) {
     if (Er.has(cacheKey) || Sr.has(cacheKey)) return;
     Sr.add(cacheKey);
 
-    const urls = rawUrl.split(/[,\s]+/).map(u => u.trim()).filter(u => u !== "" && u !== "-");
-    if (urls.length === 0) {
+    // Check IndexedDB cache first before issuing network requests
+    QcPhotoCache.get(cacheKey).then(function (cachedData) {
+      if (cachedData) {
+        Sr.delete(cacheKey);
+        Er.set(cacheKey, [cachedData]);
+        applyCachedPhotoToUI(booking.rowNum, type, cachedData);
+        return;
+      }
+
+      const urls = rawUrl.split(/[,\s]+/).map(u => u.trim()).filter(u => u !== "" && u !== "-");
+      if (urls.length === 0) {
+        Sr.delete(cacheKey);
+        return;
+      }
+
+      const firstUrl = urls[0];
+      const driveId = getDriveIdFromUrl(firstUrl);
+
+      if (driveId) {
+        // Queue backend fetch directly
+        queueBase64Preload(driveId, cacheKey, booking.rowNum, type);
+      } else {
+        const img = new Image();
+        img.onload = () => {
+          Sr.delete(cacheKey);
+          Er.set(cacheKey, [firstUrl]);
+          QcPhotoCache.set(cacheKey, firstUrl);
+          applyCachedPhotoToUI(booking.rowNum, type, firstUrl);
+        };
+        img.onerror = () => {
+          Sr.delete(cacheKey);
+        };
+        img.src = firstUrl;
+      }
+    }).catch(function () {
       Sr.delete(cacheKey);
-      return;
-    }
-
-    const firstUrl = urls[0];
-    const driveId = getDriveIdFromUrl(firstUrl);
-
-    if (driveId) {
-      // Skip CDN/thumbnail cascade (always fails for private Drive files) - queue backend directly
-      queueBase64Preload(driveId, cacheKey, booking.rowNum, type);
-    } else {
-      const img = new Image();
-      img.onload = () => {
-        Sr.delete(cacheKey);
-        Er.set(cacheKey, [firstUrl]);
-        applyCachedPhotoToUI(booking.rowNum, type, firstUrl);
-      };
-      img.onerror = () => {
-        Sr.delete(cacheKey);
-      };
-      img.src = firstUrl;
-    }
+    });
   }
 
   function queueBase64Preload(driveId, cacheKey, rowNum, type) {
@@ -2196,6 +2272,7 @@ if(syncBtnEl && !syncBtnEl.dataset.fix) {
           Sr.delete(item.cacheKey);
           if (res && res.status === "success" && res.base64Data) {
             Er.set(item.cacheKey, [res.base64Data]);
+            QcPhotoCache.set(item.cacheKey, res.base64Data);
             applyCachedPhotoToUI(item.rowNum, item.type, res.base64Data);
           }
           activeBase64Requests--;
@@ -3135,7 +3212,7 @@ if(syncBtnEl && !syncBtnEl.dataset.fix) {
       setUIState("loading", "Waiting in queue...", "Pending download");
 
       photoTasks.push(() => {
-        return new Promise((resolve) => {
+        return new Promise(async (resolve) => {
           if (!vr || vr.rowNum !== booking.rowNum) return resolve();
           
           if (Er.has(cacheKey)) {
@@ -3158,6 +3235,31 @@ if(syncBtnEl && !syncBtnEl.dataset.fix) {
             return;
           }
 
+          // Check persistent IndexedDB cache before network request
+          try {
+            const idbCached = await QcPhotoCache.get(cacheKey);
+            if (idbCached) {
+              if (!vr || vr.rowNum !== booking.rowNum) return resolve();
+              Er.set(cacheKey, [idbCached]);
+              imgEl.onload = () => {
+                if (!vr || vr.rowNum !== booking.rowNum) return resolve();
+                setUIState("success");
+                resolve();
+              };
+              imgEl.onerror = () => {
+                if (!vr || vr.rowNum !== booking.rowNum) return resolve();
+                setUIState("error", "Failed to render cached photo", `<a href="${driveLink}" target="_blank" class="text-sky-400 underline mt-1 inline-block">Open Drive link</a>`);
+                resolve();
+              };
+              imgEl.src = idbCached;
+              if (imgEl.complete && imgEl.naturalWidth > 0) {
+                setUIState("success");
+                resolve();
+              }
+              return;
+            }
+          } catch (idbErr) {}
+
           const driveId = getDriveIdFromUrl(firstUrl);
           if (driveId) {
             setUIState("loading", "Loading Photo...", "Fetching from server");
@@ -3168,6 +3270,7 @@ if(syncBtnEl && !syncBtnEl.dataset.fix) {
               imgEl.onload = () => {
                 if (!vr || vr.rowNum !== booking.rowNum) return resolve();
                 Er.set(cacheKey, [fallbackThumbnail]);
+                QcPhotoCache.set(cacheKey, fallbackThumbnail);
                 setUIState("success");
                 resolve();
               };
@@ -3184,6 +3287,7 @@ if(syncBtnEl && !syncBtnEl.dataset.fix) {
                 if (!vr || vr.rowNum !== booking.rowNum) return resolve();
                 if (res && res.status === "success" && res.base64Data) {
                   Er.set(cacheKey, [res.base64Data]);
+                  QcPhotoCache.set(cacheKey, res.base64Data);
                   imgEl.onload = () => {
                     if (!vr || vr.rowNum !== booking.rowNum) return resolve();
                     setUIState("success");
@@ -3210,6 +3314,7 @@ if(syncBtnEl && !syncBtnEl.dataset.fix) {
             imgEl.onload = () => {
               if (!vr || vr.rowNum !== booking.rowNum) return resolve();
               Er.set(cacheKey, [firstUrl]);
+              QcPhotoCache.set(cacheKey, firstUrl);
               setUIState("success");
               resolve();
             };
@@ -3225,9 +3330,11 @@ if(syncBtnEl && !syncBtnEl.dataset.fix) {
     });
 
     async function processQueue() {
-      for (const task of photoTasks) {
+      const concurrency = 2;
+      for (let i = 0; i < photoTasks.length; i += concurrency) {
         if (!vr || vr.rowNum !== booking.rowNum) break;
-        await task();
+        const chunk = photoTasks.slice(i, i + concurrency);
+        await Promise.all(chunk.map(t => t()));
       }
       
       if (!vr || vr.rowNum !== booking.rowNum) return;
@@ -5063,9 +5170,45 @@ window.togglePasswordVisibility = function(e) {
 
     if (!Qs) {
       listEl.innerHTML = `
-        <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 p-12 text-center text-slate-500">
-          <div class="inline-flex items-center gap-2 text-sm font-bold">
-            <i class="fa-solid fa-spinner fa-spin text-indigo-500"></i> Loading client bookings data...
+        <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/90 dark:border-slate-800 shadow-sm overflow-hidden p-5 space-y-4">
+          <div class="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
+            <span class="skeleton-shimmer h-4 w-32 rounded"></span>
+            <span class="skeleton-shimmer h-4 w-20 rounded"></span>
+          </div>
+          <div class="grid grid-cols-12 gap-3 py-3 border-b border-slate-100 dark:border-slate-800/80 items-center">
+            <div class="col-span-2 space-y-1.5"><div class="skeleton-shimmer h-3.5 w-20 rounded"></div><div class="skeleton-shimmer h-3 w-16 rounded"></div></div>
+            <div class="col-span-3 space-y-1.5"><div class="skeleton-shimmer h-3.5 w-28 rounded"></div><div class="skeleton-shimmer h-3 w-20 rounded"></div></div>
+            <div class="col-span-4 space-y-1.5"><div class="skeleton-shimmer h-4 w-36 rounded"></div><div class="skeleton-shimmer h-3 w-48 rounded"></div></div>
+            <div class="col-span-2"><div class="skeleton-shimmer h-7 w-24 rounded-lg"></div></div>
+            <div class="col-span-1 flex justify-end"><div class="skeleton-shimmer h-6 w-6 rounded-full"></div></div>
+          </div>
+          <div class="grid grid-cols-12 gap-3 py-3 border-b border-slate-100 dark:border-slate-800/80 items-center">
+            <div class="col-span-2 space-y-1.5"><div class="skeleton-shimmer h-3.5 w-20 rounded"></div><div class="skeleton-shimmer h-3 w-16 rounded"></div></div>
+            <div class="col-span-3 space-y-1.5"><div class="skeleton-shimmer h-3.5 w-28 rounded"></div><div class="skeleton-shimmer h-3 w-20 rounded"></div></div>
+            <div class="col-span-4 space-y-1.5"><div class="skeleton-shimmer h-4 w-36 rounded"></div><div class="skeleton-shimmer h-3 w-48 rounded"></div></div>
+            <div class="col-span-2"><div class="skeleton-shimmer h-7 w-24 rounded-lg"></div></div>
+            <div class="col-span-1 flex justify-end"><div class="skeleton-shimmer h-6 w-6 rounded-full"></div></div>
+          </div>
+          <div class="grid grid-cols-12 gap-3 py-3 border-b border-slate-100 dark:border-slate-800/80 items-center">
+            <div class="col-span-2 space-y-1.5"><div class="skeleton-shimmer h-3.5 w-20 rounded"></div><div class="skeleton-shimmer h-3 w-16 rounded"></div></div>
+            <div class="col-span-3 space-y-1.5"><div class="skeleton-shimmer h-3.5 w-28 rounded"></div><div class="skeleton-shimmer h-3 w-20 rounded"></div></div>
+            <div class="col-span-4 space-y-1.5"><div class="skeleton-shimmer h-4 w-36 rounded"></div><div class="skeleton-shimmer h-3 w-48 rounded"></div></div>
+            <div class="col-span-2"><div class="skeleton-shimmer h-7 w-24 rounded-lg"></div></div>
+            <div class="col-span-1 flex justify-end"><div class="skeleton-shimmer h-6 w-6 rounded-full"></div></div>
+          </div>
+          <div class="grid grid-cols-12 gap-3 py-3 border-b border-slate-100 dark:border-slate-800/80 items-center">
+            <div class="col-span-2 space-y-1.5"><div class="skeleton-shimmer h-3.5 w-20 rounded"></div><div class="skeleton-shimmer h-3 w-16 rounded"></div></div>
+            <div class="col-span-3 space-y-1.5"><div class="skeleton-shimmer h-3.5 w-28 rounded"></div><div class="skeleton-shimmer h-3 w-20 rounded"></div></div>
+            <div class="col-span-4 space-y-1.5"><div class="skeleton-shimmer h-4 w-36 rounded"></div><div class="skeleton-shimmer h-3 w-48 rounded"></div></div>
+            <div class="col-span-2"><div class="skeleton-shimmer h-7 w-24 rounded-lg"></div></div>
+            <div class="col-span-1 flex justify-end"><div class="skeleton-shimmer h-6 w-6 rounded-full"></div></div>
+          </div>
+          <div class="grid grid-cols-12 gap-3 py-3 border-b border-slate-100 dark:border-slate-800/80 items-center">
+            <div class="col-span-2 space-y-1.5"><div class="skeleton-shimmer h-3.5 w-20 rounded"></div><div class="skeleton-shimmer h-3 w-16 rounded"></div></div>
+            <div class="col-span-3 space-y-1.5"><div class="skeleton-shimmer h-3.5 w-28 rounded"></div><div class="skeleton-shimmer h-3 w-20 rounded"></div></div>
+            <div class="col-span-4 space-y-1.5"><div class="skeleton-shimmer h-4 w-36 rounded"></div><div class="skeleton-shimmer h-3 w-48 rounded"></div></div>
+            <div class="col-span-2"><div class="skeleton-shimmer h-7 w-24 rounded-lg"></div></div>
+            <div class="col-span-1 flex justify-end"><div class="skeleton-shimmer h-6 w-6 rounded-full"></div></div>
           </div>
         </div>`;
       return;
@@ -6215,8 +6358,28 @@ window.addEventListener('message', function(event) {
     }
   };
 
+  // ── Omnibox User Editing Focus/Blur Plumbing ───────────────
+  function _setupOmniboxListeners() {
+    var urlInput = document.getElementById("botlab-url-input");
+    if (!urlInput || urlInput._listenersAttached) return;
+    urlInput._listenersAttached = true;
+    urlInput._isUserEditing = false;
+    urlInput.addEventListener("focus", function () {
+      urlInput._isUserEditing = true;
+    });
+    urlInput.addEventListener("blur", function () {
+      urlInput._isUserEditing = false;
+    });
+    urlInput.addEventListener("keydown", function (e) {
+      if (e.key === "Enter") {
+        urlInput._isUserEditing = false;
+      }
+    });
+  }
+
   // ── Init (called on tab switch) ────────────────────────────
   window.initBotlab = function () {
+    _setupOmniboxListeners();
     if (_bl.initialized) {
       if (typeof window.updateBotlabPendingChips === "function") window.updateBotlabPendingChips();
       return;
@@ -6304,7 +6467,8 @@ window.addEventListener('message', function(event) {
     var tab = _bl.tabs.find(function (t) { return t.id === id; });
     if (tab) {
       var urlInput = document.getElementById("botlab-url-input");
-      if (urlInput) urlInput.value = tab.url || "";
+      var isUserEditing = urlInput && (document.activeElement === urlInput || urlInput._isUserEditing);
+      if (urlInput && !isUserEditing) urlInput.value = tab.url || "";
       _updateOmniboxLock(tab.url || "");
     }
     _renderTabs();
@@ -6509,7 +6673,8 @@ window.addEventListener('message', function(event) {
     }
 
     var urlInput = document.getElementById("botlab-url-input");
-    if (urlInput) urlInput.value = rawUrl;
+    var isUserEditing = urlInput && (document.activeElement === urlInput || urlInput._isUserEditing);
+    if (urlInput && !isUserEditing) urlInput.value = rawUrl;
 
     _updateOmniboxLock(rawUrl);
     _renderTabs();
@@ -6531,7 +6696,8 @@ window.addEventListener('message', function(event) {
         iframe.src = url;
       }
       var urlInput = document.getElementById("botlab-url-input");
-      if (urlInput) urlInput.value = url;
+      var isUserEditing = urlInput && (document.activeElement === urlInput || urlInput._isUserEditing);
+      if (urlInput && !isUserEditing) urlInput.value = url;
       _updateOmniboxLock(url);
     }
   };
@@ -6552,7 +6718,8 @@ window.addEventListener('message', function(event) {
         iframe.src = url;
       }
       var urlInput = document.getElementById("botlab-url-input");
-      if (urlInput) urlInput.value = url;
+      var isUserEditing = urlInput && (document.activeElement === urlInput || urlInput._isUserEditing);
+      if (urlInput && !isUserEditing) urlInput.value = url;
       _updateOmniboxLock(url);
     }
   };
@@ -7316,7 +7483,8 @@ window.addEventListener('message', function(event) {
           var iframe = document.getElementById("botlab-iframe-0");
           if (iframe) iframe.src = targetUrl;
           var urlInput = document.getElementById("botlab-url-input");
-          if (urlInput) urlInput.value = targetUrl;
+          var isUserEditing = urlInput && (document.activeElement === urlInput || urlInput._isUserEditing);
+          if (urlInput && !isUserEditing) urlInput.value = targetUrl;
         } else {
           window.botlabCreateTab(targetUrl, tabTitle, idx > 0);
         }
@@ -7484,7 +7652,8 @@ window.addEventListener('message', function(event) {
       var iframe = document.getElementById("botlab-iframe-" + targetTabId);
       if (iframe) iframe.src = targetUrl;
       var urlInput = document.getElementById("botlab-url-input");
-      if (urlInput) urlInput.value = targetUrl;
+      var isUserEditing = urlInput && (document.activeElement === urlInput || urlInput._isUserEditing);
+      if (urlInput && !isUserEditing) urlInput.value = targetUrl;
       _switchTab(targetTabId);
     } else {
       window.botlabCreateTab(targetUrl, tabTitle);
@@ -8420,6 +8589,179 @@ document.addEventListener('change', function(e) {
   }
 });
 
+// =========================================================
+// GLOBAL FLOATING AI ASSISTANT CONTROLLER (Cross-Tab Engine)
+// =========================================================
+(function initGlobalFloatingAI() {
+  window._globalAIChatState = {
+    isOpen: false,
+    history: []
+  };
+
+  function _esc(s) {
+    if (s === undefined || s === null) return "";
+    return String(s)
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#039;");
+  }
+
+  function _formatAIMessage(text) {
+    if (!text) return "";
+    return _esc(text)
+      .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+      .replace(/\*(.*?)\*/g, '<em>$1</em>')
+      .replace(/`([^`]+)`/g, '<code style="background:#f1f5f9;padding:1px 4px;border-radius:4px;font-size:11px;">$1</code>')
+      .replace(/\n/g, '<br/>');
+  }
+
+  window.toggleGlobalAI = function (forceState) {
+    var overlay = document.getElementById("global-ai-overlay");
+    var fab = document.getElementById("global-ai-fab");
+    if (!overlay) return;
+    var next = typeof forceState === "boolean" ? forceState : !window._globalAIChatState.isOpen;
+    window._globalAIChatState.isOpen = next;
+    if (next) {
+      overlay.classList.add("open");
+      if (fab) fab.classList.add("active");
+      var input = document.getElementById("global-ai-input");
+      if (input) setTimeout(function () { input.focus(); }, 150);
+    } else {
+      overlay.classList.remove("open");
+      if (fab) fab.classList.remove("active");
+    }
+  };
+
+  function _addGlobalAIMsg(sender, text) {
+    var container = document.getElementById("global-ai-messages");
+    if (!container) return;
+    var msgDiv = document.createElement("div");
+    msgDiv.className = "global-ai-msg " + (sender === "user" ? "user" : "bot");
+
+    if (sender === "user") {
+      msgDiv.innerHTML = '<div class="global-ai-msg-bubble">' + _esc(text) + '</div>';
+    } else {
+      msgDiv.innerHTML =
+        '<div class="global-ai-msg-avatar">' +
+          '<svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3-1.9 5.8a2 2 0 0 1-1.3 1.3L3 12l5.8 1.9a2 2 0 0 1 1.3 1.3L12 21l1.9-5.8a2 2 0 0 1 1.3-1.3L21 12l-5.8-1.9a2 2 0 0 1-1.3-1.3L12 3Z"/></svg>' +
+        '</div>' +
+        '<div class="global-ai-msg-bubble">' + _formatAIMessage(text) + '</div>';
+    }
+    container.appendChild(msgDiv);
+    container.scrollTop = container.scrollHeight;
+  }
+
+  function _showGlobalAITyping() {
+    var container = document.getElementById("global-ai-messages");
+    if (!container || document.getElementById("global-ai-typing-ind")) return;
+    var ind = document.createElement("div");
+    ind.id = "global-ai-typing-ind";
+    ind.className = "global-ai-msg bot";
+    ind.innerHTML =
+      '<div class="global-ai-msg-avatar">' +
+        '<svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3-1.9 5.8a2 2 0 0 1-1.3 1.3L3 12l5.8 1.9a2 2 0 0 1 1.3 1.3L12 21l1.9-5.8a2 2 0 0 1 1.3-1.3L21 12l-5.8-1.9a2 2 0 0 1-1.3-1.3L12 3Z"/></svg>' +
+      '</div>' +
+      '<div class="global-ai-typing">' +
+        '<div class="global-ai-typing-dot"></div>' +
+        '<div class="global-ai-typing-dot"></div>' +
+        '<div class="global-ai-typing-dot"></div>' +
+      '</div>';
+    container.appendChild(ind);
+    container.scrollTop = container.scrollHeight;
+  }
+
+  function _hideGlobalAITyping() {
+    var ind = document.getElementById("global-ai-typing-ind");
+    if (ind && ind.parentNode) {
+      ind.parentNode.removeChild(ind);
+    }
+  }
+
+  window.sendGlobalAIMessage = async function (presetText) {
+    var input = document.getElementById("global-ai-input");
+    var text = (presetText || (input && input.value) || "").trim();
+    if (!text) return;
+    if (input) input.value = "";
+
+    window.toggleGlobalAI(true);
+
+    _addGlobalAIMsg("user", text);
+    window._globalAIChatState.history.push({ role: "user", text: text });
+    if (window._globalAIChatState.history.length > 20) {
+      window._globalAIChatState.history = window._globalAIChatState.history.slice(-20);
+    }
+
+    _showGlobalAITyping();
+
+    try {
+      var gasUrl = typeof getActiveGasUrl === "function" ? getActiveGasUrl() : (typeof DEFAULT_GAS_URL !== "undefined" ? DEFAULT_GAS_URL : "https://script.google.com/macros/s/AKfycbw91MSWxgTmiSGZTxlgDkniCbPFEZMUpQFiCwu6AnDd13bTfCquZJVDP6sut3JF9Eri/exec");
+      const res = await fetch(gasUrl, {
+        method: "POST",
+        headers: { "Content-Type": "text/plain;charset=utf-8" },
+        body: JSON.stringify({ action: "botlabChat", parameters: [text, JSON.stringify(window._globalAIChatState.history || [])] })
+      });
+      const data = await res.json();
+      if (data && data.status === "success" && data.reply && typeof data.reply === "string") {
+        var r = data.reply.trim();
+        var isErr = r.indexOf("⚠️") !== -1 || r.indexOf("Gemini network error") !== -1 || r.indexOf("Error: No candidates") !== -1 || r.indexOf("AI Error:") !== -1 || r.length === 0;
+        if (!isErr) {
+          window._globalAIChatState.history.push({ role: "assistant", text: r });
+          _addGlobalAIMsg("bot", r);
+          return;
+        }
+      }
+      throw new Error("bad response or AI error");
+    } catch (e) {
+      console.warn("Global AI fetch fallback:", e);
+      var fallbackAnswer = _generateGlobalAIFallback(text);
+      window._globalAIChatState.history.push({ role: "assistant", text: fallbackAnswer });
+      _addGlobalAIMsg("bot", fallbackAnswer);
+    } finally {
+      _hideGlobalAITyping();
+    }
+  };
+
+  function _generateGlobalAIFallback(text) {
+    var lower = (text || "").toLowerCase().trim();
+    if (lower.indexOf("pending") !== -1 || lower.indexOf("count") !== -1 || lower.indexOf("kitne") !== -1) {
+      var pendingCount = (window.Qs && window.Qs.kpis && window.Qs.kpis.pendingToday) || 0;
+      var clientStats = (window.Qs && window.Qs.clientStats) || {};
+      var details = Object.keys(clientStats)
+        .filter(function(k) { return clientStats[k].pending > 0; })
+        .map(function(k) { return k + ": " + clientStats[k].pending; })
+        .join(", ");
+      return "There are currently " + pendingCount + " pending bookings today." + (details ? " Breakdown: " + details : "");
+    }
+    if (lower.indexOf("qc") !== -1 || lower.indexOf("photo") !== -1 || lower.indexOf("image") !== -1) {
+      return "To review QC photos, navigate to the 'QC Check' tab in the left sidebar. Photos are preloaded and cached locally for rapid verification. You can mark items Approved or Rejected.";
+    }
+    if (lower.indexOf("manual") !== -1 || lower.indexOf("add") !== -1 || lower.indexOf("create") !== -1) {
+      return "To create a manual booking, switch to the 'Bot Lab' tab and click 'Manual Booking' in the top toolbar. You can either append directly to the partner sheet (Mode A) or launch the portal in assisted fill mode (Mode B).";
+    }
+    if (lower.indexOf("help") !== -1 || lower.indexOf("kya") !== -1 || lower.indexOf("what") !== -1) {
+      return "I can help you monitor live pending bookings, navigate partner tabs (Allohealth, BHMC, Medibuddy), inspect QC photos, or create manual bookings. Type your query anytime!";
+    }
+    return "I received your query. In offline/standby mode, I can help check pending counts, QC verification steps, and manual bookings. For full conversational reasoning, ensure backend Gemini API is authorized.";
+  }
+
+  window.clearGlobalAIChat = function () {
+    window._globalAIChatState.history = [];
+    var container = document.getElementById("global-ai-messages");
+    if (container) {
+      container.innerHTML =
+        '<div class="global-ai-msg bot">' +
+          '<div class="global-ai-msg-avatar">' +
+            '<svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3-1.9 5.8a2 2 0 0 1-1.3 1.3L3 12l5.8 1.9a2 2 0 0 1 1.3 1.3L12 21l1.9-5.8a2 2 0 0 1 1.3-1.3L21 12l-5.8-1.9a2 2 0 0 1-1.3-1.3L12 3Z"/></svg>' +
+          '</div>' +
+          '<div class="global-ai-msg-bubble">' +
+            'Chat cleared. How can I assist you with operations or bookings today?' +
+          '</div>' +
+        '</div>';
+    }
+  };
+})();
 
 // =========================================================
 // AUTO-HIDING HEADER CONTROLLER (v2 Compact)
