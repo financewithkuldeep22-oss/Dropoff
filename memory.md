@@ -643,3 +643,72 @@ Initializes dashboard data sync
     - **macOS Window Dots & Card Headers**: Added macOS traffic light window dots (red `#ff5f56`, yellow `#ffbd2e`, green `#27c93f`) to both static and dynamically generated tab cards, paired with quick-action SVGs (Focus, Pop-out, Reload, Close).
     - **Linear & Raycast AI Command Dock**: Redesigned RedcliffeBot AI panel with a glowing multi-stop gradient avatar (`#6366f1` to `#06b6d4`), version chip (`v2.4`), status pill with pulsing emerald indicator, Raycast-inspired prompt suggestion chips, and a Linear capsule composer with keyboard hint (`<kbd>↵ Enter</kbd>`).
     - **Full Dark Mode Parity**: Styled all newly introduced UI components with slate-900 / dark-mode themes, indigo accents, and subtle borders.
+
+---
+
+## 25. Comprehensive Codebase Intelligence Audit & Verified Defect Catalog (September 2026)
+
+### 25.1 Part 0 — AI Backend & Count Resolution Defect Analysis
+1. **The "0 Pending" Dual-Scope Bug (`app.js`)**:
+   - *Mechanism*: On standard page load, the primary data synchronization path (`app.js:1327`) assigns the response exclusively to module-scoped `Qs` (`Qs = res;`), leaving `window.Qs` as `undefined`.
+   - *Contrast*: The Bot Lab synchronization path (`app.js:7532-7533`) sets both: `if (typeof Qs !== "undefined") Qs = res; window.Qs = res;`.
+   - *Impact*: In `_generateGlobalAIFallback` (`app.js:8982`), the assistant reads `(window.Qs && window.Qs.kpis && window.Qs.kpis.pendingToday) || 0`. Before visiting Bot Lab, `window.Qs` is `undefined`, evaluating to `falsy || 0` and returning a false, confident **"There are currently 0 pending bookings today."**
+   - *Metric Conflation*: `kpis.pendingToday` represents bookings scheduled specifically for the current calendar day (e.g., 24). In contrast, `kpis.totalPendingAcrossClients` represents the active queue across all clients (e.g., 28). The bot incorrectly conflated these two distinct metrics.
+   - *Falsy Null Trap*: `|| 0` silently converts an uninitialized network state into a false zero count.
+2. **AI Error Strings Passing as Successful Replies (`Code.gs:3163` & `app.js`)**:
+   - `Code.gs:3163` `botlabChat` returns `{ status: "success", reply: responseText }` even when `responseText` contains an API error string.
+   - The frontend error detection in `app.js:7246` and `app.js:8961` checks substrings (`⚠️`, `Gemini network error`, `Error: No candidates`, `AI Error:`), but fails to catch:
+     - `Network error: ...` (Groq catch block at `Code.gs:3122`)
+     - `⏳ Groq API is taking a breath!` (Groq rate-limit 429 response at `Code.gs:3115`)
+   - *Impact*: Raw error messages are rendered to the user as valid chat messages.
+3. **Silent Knowledge Base Failure (`Code.gs:3186`)**:
+   - `getBotlabKnowledgeBase` executes `return typeof BOTLAB_KB_TEXT !== 'undefined' ? BOTLAB_KB_TEXT : "";`.
+   - If `BotlabKnowledgeBase.gs` is missing from the Apps Script bundle, it silently returns an empty string without throwing, causing the model to answer without business context.
+   - Furthermore, `BotlabKnowledgeBase.gs` line count descriptions have drifted (~1,400 lines behind actual).
+
+### 25.2 Part 1 — Design Token System Coverage Audit
+- **Rollout Coverage**: Out of ~1,127 styling declarations in `style.css`, only 137 use CSS `var(--token)` (127 of which are in the Base section). The design token rollout is ~10% complete, not 99%.
+- **Hardcoded Literals**: 135 hardcoded `font-size:` declarations (0 using `var(--font-*)`), 725 raw hex color literals.
+- **Brand Palette Collision**:
+  - `tokens.css` defines `--accent: #023B68` (Redcliffe Deep Navy).
+  - Primary surfaces and interactive elements in `style.css` use `#0284c7` (Sky Blue, L1747/1797/2155) for navigation states and `#4f46e5` / `#4F46E5` (Indigo, L4481/4870/5299) for Bot Lab, Dispatch Matrix, and BishtJiBot AI branding.
+  - Flattening all to `#023B68` harms navigation contrast and destroys AI feature differentiation. Solution: Register `--accent-nav: #0284c7` and `--accent-ai: #4f46e5` as first-class tokens.
+
+### 25.3 Part 2 — Mojibake Byte Sequence Audit
+- **19 Confirmed Mojibake Lines**: UTF-8 bytes of ❌ (`\xE2\x9D\x8C`) incorrectly interpreted as Latin-1 (`â Œ `) appear in error toast calls:
+  - `app.js`: lines 1450, 1463, 3677, 3682, 3863, 3987, 4082, 4183, 4187, 4231, 4234, 4324, 4327, 4332, 4335, 4396, 4399, 4460, 4463.
+- **Valid Typography to Preserve**:
+  - `app.js:7513` and `8559`: legitimate typographic em-dashes (`—`).
+  - `app.js:7246` and `8961`: `⚠️` comparison literals essential for AI error trapping.
+
+### 25.4 Part 3 — Focus-Visible & Accessibility Defect Analysis
+- **Focus Indicator Elimination**: Exactly 2 `:focus-visible` rules exist (`style.css:2131`, `5208`), but 11 rules declare `outline: none` (or `outline: none !important`) across global form controls, dock tabs, nav rail tabs, omnibox, Bot Lab AI input, Dispatch Matrix controls, and Manual Booking inputs. 9 of these have no replacement focus ring.
+- **Accessible ARIA Gap**:
+  - In `index.html`: 149 `<button>` elements, 110 lack `aria-label`.
+  - `aria-expanded` is completely absent (0 usages), leaving collapsible sidebars and dropdown menus inaccessible to assistive tech.
+  - `aria-live` is used only once, missing from the toast notifications container and the AI message stream.
+
+### 25.5 Part 4 — Z-Index Hierarchy & Stacking Collisions
+- **Layering Collisions**:
+  - Collision 1: Global AI FAB sits at `z-index: 90`, completely obscured by modals at `z-index: 1000+`.
+  - Collision 2: `.global-ai-overlay` sits at `z-index: 95`, while `.floating-batch-bar` sits at `z-index: 100`. At standard desktop viewports (1280px / 1440px), an open selection bar covers the bottom of the open AI chat overlay.
+  - Missing Stacking: `.app-nav-rail` (L2060) and mobile `.botlab-ai-panel` (L3763) have `position: fixed` with no explicit `z-index`.
+  - Stacking Tie: `.botlab-matrix-drawer` and `.slide-in-alert` both declare `z-index: 9999`.
+
+### 25.6 Part 5 — Verification & State Audits
+- **Login Redirect & Patient Data Replay**: Verified working. `botlabResumeIntendedBooking` (`app.js:6204`) accurately re-injects all patient query parameters (`botPatientName`, `botAge`, `botGender`, `botPhone`, `botTest`, `botAddress`, `botCity`, etc.) into the target iframe on authentication recovery.
+- **Patient PII Security Consideration**: Patient query parameters in the iframe URL appear in browser history and partner web logs; logged as a known operational consideration.
+- **Dark Mode CSS Elimination**: `index.html` defines `tailwind.config = { darkMode: "class" }`. The `.dark` or `.dark-mode` class is never added dynamically. All 179 `body.dark-mode` rules in `style.css` and lines 104-122 in `tokens.css` are dead code and safe for removal.
+
+### 25.7 Part 6 — UI Parity & Table Capabilities
+- **Skeleton Loaders**: Implemented in Overview (6) and Bookings (22), but completely absent in QC Review, Bulk Download, and Challan tabs.
+- **Empty / Error States**: Single implementation in QC (`#allo-qc-empty-state`). No shared reusable component.
+- **Table Interactivity**: Overview, Bookings Inspector, and Dispatch Matrix lack client-side column sorting and pagination.
+
+### 25.8 Part 7 — BishtJiBot Agentic Actions & Critical Security Blocker
+- **CRITICAL SECURITY BLOCKER (`Code.gs:3039`)**:
+  - `doPost(e)` currently resolves functions dynamically via `var targetFunc = this[action]; targetFunc.apply(this, parameters);`.
+  - There is NO action whitelist. Any global function in `Code.gs` (including `addManualPendingRow`, spreadsheet mutations, internal helpers) can be called directly by any client knowing the public web app URL.
+  - Furthermore, duplicate `doPost(e)` declarations exist at `Code.gs:2022` and `Code.gs:3024`, and duplicate `onOpen()` at `Code.gs:35` and `Code.gs:3081`.
+  - **Resolution**: Deprecate legacy duplicates and introduce a strict `ALLOWED_ACTIONS` dictionary in `doPost`.
+

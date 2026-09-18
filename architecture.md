@@ -66,8 +66,9 @@ The Drop-Off Operations Control Center is structured as a **Decoupled Serverless
 1. **Authentication:**
    - Role-based accounts configured in the `Users` spreadsheet tab (`Admin`, `User`, `QC Executive`).
    - Passwords verified server-side in Google Apps Script.
-2. **API Action Guard:**
-   - Explicit `allowedActions` array prevents arbitrary function execution through `doPost`.
+2. **API Action Guard (Vulnerability Identified & Targeted for Hardening):**
+   - *Current Implementation*: `Code.gs:3039` performs dynamic execution via `this[action].apply(this, parameters)` without an action whitelist, presenting an arbitrary execution vulnerability.
+   - *Target Architecture*: Strict `ALLOWED_ACTIONS` allowlist dictionary mapping allowed external actions (`authenticateUser`, `getDashboardLogsData`, `getAllohealthQCData`, `updateAllohealthQC`, `botlabChat`, `addManualPendingRow`, etc.) and rejecting all undefined calls before dispatch.
 3. **Audit Trail:**
    - Every mutation is logged with timestamp, user identity, target client, row number, and old/new state in `Dashboard_Logs`.
 

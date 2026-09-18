@@ -14,10 +14,10 @@ Companion system: a separate Chrome extension, "Bisht Ji Ultimate Bot" (a.k.a. R
 
 | Layer | Technology | File(s) |
 |---|---|---|
-| Frontend | Vanilla JS, Tailwind CSS (CDN, theme config inline in \`index.html\`), hand-rolled CSS for non-Tailwind components | \`index.html\`, \`style.css\`, \`app.js\` (7,663 lines) |
+| Frontend | Vanilla JS, Tailwind CSS (CDN, theme config inline in \`index.html\`), hand-rolled CSS for non-Tailwind components | \`index.html\`, \`style.css\`, \`app.js\` (9,070 lines) |
 | Auth | Custom session manager, \`localStorage\` + IndexedDB fallback | \`auth.js\` |
-| Backend | Google Apps Script, bound to a Google Sheet | \`Code.gs\` (3,051 lines) |
-| Backend API pattern | \`doPost\` uses dynamic dispatch: \`this[action].apply(this, parameters)\` — any global function in the Apps Script project can be invoked by name from the frontend. There is no fixed action whitelist. | \`Code.gs\` line ~2993 |
+| Backend | Google Apps Script, bound to a Google Sheet | \`Code.gs\` (3,397 lines) |
+| Backend API pattern | \`doPost\` uses explicit \`allowedActions\` whitelist mapping authorized RPC actions to backend functions. Direct arbitrary invocation is rejected. | \`Code.gs\` line ~2075 |
 | Deployment | Vercel, auto-deploys \`main\` branch (\`vercel.json\` SPA rewrite) | — |
 | Separate sub-apps (own CSS/JS, iframed in) | AlloHealth (\`allo.html\`), Ops Suite (\`ops.html\`) | — |
 | Separate external system (iframed, not local code) | Challan Maker → https://redcliffechallan.vercel.app | — |

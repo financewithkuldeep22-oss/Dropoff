@@ -25,6 +25,10 @@
   --accent-hover: #062C4E;
   --accent-subtle: #EAF1F8;  /* 10.1:1 navy text on subtle bg */
   --accent-focus-ring: rgba(2, 59, 104, 0.25);
+  --accent-nav: #0284c7;     /* Sky Blue — Nav rail active states & focus indicators */
+  --accent-ai: #4f46e5;      /* Indigo — Bot Lab, Dispatch Matrix & BishtJiBot */
+  --accent-ai-hover: #4338ca;
+  --accent-ai-subtle: #EEF2FF;
 
   /* Status & Semantic Colors */
   --success: #15803D;        /* 5.0:1 text */
@@ -95,30 +99,18 @@
   /* ── 7. Transitions & Focus ── */
   --transition-fast: 150ms ease-out;
   --transition-normal: 200ms ease-out;
-  --focus-ring: 0 0 0 2px var(--surface), 0 0 0 4px var(--accent);
-}
+  --focus-ring: 0 0 0 2px var(--surface), 0 0 0 4px var(--accent-nav);
 
-/* Fallback resolution for legacy dark-mode class: force to light-theme */
-body.dark-mode {
-  --canvas: #FAFBFC;
-  --surface: #FFFFFF;
-  --surface-subtle: #F3F5F7;
-  --surface-sunken: #EEF1F4;
-  --border-subtle: #E4E8EC;
-  --border-strong: #8590A0;
-  --text-primary: #101828;
-  --text-secondary: #4A5568;
-  --text-tertiary: #64748B;
-  --text-disabled: #B0B7C3;
-  --accent: #023B68;
-  --accent-hover: #062C4E;
-  --accent-subtle: #EAF1F8;
-  --success: #15803D;
-  --success-subtle: #E9F7EF;
-  --danger: #C0293D;
-  --danger-subtle: #FDECEC;
-  --warning: #B45309;
-  --warning-subtle: #FDF3E4;
+  /* ── 8. Elevation & Stacking Z-Index Scale ── */
+  --z-base: 1;               /* Standard content layer */
+  --z-chrome: 60;            /* Nav rail, header reveal button */
+  --z-ai-fab: 90;            /* Global AI floating action button */
+  --z-sticky: 100;           /* Floating batch bar */
+  --z-ai-overlay: 120;       /* Global AI chat overlay (sits above floating batch bar) */
+  --z-dropdown: 500;         /* Dropdowns, pendency chip menus */
+  --z-overlay: 1000;         /* Modal overlays, sidebar menu */
+  --z-drawer: 1100;          /* Dispatch Matrix drawer, mobile AI bottom sheet */
+  --z-toast: 2000;           /* Toast pills, slide-in alerts */
 }
 
 /* Base Font Size for ~81% scale */

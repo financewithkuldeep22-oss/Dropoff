@@ -36,6 +36,7 @@ function onOpen() {
   var ui = SpreadsheetApp.getUi();
   ui.createMenu('📊 Drop-Off Dashboard')
     .addItem('🖥️ Open Operations Dashboard', 'showDashboard')
+    .addItem('🚀 Open App in Sidebar', 'openSidebar')
     .addSeparator()
     .addItem('🔍 Run Data Sync Diagnostics', 'runDiagnostics')
     .addItem('⚙️ Initialize Config & Log Sheets', 'initializeDashboardSheets')
@@ -2020,11 +2021,27 @@ function getRequiredTubesMapping() {
  * Routes incoming JSON requests from Vercel/GitHub to the correct function.
  */
 function doPost(e) {
-  var payload = {};
+  var headers = {
+    "Access-Control-Allow-Origin": "*",
+    "Access-Control-Allow-Methods": "POST, OPTIONS",
+    "Access-Control-Allow-Headers": "Content-Type"
+  };
+
   try {
-    payload = JSON.parse(e.postData.contents);
-  } catch(err) {}
-  var ss = getActiveSpreadsheetSafe();
+    if (!e || !e.postData || !e.postData.contents) {
+      return ContentService.createTextOutput(JSON.stringify({ status: 'error', message: 'No payload provided' }))
+        .setMimeType(ContentService.MimeType.JSON);
+    }
+
+    var payload = {};
+    try {
+      payload = JSON.parse(e.postData.contents);
+    } catch(err) {
+      return ContentService.createTextOutput(JSON.stringify({ status: 'error', message: 'Malformed JSON payload: ' + err.toString() }))
+        .setMimeType(ContentService.MimeType.JSON);
+    }
+
+    var ss = getActiveSpreadsheetSafe();
 
     // Handle updateStatus action
     if (payload.action === "updateStatus") {
@@ -2056,23 +2073,10 @@ function doPost(e) {
       })).setMimeType(ContentService.MimeType.JSON);
     }
 
-  var headers = {
-    "Access-Control-Allow-Origin": "*",
-    "Access-Control-Allow-Methods": "POST, OPTIONS",
-    "Access-Control-Allow-Headers": "Content-Type"
-  };
-
-  try {
-    if (!e || !e.postData || !e.postData.contents) {
-      return ContentService.createTextOutput(JSON.stringify({ status: 'error', message: 'No payload provided' }))
-        .setMimeType(ContentService.MimeType.JSON);
-    }
-    
-    var payload = JSON.parse(e.postData.contents);
     var action = payload.action;
-    var args = payload.args || [];
+    var args = payload.parameters || payload.args || [];
     
-    // Security: Only allow these specific functions to be called via the API
+    // Security Whitelist: Explicitly authorized RPC actions
     var allowedActions = [
       'getDashboardLogsData', 
       'getClientConfig',
@@ -2094,8 +2098,7 @@ function doPost(e) {
       'getDefaultRemarks',
       'getAllohealthPendingCountAndIDs',
       'warmDashboardDataCache',
-      'setupDashboardCacheTrigger'
-    ,
+      'setupDashboardCacheTrigger',
       'createLocationDrafts',
       'processAndGenerateBatchZip',
       'processRawIdsToBatchZip',
@@ -2106,22 +2109,39 @@ function doPost(e) {
       'getPhleboMasterDetails',
       'updatePhleboMasterRecord',
       'createPhleboPaymentDraft',
-      'updateOutsourcedDutiesStatus'];
+      'updateOutsourcedDutiesStatus',
+      'botlabChat',
+      'getBotlabKnowledgeBase',
+      'addManualPendingRow',
+      'getClientTabs'
+    ];
     
-    if (!allowedActions.includes(action)) {
-      return ContentService.createTextOutput(JSON.stringify({ status: 'error', message: "Backend function '" + action + "' does not exist or is not exposed." }))
-        .setMimeType(ContentService.MimeType.JSON);
+    if (!action || allowedActions.indexOf(action) === -1) {
+      return ContentService.createTextOutput(JSON.stringify({ 
+        status: 'error', 
+        message: "Backend action '" + action + "' is not permitted or does not exist." 
+      })).setMimeType(ContentService.MimeType.JSON);
+    }
+    
+    if (typeof this[action] !== 'function') {
+      return ContentService.createTextOutput(JSON.stringify({ 
+        status: 'error', 
+        message: "Backend function '" + action + "' is permitted but not implemented." 
+      })).setMimeType(ContentService.MimeType.JSON);
     }
     
     // Call the function dynamically
     var result = this[action].apply(this, args);
     
-    return ContentService.createTextOutput(JSON.stringify(result))
+    return ContentService.createTextOutput(JSON.stringify(result || {}))
       .setMimeType(ContentService.MimeType.JSON);
       
   } catch (error) {
-    return ContentService.createTextOutput(JSON.stringify({ status: 'error', message: error.toString(), stack: error.stack }))
-      .setMimeType(ContentService.MimeType.JSON);
+    return ContentService.createTextOutput(JSON.stringify({ 
+      status: 'error', 
+      message: error.toString(), 
+      stack: error.stack 
+    })).setMimeType(ContentService.MimeType.JSON);
   }
 }
 
@@ -3017,74 +3037,6 @@ function updateOutsourcedDutiesStatus(rowNums, newStatus) {
   }
 }
 
-/**
- * REST API Entry Point for Vercel/Vite Client-side SPA Redirection.
- * Parses action & parameters payload and routes call to corresponding global backend functions.
- */
-function doPost(e) {
-  try {
-    if (!e || !e.postData || !e.postData.contents) {
-      throw new Error("No post data contents received.");
-    }
-    
-    var requestData = JSON.parse(e.postData.contents);
-    var action = requestData.action;
-    var parameters = requestData.parameters || requestData.args || [];
-    
-    if (!action) {
-      throw new Error("Missing 'action' parameter in request payload.");
-    }
-    
-    // Locate the function globally
-    var targetFunc = this[action];
-    if (typeof targetFunc !== 'function') {
-      throw new Error("Backend function '" + action + "' does not exist or is not exposed.");
-    }
-    
-    // Execute the action with parameters
-    var result = targetFunc.apply(this, parameters);
-    
-    // Return output as JSON
-    return ContentService.createTextOutput(JSON.stringify(result || {}))
-      .setMimeType(ContentService.MimeType.JSON);
-      
-  } catch (error) {
-    var errResponse = {
-      status: 'error',
-      message: error.toString(),
-      stack: error.stack
-    };
-    return ContentService.createTextOutput(JSON.stringify(errResponse))
-      .setMimeType(ContentService.MimeType.JSON);
-  }
-}
-
-// Supabase integration disabled
-
-/**
- * ============================================================
- * BOOKING OPERATIONS SUITE - BACKEND
- * ============================================================
- */
-
-/**
- * ============================================================
- * BOOKING OPERATIONS SUITE - BACKEND
- * ============================================================
- */
-
-
-/* ============================================================
- * WEB APP
- * ============================================================ */
-
-function onOpen() {
-  SpreadsheetApp.getUi()
-    .createMenu('🚀 Operations Suite')
-    .addItem('Open App in Sidebar', 'openSidebar')
-    .addToUi();
-}
-
 // ============================================================
 // BOT LAB AI & GEMINI / GROQ API INTEGRATION
 // ============================================================
@@ -3161,29 +3113,51 @@ function callGeminiAPI(prompt, temperature) {
 }
 
 function botlabChat(userMessage, historyJson) {
-  var kb = getBotlabKnowledgeBase();
-  var history = [];
-  try { history = JSON.parse(historyJson || "[]"); } catch (e) {}
-  var historyText = history.slice(-6).map(function(m) {
-    return (m.role === "user" ? "User: " : "Assistant: ") + m.text;
-  }).join("\n");
+  try {
+    var kb = getBotlabKnowledgeBase();
+    var history = [];
+    try { history = JSON.parse(historyJson || "[]"); } catch (e) {}
+    var historyText = history.slice(-6).map(function(m) {
+      return (m.role === "user" ? "User: " : "Assistant: ") + m.text;
+    }).join("\n");
 
-  var prompt = kb + "\n\n---\nRecent conversation:\n" + historyText +
-    "\n\nUser's new message: \"" + userMessage + "\"\n\n" +
-    "Answer as the Bot Lab AI, following every rule in the knowledge base above. " +
-    "Keep it short — this renders in a narrow chat panel, not a document. " +
-    "Reply in the same language mix (Hindi/Hinglish/English) the user used. No emojis.";
+    var prompt = kb + "\n\n---\nRecent conversation:\n" + historyText +
+      "\n\nUser's new message: \"" + userMessage + "\"\n\n" +
+      "Answer as the Bot Lab AI, following every rule in the knowledge base above. " +
+      "Keep it short — this renders in a narrow chat panel, not a document. " +
+      "Reply in the same language mix (Hindi/Hinglish/English) the user used. No emojis.";
 
-  var responseText = callGeminiAPI(prompt, 0.3);
-  return { status: "success", reply: responseText };
+    var responseText = callGeminiAPI(prompt, 0.3);
+    
+    if (!responseText || typeof responseText !== "string") {
+      return { status: "error", message: "Empty or invalid response from AI service." };
+    }
+    
+    var trimmed = responseText.trim();
+    if (
+      trimmed.indexOf("⚠️") !== -1 ||
+      trimmed.indexOf("AI Error:") !== -1 ||
+      trimmed.indexOf("API Error:") !== -1 ||
+      trimmed.indexOf("Gemini network error") !== -1 ||
+      trimmed.indexOf("Network error:") !== -1 ||
+      trimmed.indexOf("Error: No candidates") !== -1 ||
+      trimmed.indexOf("⏳") !== -1 ||
+      trimmed.indexOf("Groq API is taking a breath") !== -1
+    ) {
+      return { status: "error", message: trimmed };
+    }
+
+    return { status: "success", reply: trimmed };
+  } catch (err) {
+    return { status: "error", message: err.toString() };
+  }
 }
 
 function getBotlabKnowledgeBase() {
-  // Return the contents of botlab_knowledge_base.md as a string constant.
-  // Script Properties has a 9KB-per-value limit — this file will likely exceed that,
-  // so store it as a plain JS template-string constant in its own file
-  // (e.g. a new BotlabKnowledgeBase.gs), not in Script Properties or Drive.
-  return typeof BOTLAB_KB_TEXT !== 'undefined' ? BOTLAB_KB_TEXT : "";
+  if (typeof BOTLAB_KB_TEXT === 'undefined' || !BOTLAB_KB_TEXT || BOTLAB_KB_TEXT.trim().length === 0) {
+    throw new Error("CRITICAL: BOTLAB_KB_TEXT is missing or empty. BotlabKnowledgeBase.gs must be included in Apps Script deployment.");
+  }
+  return BOTLAB_KB_TEXT;
 }
 
 // ============================================================

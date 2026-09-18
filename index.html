@@ -489,7 +489,7 @@
             <!-- Dynamic Client Selector -->
             <div class="flex items-center gap-2 flex-1 md:flex-none min-w-[220px]">
               <div class="multi-select-container relative z-40">
-                <button type="button" class="multi-select-btn" id="filter-client-btn" onclick="window.toggleClientDropdown(event)">
+                <button type="button" class="multi-select-btn" id="filter-client-btn" onclick="window.toggleClientDropdown(event)" aria-expanded="false" aria-haspopup="true" aria-label="Filter by client">
                   <span id="filter-client-label">All Clients</span>
                   <span class="material-symbols-outlined">expand_more</span>
                 </button>
@@ -640,7 +640,26 @@
           
           <!-- Pending Queue List -->
           <div class="flex-1 overflow-y-auto p-2 flex flex-col gap-1.5" id="allo-qc-queue">
-            <div class="text-center py-10 text-outline text-xs">Loading pending queue...</div>
+            <div class="p-2.5 rounded-xl border border-slate-100 bg-white/70 space-y-2">
+              <div class="flex justify-between items-center"><span class="skeleton-shimmer h-3.5 w-24 rounded"></span><span class="skeleton-shimmer h-3 w-10 rounded-full"></span></div>
+              <div class="skeleton-shimmer h-3 w-32 rounded"></div>
+              <div class="skeleton-shimmer h-2.5 w-20 rounded"></div>
+            </div>
+            <div class="p-2.5 rounded-xl border border-slate-100 bg-white/70 space-y-2">
+              <div class="flex justify-between items-center"><span class="skeleton-shimmer h-3.5 w-24 rounded"></span><span class="skeleton-shimmer h-3 w-10 rounded-full"></span></div>
+              <div class="skeleton-shimmer h-3 w-32 rounded"></div>
+              <div class="skeleton-shimmer h-2.5 w-20 rounded"></div>
+            </div>
+            <div class="p-2.5 rounded-xl border border-slate-100 bg-white/70 space-y-2">
+              <div class="flex justify-between items-center"><span class="skeleton-shimmer h-3.5 w-24 rounded"></span><span class="skeleton-shimmer h-3 w-10 rounded-full"></span></div>
+              <div class="skeleton-shimmer h-3 w-32 rounded"></div>
+              <div class="skeleton-shimmer h-2.5 w-20 rounded"></div>
+            </div>
+            <div class="p-2.5 rounded-xl border border-slate-100 bg-white/70 space-y-2">
+              <div class="flex justify-between items-center"><span class="skeleton-shimmer h-3.5 w-24 rounded"></span><span class="skeleton-shimmer h-3 w-10 rounded-full"></span></div>
+              <div class="skeleton-shimmer h-3 w-32 rounded"></div>
+              <div class="skeleton-shimmer h-2.5 w-20 rounded"></div>
+            </div>
           </div>
         </aside>
 
@@ -954,7 +973,27 @@
            TAB 4: CHALLAN DOCUMENT CREATOR
            ========================================== -->
       <div id="tab-content-challan" class="tab-content flex flex-col flex-1 w-full h-full relative bg-[#f8fafc]" style="display:none;">
-        <iframe id="challan-frame" src="https://redcliffechallan.vercel.app/?v=14" class="w-full flex-1 border-0" title="Challan Maker" allow="clipboard-read; clipboard-write; storage-access"></iframe>
+        <div id="challan-skeleton" class="absolute inset-0 z-10 flex flex-col p-8 space-y-6 bg-white/90 backdrop-blur-md">
+          <div class="flex justify-between items-center">
+            <div class="space-y-2">
+              <div class="skeleton-shimmer h-6 w-48 rounded-lg"></div>
+              <div class="skeleton-shimmer h-3.5 w-72 rounded"></div>
+            </div>
+            <div class="skeleton-shimmer h-9 w-32 rounded-xl"></div>
+          </div>
+          <div class="grid grid-cols-4 gap-4">
+            <div class="skeleton-shimmer h-20 rounded-xl"></div>
+            <div class="skeleton-shimmer h-20 rounded-xl"></div>
+            <div class="skeleton-shimmer h-20 rounded-xl"></div>
+            <div class="skeleton-shimmer h-20 rounded-xl"></div>
+          </div>
+          <div class="space-y-3 pt-4">
+            <div class="skeleton-shimmer h-10 rounded-lg"></div>
+            <div class="skeleton-shimmer h-10 rounded-lg"></div>
+            <div class="skeleton-shimmer h-10 rounded-lg"></div>
+          </div>
+        </div>
+        <iframe id="challan-frame" src="https://redcliffechallan.vercel.app/?v=14" class="w-full flex-1 border-0" title="Challan Maker" allow="clipboard-read; clipboard-write; storage-access" onload="var sk=document.getElementById('challan-skeleton');if(sk)sk.style.display='none';"></iframe>
       </div>
 
       <!-- ==========================================
@@ -2109,7 +2148,7 @@
         </button>
       </div>
     </div>
-    <div id="toast" class="toast-pill">
+    <div id="toast" class="toast-pill" role="alert" aria-live="assertive">
     <i class="fa-solid fa-circle-check"></i>
     <span id="toast-text">Update Successful!</span>
   </div>
@@ -2411,7 +2450,7 @@
   </div>
 
   <!-- Toast Notifications Container -->
-  <div id="toast-container" class="fixed top-5 right-5 z-[60] flex flex-col gap-2.5 pointer-events-none max-w-sm w-full px-4 sm:px-0"></div>
+  <div id="toast-container" class="fixed top-5 right-5 z-[60] flex flex-col gap-2.5 pointer-events-none max-w-sm w-full px-4 sm:px-0" role="status" aria-live="polite"></div>
 
   <!-- PDF Loading Overlay -->
   <div id="pdf-loading-overlay" class="fixed inset-0 z-50 flex flex-col items-center justify-center bg-slate-900/60 backdrop-blur-sm hidden">
