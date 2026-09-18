@@ -3052,13 +3052,29 @@ function updateOutsourcedDutiesStatus(rowNums, newStatus) {
 // BOT LAB AI & GEMINI / GROQ API INTEGRATION
 // ============================================================
 
+function getAvailableGroqModels(apiKey) {
+  try {
+    var url = "https://api.groq.com/openai/v1/models";
+    var res = UrlFetchApp.fetch(url, {
+      headers: { "Authorization": "Bearer " + apiKey },
+      muteHttpExceptions: true
+    });
+    var json = JSON.parse(res.getContentText());
+    if (json && json.data && Array.isArray(json.data)) {
+      var ids = json.data.map(function(m) { return m.id; });
+      Logger.log("[Groq Models Discovered]: " + JSON.stringify(ids));
+      return ids;
+    }
+  } catch(e) {}
+  return ["llama-3.1-8b-instant", "llama3-70b-8192"];
+}
+
 function callGroqAPI(prompt, temperature) {
   if (temperature === undefined) temperature = 0.2;
   var apiKey = PropertiesService.getScriptProperties().getProperty('GROQ_API_KEY'); 
   if (!apiKey) return "⚠️ AI Error: GROQ_API_KEY is missing in Apps Script Properties.";
   
-  // Try stable Groq models
-  var groqModels = ["llama-3.1-8b-instant", "llama3-70b-8192", "llama-3.3-70b-versatile", "mixtral-8x7b-32768"];
+  var groqModels = getAvailableGroqModels(apiKey);
   var url = "https://api.groq.com/openai/v1/chat/completions";
   
   for (var i = 0; i < groqModels.length; i++) {
@@ -3092,6 +3108,35 @@ function callGroqAPI(prompt, temperature) {
   return "⚠️ API Error: Groq service unavailable.";
 }
 
+function getAvailableGeminiModels(apiKey) {
+  try {
+    var url = "https://generativelanguage.googleapis.com/v1beta/models?key=" + apiKey;
+    var res = UrlFetchApp.fetch(url, { muteHttpExceptions: true });
+    var json = JSON.parse(res.getContentText());
+    if (json && json.models && Array.isArray(json.models)) {
+      var supported = [];
+      json.models.forEach(function(m) {
+        if (m.supportedGenerationMethods && m.supportedGenerationMethods.indexOf("generateContent") !== -1) {
+          supported.push(m.name.replace(/^models\//, ""));
+        }
+      });
+      Logger.log("[Gemini Discovered Models]: " + JSON.stringify(supported));
+      if (supported.length > 0) {
+        // Prioritize fast 2.5-flash and flash models
+        supported.sort(function(a, b) {
+          var aScore = (a.indexOf("2.5-flash") !== -1) ? -2 : ((a.indexOf("flash") !== -1) ? -1 : 1);
+          var bScore = (b.indexOf("2.5-flash") !== -1) ? -2 : ((b.indexOf("flash") !== -1) ? -1 : 1);
+          return aScore - bScore;
+        });
+        return supported;
+      }
+    }
+  } catch (e) {
+    Logger.log("[Gemini listModels exception]: " + e.toString());
+  }
+  return ["gemini-2.5-flash", "gemini-2.5-pro"];
+}
+
 function callGeminiAPI(prompt, temperature) {
   if (temperature === undefined) temperature = 0.2;
   var props = PropertiesService.getScriptProperties();
@@ -3108,11 +3153,10 @@ function callGeminiAPI(prompt, temperature) {
     }
   }
 
-  // Gemini is Primary: gemini-1.5-flash is stable, fast, and high-quota
-  var models = ["gemini-1.5-flash", "gemini-2.0-flash", "gemini-1.5-pro"];
-
   for (var k = 0; k < geminiKeys.length; k++) {
     var apiKey = geminiKeys[k];
+    var models = getAvailableGeminiModels(apiKey);
+
     for (var m = 0; m < models.length; m++) {
       var modelName = models[m];
       var url = "https://generativelanguage.googleapis.com/v1beta/models/" + modelName + ":generateContent?key=" + apiKey;
