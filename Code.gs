@@ -3080,36 +3080,42 @@ function callGeminiAPI(prompt, temperature) {
   var apiKey = PropertiesService.getScriptProperties().getProperty('GEMINI_API_KEY'); 
   if (!apiKey) return callGroqAPI(prompt, temperature); // Fallback to Groq if key missing
   
-  var url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=" + apiKey;
-  var payload = {
-    "contents": [{
-      "parts": [{
-        "text": prompt
-      }]
-    }],
-    "generationConfig": {
-      "temperature": temperature
+  // Try Gemini models in priority order: 2.5-flash, 2.0-flash, 1.5-flash
+  var models = ["gemini-2.5-flash", "gemini-2.0-flash", "gemini-1.5-flash"];
+  for (var i = 0; i < models.length; i++) {
+    var modelName = models[i];
+    var url = "https://generativelanguage.googleapis.com/v1beta/models/" + modelName + ":generateContent?key=" + apiKey;
+    var payload = {
+      "contents": [{
+        "parts": [{
+          "text": prompt
+        }]
+      }],
+      "generationConfig": {
+        "temperature": temperature
+      }
+    };
+    
+    var options = {
+      "method": "post",
+      "contentType": "application/json",
+      "payload": JSON.stringify(payload),
+      "muteHttpExceptions": true
+    };
+    
+    try {
+      var response = UrlFetchApp.fetch(url, options);
+      var json = JSON.parse(response.getContentText());
+      if (json && json.candidates && json.candidates[0] && json.candidates[0].content && json.candidates[0].content.parts[0]) {
+        return json.candidates[0].content.parts[0].text;
+      }
+    } catch(e) {
+      // Continue to next model or fallback
     }
-  };
-  
-  var options = {
-    "method": "post",
-    "contentType": "application/json",
-    "payload": JSON.stringify(payload),
-    "muteHttpExceptions": true
-  };
-  
-  try {
-    var response = UrlFetchApp.fetch(url, options);
-    var json = JSON.parse(response.getContentText());
-    if (json.error) return "⚠️ API Error: " + json.error.message;
-    if (json.candidates && json.candidates[0] && json.candidates[0].content && json.candidates[0].content.parts[0]) {
-      return json.candidates[0].content.parts[0].text;
-    }
-    return "Error: No candidates returned from Gemini API";
-  } catch(e) { 
-    return "Gemini network error: " + e.toString(); 
   }
+
+  // Gracefully fallback to Groq if Gemini model returns an error or quota is exhausted
+  return callGroqAPI(prompt, temperature);
 }
 
 function botlabChat(userMessage, historyJson) {
@@ -3153,11 +3159,21 @@ function botlabChat(userMessage, historyJson) {
   }
 }
 
+var DEFAULT_BOTLAB_KB_TEXT = "# Bot Lab AI — Knowledge Base\n" +
+  "You are BishtJiBot (Bot Lab AI), the operations assistant for Redcliffe Labs Logistics Operations Dashboard.\n" +
+  "You help operators track sample pickups, dispatch bookings, check live pending drop-offs, review QC photos, " +
+  "navigate partner tabs (Allohealth, BHMC, Medibuddy), and assist with manual booking entries.\n" +
+  "Rules:\n" +
+  "- Keep answers short, direct, and operational.\n" +
+  "- Reply in the same language mix (Hindi, Hinglish, English) used by the user.\n" +
+  "- No emojis in responses.\n" +
+  "- Never contradict Dry Run, session keys, or external Challan links.";
+
 function getBotlabKnowledgeBase() {
-  if (typeof BOTLAB_KB_TEXT === 'undefined' || !BOTLAB_KB_TEXT || BOTLAB_KB_TEXT.trim().length === 0) {
-    throw new Error("CRITICAL: BOTLAB_KB_TEXT is missing or empty. BotlabKnowledgeBase.gs must be included in Apps Script deployment.");
+  if (typeof BOTLAB_KB_TEXT !== 'undefined' && BOTLAB_KB_TEXT && BOTLAB_KB_TEXT.trim().length > 0) {
+    return BOTLAB_KB_TEXT;
   }
-  return BOTLAB_KB_TEXT;
+  return DEFAULT_BOTLAB_KB_TEXT;
 }
 
 // ============================================================
