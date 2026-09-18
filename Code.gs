@@ -3048,10 +3048,6 @@ function updateOutsourcedDutiesStatus(rowNums, newStatus) {
   }
 }
 
-// ============================================================
-// BOT LAB AI & GEMINI / GROQ API INTEGRATION
-// ============================================================
-
 function getAvailableGroqModels(apiKey) {
   try {
     var url = "https://api.groq.com/openai/v1/models";
@@ -3061,12 +3057,35 @@ function getAvailableGroqModels(apiKey) {
     });
     var json = JSON.parse(res.getContentText());
     if (json && json.data && Array.isArray(json.data)) {
-      var ids = json.data.map(function(m) { return m.id; });
-      Logger.log("[Groq Models Discovered]: " + JSON.stringify(ids));
-      return ids;
+      // Filter strictly for chat completion models (exclude audio whisper, moderation guard, etc.)
+      var chatModels = json.data
+        .map(function(m) { return m.id; })
+        .filter(function(id) {
+          var low = id.toLowerCase();
+          return low.indexOf("whisper") === -1 && low.indexOf("guard") === -1 && low.indexOf("embed") === -1;
+        });
+      
+      // Prioritize llama models
+      chatModels.sort(function(a, b) {
+        var aScore = (a.indexOf("llama") !== -1) ? -1 : 1;
+        var bScore = (b.indexOf("llama") !== -1) ? -1 : 1;
+        return aScore - bScore;
+      });
+      
+      Logger.log("[Groq Chat Models Discovered]: " + JSON.stringify(chatModels));
+      if (chatModels.length > 0) return chatModels;
     }
-  } catch(e) {}
-  return ["llama-3.1-8b-instant", "llama3-70b-8192"];
+  } catch(e) {
+    Logger.log("[Groq Discovery Exception]: " + e.toString());
+  }
+  return ["llama-3.1-8b-instant", "llama3-70b-8192", "mixtral-8x7b-32768"];
+}
+
+function testGroqDirectly() {
+  Logger.log("Testing Groq API directly...");
+  var res = callGroqAPI("Hello from Drop-off Dashboard test!", 0.2);
+  Logger.log("Groq Test Result: " + res);
+  return res;
 }
 
 function callGroqAPI(prompt, temperature) {
@@ -3100,9 +3119,14 @@ function callGroqAPI(prompt, temperature) {
       if (code === 429) continue;
       var json = JSON.parse(response.getContentText());
       if (json && json.choices && json.choices[0] && json.choices[0].message && json.choices[0].message.content) {
+        Logger.log("[Groq Success] Responded using model: " + modelName);
         return json.choices[0].message.content;
+      } else if (json && json.error) {
+        Logger.log("[Groq Model " + modelName + " Error]: " + json.error.message);
       }
-    } catch(e) {}
+    } catch(e) {
+      Logger.log("[Groq Model " + modelName + " Exception]: " + e.toString());
+    }
   }
   
   return "⚠️ API Error: Groq service unavailable.";
