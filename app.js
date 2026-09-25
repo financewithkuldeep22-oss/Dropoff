@@ -3128,19 +3128,31 @@ if(syncBtnEl && !syncBtnEl.dataset.fix) {
       activeContextTab = info;
 
       const titleEl = document.getElementById('ctx-menu-title');
-      const iconEl = document.getElementById('ctx-menu-icon');
       const badgeEl = document.getElementById('ctx-menu-badge');
-      const urlEl = document.getElementById('ctx-menu-url');
-
-      if (titleEl) titleEl.textContent = info.name;
-      if (iconEl) iconEl.textContent = info.icon || 'open_in_new';
-      if (badgeEl) {
-        badgeEl.textContent = info.badge || 'Portal';
-        badgeEl.className = 'text-[9px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded border ' + (info.badgeClass || '');
-      }
-      if (urlEl) urlEl.textContent = info.url;
-
+      const dotEl = document.getElementById('ctx-menu-dot');
+      const labelOpen = document.getElementById('ctx-label-open');
+      const subOpen = document.getElementById('ctx-sub-open');
+      const labelCopy = document.getElementById('ctx-label-copy');
       const reloadBtn = document.getElementById('ctx-action-reload-frame');
+
+      if (titleEl) titleEl.textContent = info.name || 'Tab View';
+      if (badgeEl) {
+        badgeEl.textContent = info.badge || (info.isIframe ? 'Portal' : 'View');
+      }
+      if (dotEl) {
+        dotEl.className = 'w-2 h-2 rounded-full flex-shrink-0 ' + (info.isIframe ? 'bg-indigo-500 animate-pulse' : 'bg-emerald-500');
+      }
+
+      if (labelOpen) {
+        labelOpen.textContent = info.isIframe ? 'Open Original Portal in New Tab' : 'Open View in New Tab';
+      }
+      if (subOpen) {
+        subOpen.textContent = info.isIframe ? 'Bypass embedding • Standalone window' : 'Direct full-page view';
+      }
+      if (labelCopy) {
+        labelCopy.textContent = info.isIframe ? 'Copy Portal Direct Link' : 'Copy View Link';
+      }
+
       if (reloadBtn) {
         reloadBtn.style.display = info.isIframe ? 'flex' : 'none';
       }
@@ -3150,7 +3162,7 @@ if(syncBtnEl && !syncBtnEl.dataset.fix) {
 
       // Smart positioning to prevent overflow offscreen
       const menuWidth = 285;
-      const menuHeight = info.isIframe ? 200 : 160;
+      const menuHeight = info.isIframe ? 190 : 145;
 
       let posX = x + 10;
       let posY = y;
@@ -3165,23 +3177,42 @@ if(syncBtnEl && !syncBtnEl.dataset.fix) {
       menu.style.left = posX + 'px';
       menu.style.top = posY + 'px';
 
-      requestAnimationFrame(() => {
-        menu.classList.remove('scale-95', 'opacity-0', 'pointer-events-none');
-        menu.classList.add('scale-100', 'opacity-100', 'pointer-events-auto');
-      });
+      if (window.gsap) {
+        gsap.fromTo(menu, 
+          { opacity: 0, scale: 0.94, y: -4 },
+          { opacity: 1, scale: 1, y: 0, duration: 0.16, ease: 'power2.out' }
+        );
+      } else {
+        requestAnimationFrame(() => {
+          menu.classList.remove('scale-95', 'opacity-0', 'pointer-events-none');
+          menu.classList.add('scale-100', 'opacity-100', 'pointer-events-auto');
+        });
+      }
+      menu.classList.remove('pointer-events-none');
+      menu.classList.add('pointer-events-auto');
     }
 
     function closeNavContextMenu() {
       const menu = document.getElementById('nav-tab-context-menu');
       if (!menu) return;
-      menu.classList.add('scale-95', 'opacity-0', 'pointer-events-none');
-      menu.classList.remove('scale-100', 'opacity-100', 'pointer-events-auto');
-      setTimeout(() => {
-        if (menu.classList.contains('opacity-0')) {
-          menu.classList.add('hidden');
-          menu.style.display = 'none';
-        }
-      }, 150);
+      if (window.gsap) {
+        gsap.to(menu, {
+          opacity: 0, scale: 0.95, duration: 0.12, ease: 'power2.in',
+          onComplete: () => {
+            menu.classList.add('hidden', 'pointer-events-none');
+            menu.style.display = 'none';
+          }
+        });
+      } else {
+        menu.classList.add('scale-95', 'opacity-0', 'pointer-events-none');
+        menu.classList.remove('scale-100', 'opacity-100', 'pointer-events-auto');
+        setTimeout(() => {
+          if (menu.classList.contains('opacity-0')) {
+            menu.classList.add('hidden');
+            menu.style.display = 'none';
+          }
+        }, 150);
+      }
     }
 
     function initNavTabContextMenu() {

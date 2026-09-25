@@ -1114,53 +1114,53 @@
           </div>
         </div>
 
-        <!-- Hero KPI Cards Row -->
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
+        <!-- Hero KPI Cards Row (Linear/Stripe Symmetry with Ambient Glow & Top Accent Borders) -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           <!-- KPI 1: Dispatched Units -->
-          <div class="bg-white dark:bg-slate-900 p-4 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs flex items-center justify-between">
-            <div class="space-y-0.5">
-              <span class="text-[11px] font-bold uppercase tracking-wider text-slate-400">Total Units Dispatched</span>
-              <div class="text-2xl font-black text-slate-900 dark:text-white" id="kits-kpi-total-units">0</div>
-              <span class="text-[10px] text-slate-400 font-medium">Kits, vials, tubes & swabs</span>
+          <div class="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-200/80 dark:border-slate-800 border-t-4 border-t-amber-500 shadow-xs hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 flex items-center justify-between group">
+            <div class="space-y-1">
+              <span class="text-[11px] font-black uppercase tracking-wider text-slate-400 block">Total Units Dispatched</span>
+              <div class="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white tracking-tight" id="kits-kpi-total-units">0</div>
+              <span class="text-[11px] text-slate-500 dark:text-slate-400 font-medium block">Kits, vials, tubes & swabs</span>
             </div>
-            <div class="w-10 h-10 rounded-xl bg-blue-50 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400 flex items-center justify-center">
-              <span class="material-symbols-outlined text-[22px]">inventory</span>
+            <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-amber-50 to-amber-100/60 dark:from-amber-950/60 dark:to-amber-900/40 text-amber-600 dark:text-amber-400 flex items-center justify-center shadow-inner group-hover:scale-105 transition-transform flex-shrink-0">
+              <span class="material-symbols-outlined text-[26px]">inventory_2</span>
             </div>
           </div>
 
           <!-- KPI 2: Delivered Rate -->
-          <div class="bg-white dark:bg-slate-900 p-4 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs flex items-center justify-between">
-            <div class="space-y-0.5">
-              <span class="text-[11px] font-bold uppercase tracking-wider text-slate-400">Delivered Consignments</span>
-              <div class="text-2xl font-black text-emerald-600 dark:text-emerald-400" id="kits-kpi-delivered">0 <span class="text-xs font-semibold text-slate-400">(0%)</span></div>
-              <span class="text-[10px] text-emerald-600/80 font-medium">Successfully received</span>
+          <div class="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-200/80 dark:border-slate-800 border-t-4 border-t-emerald-500 shadow-xs hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 flex items-center justify-between group">
+            <div class="space-y-1">
+              <span class="text-[11px] font-black uppercase tracking-wider text-slate-400 block">Delivered Consignments</span>
+              <div class="text-2xl sm:text-3xl font-black text-emerald-600 dark:text-emerald-400 tracking-tight" id="kits-kpi-delivered">0 <span class="text-xs font-bold text-slate-400">(0%)</span></div>
+              <span class="text-[11px] text-emerald-600/90 dark:text-emerald-400/90 font-medium block">Successfully verified at clinic</span>
             </div>
-            <div class="w-10 h-10 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 flex items-center justify-center">
-              <span class="material-symbols-outlined text-[22px]">check_circle</span>
+            <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-emerald-50 to-emerald-100/60 dark:from-emerald-950/60 dark:to-emerald-900/40 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shadow-inner group-hover:scale-105 transition-transform flex-shrink-0">
+              <span class="material-symbols-outlined text-[26px]">check_circle</span>
             </div>
           </div>
 
           <!-- KPI 3: Active Pipeline -->
-          <div class="bg-white dark:bg-slate-900 p-4 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs flex items-center justify-between">
-            <div class="space-y-0.5">
-              <span class="text-[11px] font-bold uppercase tracking-wider text-slate-400">Active Pipeline</span>
-              <div class="text-2xl font-black text-amber-600 dark:text-amber-400" id="kits-kpi-pipeline">0</div>
-              <span class="text-[10px] text-amber-600/80 font-medium">In-Transit & In-Process</span>
+          <div class="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-200/80 dark:border-slate-800 border-t-4 border-t-sky-500 shadow-xs hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 flex items-center justify-between group">
+            <div class="space-y-1">
+              <span class="text-[11px] font-black uppercase tracking-wider text-slate-400 block">Active Pipeline</span>
+              <div class="text-2xl sm:text-3xl font-black text-sky-600 dark:text-sky-400 tracking-tight" id="kits-kpi-pipeline">0</div>
+              <span class="text-[11px] text-sky-600/90 dark:text-sky-400/90 font-medium block">In-Transit & In-Process</span>
             </div>
-            <div class="w-10 h-10 rounded-xl bg-amber-50 dark:bg-amber-950/60 text-amber-600 dark:text-amber-400 flex items-center justify-center">
-              <span class="material-symbols-outlined text-[22px]">local_shipping</span>
+            <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-sky-50 to-sky-100/60 dark:from-sky-950/60 dark:to-sky-900/40 text-sky-600 dark:text-sky-400 flex items-center justify-center shadow-inner group-hover:scale-105 transition-transform flex-shrink-0">
+              <span class="material-symbols-outlined text-[26px]">local_shipping</span>
             </div>
           </div>
 
           <!-- KPI 4: Partner Clinics / Network -->
-          <div class="bg-white dark:bg-slate-900 p-4 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs flex items-center justify-between">
-            <div class="space-y-0.5">
-              <span class="text-[11px] font-bold uppercase tracking-wider text-slate-400">Clinics & Network Reach</span>
-              <div class="text-2xl font-black text-purple-600 dark:text-purple-400" id="kits-kpi-clinics">0 <span class="text-xs font-semibold text-slate-400">Clinics</span></div>
-              <span class="text-[10px] text-slate-400 font-medium">Across active delivery hubs</span>
+          <div class="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-200/80 dark:border-slate-800 border-t-4 border-t-purple-500 shadow-xs hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 flex items-center justify-between group">
+            <div class="space-y-1">
+              <span class="text-[11px] font-black uppercase tracking-wider text-slate-400 block">Clinics & Network Reach</span>
+              <div class="text-2xl sm:text-3xl font-black text-purple-600 dark:text-purple-400 tracking-tight" id="kits-kpi-clinics">0 <span class="text-xs font-bold text-slate-400">Clinics</span></div>
+              <span class="text-[11px] text-slate-500 dark:text-slate-400 font-medium block">Across active delivery hubs</span>
             </div>
-            <div class="w-10 h-10 rounded-xl bg-purple-50 dark:bg-purple-950/60 text-purple-600 dark:text-purple-400 flex items-center justify-center">
-              <span class="material-symbols-outlined text-[22px]">location_city</span>
+            <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-purple-50 to-purple-100/60 dark:from-purple-950/60 dark:to-purple-900/40 text-purple-600 dark:text-purple-400 flex items-center justify-center shadow-inner group-hover:scale-105 transition-transform flex-shrink-0">
+              <span class="material-symbols-outlined text-[26px]">location_city</span>
             </div>
           </div>
         </div>
@@ -1198,15 +1198,33 @@
 
           <!-- Bottom Row: Status Filter Chips + Date Presets & Range Pickers -->
           <div class="flex items-center justify-between flex-wrap gap-3 pt-2 border-t border-slate-100 dark:border-slate-800/80">
-            <!-- Status Chips -->
+            <!-- Status Chips with Dynamic Live Counts & Micro-Interactions -->
             <div class="flex items-center gap-1.5 flex-wrap">
-              <span class="text-[11px] font-bold text-slate-400 mr-1 uppercase tracking-wider">Status:</span>
-              <button id="kits-status-chip-all" onclick="window.setKitsStatusFilter('all')" class="px-2.5 py-1 rounded-lg text-xs font-black bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 border border-slate-900 dark:border-white transition-all cursor-pointer">All</button>
-              <button id="kits-status-chip-Delivered" onclick="window.setKitsStatusFilter('Delivered')" class="px-2.5 py-1 rounded-lg text-xs font-bold bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-200/80 dark:border-emerald-800/80 opacity-70 hover:opacity-100 transition-all cursor-pointer">Delivered</button>
-              <button id="kits-status-chip-In-Transit" onclick="window.setKitsStatusFilter('In-Transit')" class="px-2.5 py-1 rounded-lg text-xs font-bold bg-amber-50 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300 border border-amber-200/80 dark:border-amber-800/80 opacity-70 hover:opacity-100 transition-all cursor-pointer">In-Transit</button>
-              <button id="kits-status-chip-In-Process" onclick="window.setKitsStatusFilter('In-Process')" class="px-2.5 py-1 rounded-lg text-xs font-bold bg-sky-50 dark:bg-sky-950/60 text-sky-700 dark:text-sky-300 border border-sky-200/80 dark:border-sky-800/80 opacity-70 hover:opacity-100 transition-all cursor-pointer">In-Process</button>
-              <button id="kits-status-chip-Approval-pending" onclick="window.setKitsStatusFilter('Approval pending')" class="px-2.5 py-1 rounded-lg text-xs font-bold bg-rose-50 dark:bg-rose-950/60 text-rose-700 dark:text-rose-300 border border-rose-200/80 dark:border-rose-800/80 opacity-70 hover:opacity-100 transition-all cursor-pointer">Approval pending</button>
-              <button id="kits-status-chip-Un-Delivered" onclick="window.setKitsStatusFilter('Un-Delivered')" class="px-2.5 py-1 rounded-lg text-xs font-bold bg-red-50 dark:bg-red-950/60 text-red-700 dark:text-red-300 border border-red-200/80 dark:border-red-800/80 opacity-70 hover:opacity-100 transition-all cursor-pointer">Un-Delivered</button>
+              <span class="text-[11px] font-black text-slate-400 mr-1 uppercase tracking-wider">Status:</span>
+              <button id="kits-status-chip-all" onclick="window.setKitsStatusFilter('all')" class="px-3 py-1.5 rounded-xl text-xs font-black bg-slate-900 text-white dark:bg-white dark:text-slate-900 border border-slate-900 dark:border-white shadow-xs transition-all active:scale-95 cursor-pointer flex items-center gap-1.5">
+                <span>All</span>
+                <span id="kits-status-count-all" class="px-1.5 py-0.2 rounded-full text-[10px] font-extrabold bg-white/20 dark:bg-slate-900/20 text-white dark:text-slate-900">0</span>
+              </button>
+              <button id="kits-status-chip-Delivered" onclick="window.setKitsStatusFilter('Delivered')" class="px-3 py-1.5 rounded-xl text-xs font-bold bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-200/80 dark:border-emerald-800/80 opacity-70 hover:opacity-100 transition-all active:scale-95 cursor-pointer flex items-center gap-1.5">
+                <span>Delivered</span>
+                <span id="kits-status-count-Delivered" class="px-1.5 py-0.2 rounded-full text-[10px] font-extrabold bg-emerald-100 dark:bg-emerald-900 text-emerald-800 dark:text-emerald-200">0</span>
+              </button>
+              <button id="kits-status-chip-In-Transit" onclick="window.setKitsStatusFilter('In-Transit')" class="px-3 py-1.5 rounded-xl text-xs font-bold bg-amber-50 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300 border border-amber-200/80 dark:border-amber-800/80 opacity-70 hover:opacity-100 transition-all active:scale-95 cursor-pointer flex items-center gap-1.5">
+                <span>In-Transit</span>
+                <span id="kits-status-count-In-Transit" class="px-1.5 py-0.2 rounded-full text-[10px] font-extrabold bg-amber-100 dark:bg-amber-900 text-amber-800 dark:text-amber-200">0</span>
+              </button>
+              <button id="kits-status-chip-In-Process" onclick="window.setKitsStatusFilter('In-Process')" class="px-3 py-1.5 rounded-xl text-xs font-bold bg-sky-50 dark:bg-sky-950/60 text-sky-700 dark:text-sky-300 border border-sky-200/80 dark:border-sky-800/80 opacity-70 hover:opacity-100 transition-all active:scale-95 cursor-pointer flex items-center gap-1.5">
+                <span>In-Process</span>
+                <span id="kits-status-count-In-Process" class="px-1.5 py-0.2 rounded-full text-[10px] font-extrabold bg-sky-100 dark:bg-sky-900 text-sky-800 dark:text-sky-200">0</span>
+              </button>
+              <button id="kits-status-chip-Approval-pending" onclick="window.setKitsStatusFilter('Approval pending')" class="px-3 py-1.5 rounded-xl text-xs font-bold bg-rose-50 dark:bg-rose-950/60 text-rose-700 dark:text-rose-300 border border-rose-200/80 dark:border-rose-800/80 opacity-70 hover:opacity-100 transition-all active:scale-95 cursor-pointer flex items-center gap-1.5">
+                <span>Approval pending</span>
+                <span id="kits-status-count-Approval-pending" class="px-1.5 py-0.2 rounded-full text-[10px] font-extrabold bg-rose-100 dark:bg-rose-900 text-rose-800 dark:text-rose-200">0</span>
+              </button>
+              <button id="kits-status-chip-Un-Delivered" onclick="window.setKitsStatusFilter('Un-Delivered')" class="px-3 py-1.5 rounded-xl text-xs font-bold bg-red-50 dark:bg-red-950/60 text-red-700 dark:text-red-300 border border-red-200/80 dark:border-red-800/80 opacity-70 hover:opacity-100 transition-all active:scale-95 cursor-pointer flex items-center gap-1.5">
+                <span>Un-Delivered</span>
+                <span id="kits-status-count-Un-Delivered" class="px-1.5 py-0.2 rounded-full text-[10px] font-extrabold bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-200">0</span>
+              </button>
             </div>
 
             <!-- Date Range Controls -->
@@ -2818,8 +2836,8 @@
   <script src="offline-game.js"></script>
   <script src="auth.js?v=6"></script>
   <script src="api_v2.js?v=5"></script>
-  <script src="kits_tracker.js?v=3"></script>
-  <script src="app.js?v=44"></script>
+  <script src="kits_tracker.js?v=4"></script>
+  <script src="app.js?v=45"></script>
   <!-- <script src="challan.js?v=6"></script> -->
 
   <!-- ==========================================
@@ -2947,50 +2965,65 @@
   </div>
 
   <!-- ==========================================
-       NAVIGATION TABS RIGHT-CLICK CONTEXT MENU
+       NAVIGATION TABS RIGHT-CLICK CONTEXT MENU (Sleek Linear/Raycast Design)
        ========================================== -->
-  <div id="nav-tab-context-menu" class="fixed z-[100000] hidden bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl border border-slate-200/90 dark:border-slate-700/90 rounded-2xl shadow-2xl p-2 min-w-[280px] max-w-[340px] text-xs transition-all duration-150 transform scale-95 opacity-0 pointer-events-none select-none">
-    <!-- Header: Portal Name + Badge -->
-    <div class="px-2.5 py-2 mb-1.5 border-b border-slate-100 dark:border-slate-800/80">
-      <div class="flex items-center justify-between gap-2">
-        <div class="flex items-center gap-1.5 min-w-0">
-          <span class="material-symbols-outlined text-[17px] text-blue-600 dark:text-blue-400 flex-shrink-0" id="ctx-menu-icon">open_in_new</span>
-          <span class="font-extrabold text-[12px] text-slate-800 dark:text-slate-100 truncate" id="ctx-menu-title">Portal Title</span>
-        </div>
-        <span class="text-[9px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded border" id="ctx-menu-badge">Portal</span>
+  <div id="nav-tab-context-menu" class="fixed z-[100000] hidden bg-white/95 dark:bg-slate-900/95 backdrop-blur-2xl border border-slate-200/90 dark:border-slate-800/90 rounded-2xl shadow-2xl p-1.5 min-w-[270px] max-w-[320px] text-xs transition-all duration-150 transform scale-95 opacity-0 pointer-events-none select-none ring-1 ring-black/5 dark:ring-white/10">
+    <!-- Clean Minimal Tab Header (No raw URL block) -->
+    <div class="px-2.5 py-1.5 mb-1 flex items-center justify-between gap-2 border-b border-slate-100 dark:border-slate-800/80">
+      <div class="flex items-center gap-2 min-w-0">
+        <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse flex-shrink-0" id="ctx-menu-dot"></span>
+        <span class="font-extrabold text-[12px] text-slate-800 dark:text-slate-100 truncate" id="ctx-menu-title">Tab Name</span>
       </div>
-      <div class="text-[10px] text-slate-400 dark:text-slate-500 font-mono truncate mt-1" id="ctx-menu-url">https://...</div>
+      <span class="text-[9px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded-full border border-slate-200 dark:border-slate-700 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300" id="ctx-menu-badge">Portal</span>
     </div>
 
     <!-- Action Items -->
-    <div class="flex flex-col gap-1">
-      <!-- Open in New Tab -->
-      <button type="button" id="ctx-action-open-new-tab" class="w-full flex items-center justify-between px-2.5 py-2 rounded-xl text-left font-bold text-slate-800 dark:text-slate-100 hover:bg-blue-50 dark:hover:bg-blue-950/40 hover:text-blue-600 dark:hover:text-blue-400 transition cursor-pointer group">
-        <div class="flex items-center gap-2 min-w-0">
-          <span class="material-symbols-outlined text-[18px] text-blue-500 group-hover:scale-110 transition-transform flex-shrink-0">open_in_new</span>
+    <div class="flex flex-col gap-0.5">
+      <!-- 1. Open in New Tab (Primary) -->
+      <button type="button" id="ctx-action-open-new-tab" class="w-full flex items-center justify-between px-2.5 py-2 rounded-xl text-left font-bold text-slate-800 dark:text-slate-100 hover:bg-blue-50/80 dark:hover:bg-blue-950/50 hover:text-blue-600 dark:hover:text-blue-400 transition-all cursor-pointer group active:scale-[0.98]">
+        <div class="flex items-center gap-2.5 min-w-0">
+          <div class="w-7 h-7 rounded-lg bg-blue-50 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400 flex items-center justify-center flex-shrink-0 group-hover:scale-105 transition-transform">
+            <span class="material-symbols-outlined text-[17px]">open_in_new</span>
+          </div>
           <div class="flex flex-col min-w-0">
-            <span class="text-[11.5px] leading-tight font-extrabold truncate">Open in New Tab</span>
-            <span class="text-[9.5px] text-slate-400 font-normal leading-tight truncate">External standalone window</span>
+            <span class="text-[12px] leading-tight font-extrabold truncate" id="ctx-label-open">Open in New Tab</span>
+            <span class="text-[10px] text-slate-400 dark:text-slate-500 font-normal leading-tight truncate" id="ctx-sub-open">Standalone window access</span>
           </div>
         </div>
-        <kbd class="px-1.5 py-0.5 text-[9px] font-mono font-semibold bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 rounded border border-slate-200 dark:border-slate-700 flex-shrink-0 ml-2">Ctrl+Click</kbd>
+        <kbd class="px-1.5 py-0.5 text-[9px] font-mono font-bold bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 rounded-md border border-slate-200/80 dark:border-slate-700/80 flex-shrink-0 ml-2">Ctrl+Click</kbd>
       </button>
 
-      <!-- Copy Direct Link -->
-      <button type="button" id="ctx-action-copy-url" class="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-xl text-left font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition cursor-pointer">
-        <span class="material-symbols-outlined text-[16px] text-slate-400 flex-shrink-0">content_copy</span>
-        <span class="text-[11px] truncate">Copy Portal Direct Link</span>
+      <!-- 2. Reload Embedded Frame (Only for Iframes) -->
+      <button type="button" id="ctx-action-reload-frame" class="w-full flex items-center justify-between px-2.5 py-2 rounded-xl text-left font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-100/80 dark:hover:bg-slate-800/80 transition-all cursor-pointer group active:scale-[0.98]">
+        <div class="flex items-center gap-2.5 min-w-0">
+          <div class="w-7 h-7 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 flex items-center justify-center flex-shrink-0 group-hover:rotate-45 transition-transform">
+            <span class="material-symbols-outlined text-[16px]">refresh</span>
+          </div>
+          <div class="flex flex-col min-w-0">
+            <span class="text-[11.5px] leading-tight font-bold truncate">Reload Embedded Frame</span>
+            <span class="text-[9.5px] text-slate-400 dark:text-slate-500 font-normal leading-tight truncate">Reset frame content</span>
+          </div>
+        </div>
       </button>
 
-      <!-- Reload Frame (only if isIframe) -->
-      <button type="button" id="ctx-action-reload-frame" class="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-xl text-left font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition cursor-pointer">
-        <span class="material-symbols-outlined text-[16px] text-slate-400 flex-shrink-0">refresh</span>
-        <span class="text-[11px] truncate">Reload Embedded Frame</span>
+      <!-- 3. Copy Link -->
+      <button type="button" id="ctx-action-copy-url" class="w-full flex items-center justify-between px-2.5 py-2 rounded-xl text-left font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-100/80 dark:hover:bg-slate-800/80 transition-all cursor-pointer group active:scale-[0.98]">
+        <div class="flex items-center gap-2.5 min-w-0">
+          <div class="w-7 h-7 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 flex items-center justify-center flex-shrink-0 group-hover:scale-105 transition-transform">
+            <span class="material-symbols-outlined text-[16px]">content_copy</span>
+          </div>
+          <div class="flex flex-col min-w-0">
+            <span class="text-[11.5px] leading-tight font-bold truncate" id="ctx-label-copy">Copy Direct Web Link</span>
+            <span class="text-[9.5px] text-slate-400 dark:text-slate-500 font-normal leading-tight truncate">Copy link to clipboard</span>
+          </div>
+        </div>
       </button>
 
-      <!-- Open Inside Dashboard -->
-      <button type="button" id="ctx-action-switch-tab" class="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-xl text-left font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition cursor-pointer border-t border-slate-100 dark:border-slate-800/80 mt-0.5 pt-1.5">
-        <span class="material-symbols-outlined text-[16px] text-slate-400 flex-shrink-0">dock_to_left</span>
+      <div class="h-[1px] bg-slate-100 dark:bg-slate-800 my-0.5"></div>
+
+      <!-- 4. Switch Tab -->
+      <button type="button" id="ctx-action-switch-tab" class="w-full flex items-center gap-2.5 px-2.5 py-1.5 rounded-xl text-left font-semibold text-slate-600 dark:text-slate-400 hover:bg-slate-100/80 dark:hover:bg-slate-800/80 hover:text-slate-900 dark:hover:text-white transition-all cursor-pointer active:scale-[0.98]">
+        <span class="material-symbols-outlined text-[16px] text-slate-400">dock_to_left</span>
         <span class="text-[11px] truncate">Switch to This Tab Inside App</span>
       </button>
     </div>

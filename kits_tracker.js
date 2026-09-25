@@ -164,19 +164,39 @@
     renderKitsContent();
   };
 
-  // Status Filter Setter
+  // Status Filter Setter with High-Contrast Active State & Micro-Interactions
   window.setKitsStatusFilter = function (status) {
     window._kitsState.filters.status = status;
     window._kitsState.pagination.currentPage = 1;
 
     document.querySelectorAll('[id^="kits-status-chip-"]').forEach(btn => {
       const btnStatus = btn.id.replace('kits-status-chip-', '');
+      const badge = btn.querySelector('[id^="kits-status-count-"]');
+
       if (btnStatus === status) {
-        btn.classList.add('active', 'border-slate-900', 'dark:border-white', 'font-black');
-        btn.classList.remove('opacity-70');
+        btn.className = 'px-3 py-1.5 rounded-xl text-xs font-black bg-slate-900 text-white dark:bg-white dark:text-slate-900 border border-slate-900 dark:border-white shadow-xs transition-all active:scale-95 cursor-pointer flex items-center gap-1.5';
+        if (badge) badge.className = 'px-1.5 py-0.2 rounded-full text-[10px] font-extrabold bg-white/20 dark:bg-slate-900/20 text-white dark:text-slate-900';
       } else {
-        btn.classList.remove('active', 'border-slate-900', 'dark:border-white', 'font-black');
-        btn.classList.add('opacity-70');
+        let colorClasses = 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700';
+        let badgeColorClasses = 'bg-slate-200 dark:bg-slate-700 text-slate-800 dark:text-slate-200';
+        if (btnStatus === 'Delivered') {
+          colorClasses = 'bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border-emerald-200/80 dark:border-emerald-800/80';
+          badgeColorClasses = 'bg-emerald-100 dark:bg-emerald-900 text-emerald-800 dark:text-emerald-200';
+        } else if (btnStatus === 'In-Transit') {
+          colorClasses = 'bg-amber-50 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300 border-amber-200/80 dark:border-amber-800/80';
+          badgeColorClasses = 'bg-amber-100 dark:bg-amber-900 text-amber-800 dark:text-amber-200';
+        } else if (btnStatus === 'In-Process') {
+          colorClasses = 'bg-sky-50 dark:bg-sky-950/60 text-sky-700 dark:text-sky-300 border-sky-200/80 dark:border-sky-800/80';
+          badgeColorClasses = 'bg-sky-100 dark:bg-sky-900 text-sky-800 dark:text-sky-200';
+        } else if (btnStatus === 'Approval pending') {
+          colorClasses = 'bg-rose-50 dark:bg-rose-950/60 text-rose-700 dark:text-rose-300 border-rose-200/80 dark:border-rose-800/80';
+          badgeColorClasses = 'bg-rose-100 dark:bg-rose-900 text-rose-800 dark:text-rose-200';
+        } else if (btnStatus === 'Un-Delivered') {
+          colorClasses = 'bg-red-50 dark:bg-red-950/60 text-red-700 dark:text-red-300 border-red-200/80 dark:border-red-800/80';
+          badgeColorClasses = 'bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-200';
+        }
+        btn.className = `px-3 py-1.5 rounded-xl text-xs font-bold ${colorClasses} border opacity-70 hover:opacity-100 transition-all active:scale-95 cursor-pointer flex items-center gap-1.5`;
+        if (badge) badge.className = `px-1.5 py-0.2 rounded-full text-[10px] font-extrabold ${badgeColorClasses}`;
       }
     });
 
@@ -490,7 +510,7 @@
   };
 
 
-  // Render Top KPI Summary Cards
+  // Render Top KPI Summary Cards & Dynamic Filter Chip Counts
   function renderKitsKPIs() {
     const items = window._kitsState.filteredData;
     const allItems = window._kitsState.allData;
@@ -504,7 +524,7 @@
 
     items.forEach(it => {
       totalQty += (it.qty || 0);
-      const st = (it.status || '').toLowerCase();
+      const st = (it.status || '').toLowerCase().trim();
       if (st.includes('deliver') && !st.includes('un-deliver') && !st.includes('not deliver')) {
         deliveredCount++;
       } else if (st.includes('transit')) {
@@ -515,6 +535,34 @@
       if (it.clinic && it.clinic !== 'Unassigned Clinic') uniqueClinics.add(it.clinic);
       if (it.city) uniqueCities.add(it.city);
     });
+
+    // Compute live count totals for status filter chips
+    let globDelivered = 0, globTransit = 0, globProcess = 0, globApproval = 0, globUnDelivered = 0;
+    allItems.forEach(it => {
+      const st = (it.status || '').toLowerCase().trim();
+      if (st.includes('deliver') && !st.includes('un-deliver') && !st.includes('not deliver')) {
+        globDelivered++;
+      } else if (st.includes('transit')) {
+        globTransit++;
+      } else if (st.includes('process')) {
+        globProcess++;
+      } else if (st.includes('approval') || st.includes('pending')) {
+        globApproval++;
+      } else if (st.includes('un-deliver') || st.includes('not deliver')) {
+        globUnDelivered++;
+      }
+    });
+
+    const setChipCount = (id, count) => {
+      const el = document.getElementById(id);
+      if (el) el.innerText = count.toLocaleString('en-IN');
+    };
+    setChipCount('kits-status-count-all', allItems.length);
+    setChipCount('kits-status-count-Delivered', globDelivered);
+    setChipCount('kits-status-count-In-Transit', globTransit);
+    setChipCount('kits-status-count-In-Process', globProcess);
+    setChipCount('kits-status-count-Approval-pending', globApproval);
+    setChipCount('kits-status-count-Un-Delivered', globUnDelivered);
 
     const activePipeline = inTransitCount + inProcessCount;
     const totalCount = items.length;
@@ -527,9 +575,9 @@
     const kpiSubCount = document.getElementById('kits-records-count-lbl');
 
     if (kpiTotalUnits) kpiTotalUnits.innerText = totalQty.toLocaleString('en-IN');
-    if (kpiDelivered) kpiDelivered.innerHTML = `${deliveredCount} <span class="text-xs font-semibold text-slate-400">(${deliveryRate}%)</span>`;
+    if (kpiDelivered) kpiDelivered.innerHTML = `${deliveredCount} <span class="text-xs font-bold text-slate-400">(${deliveryRate}%)</span>`;
     if (kpiPipeline) kpiPipeline.innerText = activePipeline;
-    if (kpiClinics) kpiClinics.innerHTML = `${uniqueClinics.size} <span class="text-xs font-semibold text-slate-400">Clinics (${uniqueCities.size} Cities)</span>`;
+    if (kpiClinics) kpiClinics.innerHTML = `${uniqueClinics.size} <span class="text-xs font-bold text-slate-400">Clinics (${uniqueCities.size} Cities)</span>`;
     if (kpiSubCount) kpiSubCount.innerText = `Showing ${items.length} of ${allItems.length} consignments`;
     updateKitsNavBadge();
   }
@@ -581,7 +629,7 @@
     }
   }
 
-  // View 1: Data Grid Table (Complete Un-truncated Details with Rate & Amount)
+  // View 1: Data Grid Table (Symmetrical Row Heights, Single-Line Address Truncation & Subtle Commercials)
   function renderKitsTableView(container, items, page, totalPages, totalCount) {
     const sortField = window._kitsState.sort.field;
     const sortDir = window._kitsState.sort.direction;
@@ -590,7 +638,7 @@
       const isSorted = sortField === field;
       const icon = isSorted ? (sortDir === 'asc' ? 'arrow_upward' : 'arrow_downward') : 'unfold_more';
       return `
-        <th class="px-4 py-3.5 text-[11px] font-black uppercase tracking-wider text-slate-600 dark:text-slate-300 text-${align} cursor-pointer hover:bg-slate-100/60 dark:hover:bg-slate-800/60 transition-colors select-none" onclick="window.toggleKitsSort('${field}')">
+        <th class="px-4 py-3 text-[11px] font-black uppercase tracking-wider text-slate-600 dark:text-slate-300 text-${align} cursor-pointer hover:bg-slate-100/60 dark:hover:bg-slate-800/60 transition-colors select-none" onclick="window.toggleKitsSort('${field}')">
           <div class="inline-flex items-center gap-1.5 ${align === 'right' ? 'justify-end' : ''}">
             <span>${label}</span>
             <span class="material-symbols-outlined text-[14px] ${isSorted ? 'text-indigo-600 dark:text-indigo-400 font-bold' : 'text-slate-400'}">${icon}</span>
@@ -605,14 +653,14 @@
           <table class="w-full text-left border-collapse">
             <thead>
               <tr class="bg-slate-50/80 dark:bg-slate-800/80 border-b border-slate-200/80 dark:border-slate-800">
-                ${renderSortHeader('requestDate', 'Date / Timeline')}
+                ${renderSortHeader('requestDate', 'Timeline')}
                 ${renderSortHeader('status', 'Status')}
-                ${renderSortHeader('item', 'Item & Quantity')}
-                ${renderSortHeader('amount', 'Commercials (Amt & Rate)')}
-                ${renderSortHeader('clinic', 'Destination Clinic & Complete Address')}
-                <th class="px-4 py-3.5 text-[11px] font-black uppercase tracking-wider text-slate-600 dark:text-slate-300">Logistics</th>
-                <th class="px-4 py-3.5 text-[11px] font-black uppercase tracking-wider text-slate-600 dark:text-slate-300">Courier & Remarks</th>
-                <th class="px-4 py-3.5 text-[11px] font-black uppercase tracking-wider text-slate-600 dark:text-slate-300 text-right">Actions</th>
+                ${renderSortHeader('item', 'Item & Qty')}
+                ${renderSortHeader('amount', 'Commercials')}
+                ${renderSortHeader('clinic', 'Destination Clinic & Address')}
+                <th class="px-4 py-3 text-[11px] font-black uppercase tracking-wider text-slate-600 dark:text-slate-300">Logistics</th>
+                <th class="px-4 py-3 text-[11px] font-black uppercase tracking-wider text-slate-600 dark:text-slate-300">Docket & Remarks</th>
+                <th class="px-4 py-3 text-[11px] font-black uppercase tracking-wider text-slate-600 dark:text-slate-300 text-right">Action</th>
               </tr>
             </thead>
             <tbody class="divide-y divide-slate-100 dark:divide-slate-800/80 text-xs">
@@ -621,98 +669,115 @@
     items.forEach((it, idx) => {
       const cfg = getStatusConfig(it.status);
       const leadDays = calculateLeadDays(it.requestDate, it.deliveryDate);
-      const leadBadge = leadDays !== null ? `<span class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 ml-1.5" title="Delivery Lead Time">${leadDays}d transit</span>` : '';
+      const leadBadge = leadDays !== null ? `<span class="px-1.5 py-0.2 rounded text-[9.5px] font-bold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 ml-1" title="Delivery Lead Time">${leadDays}d transit</span>` : '';
 
       const docketBtn = it.docketNo ? `
-        <button onclick="window.copyKitsDocket('${it.docketNo}', event)" class="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-blue-50 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300 hover:bg-blue-100 border border-blue-200/60 dark:border-blue-800/60 text-[11px] font-mono font-bold transition-all shadow-2xs group" title="Click to copy tracking docket">
+        <button onclick="window.copyKitsDocket('${it.docketNo}', event)" class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-blue-50 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300 hover:bg-blue-100 border border-blue-200/60 dark:border-blue-800/60 text-[11px] font-mono font-bold transition-all active:scale-95 group" title="Click to copy tracking docket">
           <span class="material-symbols-outlined text-[12px] group-hover:scale-110 transition-transform">content_copy</span>
           <span>${it.docketNo}</span>
         </button>
       ` : '';
 
+      // Clean Commercials formatting (avoid large black 0.00)
+      let commercialsHtml = '';
+      if (!it.amount || it.amount === 0) {
+        commercialsHtml = `
+          <div class="flex flex-col">
+            <span class="inline-flex items-center px-2 py-0.5 rounded-md text-[10.5px] font-bold bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 border border-slate-200/60 dark:border-slate-700/60 w-fit" title="Internal Consumable / Complimentary Delivery">Complimentary</span>
+          </div>
+        `;
+      } else {
+        commercialsHtml = `
+          <div class="flex flex-col font-mono">
+            <span class="font-black text-xs text-emerald-700 dark:text-emerald-400 tabular-nums">₹${it.amount.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
+            <span class="text-[10px] text-slate-400 font-semibold">₹${(it.rate || 0).toFixed(2)}/u</span>
+          </div>
+        `;
+      }
+
       html += `
         <tr class="kits-item-row hover:bg-slate-50/80 dark:hover:bg-slate-800/50 transition-colors cursor-pointer group" onclick="window.openKitsDetailModal(${idx})">
           <!-- 1. Timeline & Dates -->
-          <td class="px-4 py-3.5 align-top whitespace-nowrap">
+          <td class="px-4 py-3 align-middle whitespace-nowrap">
             <div class="flex flex-col space-y-0.5">
-              <span class="font-extrabold text-slate-900 dark:text-white tabular-nums">Req: ${it.requestDate || 'N/A'}</span>
-              ${it.approvalDate ? `<span class="text-[10.5px] text-slate-500 dark:text-slate-400 font-semibold">App: ${it.approvalDate}</span>` : ''}
+              <span class="font-extrabold text-slate-900 dark:text-white tabular-nums">${it.requestDate || 'N/A'}</span>
               ${it.deliveryDate ? `
-                <div class="flex items-center text-[10.5px] text-emerald-600 dark:text-emerald-400 font-semibold">
+                <div class="flex items-center text-[10px] text-emerald-600 dark:text-emerald-400 font-bold">
                   <span class="material-symbols-outlined text-[13px] text-emerald-500 mr-0.5">task_alt</span>
                   <span>Del: ${it.deliveryDate}</span>
                   ${leadBadge}
                 </div>
               ` : `
-                <span class="text-[10.5px] text-amber-600 dark:text-amber-400 font-semibold">
-                  Del: In Progress
+                <span class="text-[10px] text-amber-600 dark:text-amber-400 font-semibold">
+                  In Progress
                 </span>
               `}
             </div>
           </td>
 
           <!-- 2. Status Badge -->
-          <td class="px-4 py-3.5 align-top whitespace-nowrap">
+          <td class="px-4 py-3 align-middle whitespace-nowrap">
             <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold border ${cfg.bgClass} ${cfg.textClass} ${cfg.borderClass} shadow-2xs">
               <span class="w-1.5 h-1.5 rounded-full ${cfg.dotClass}"></span>
               <span>${cfg.label}</span>
             </span>
           </td>
 
-          <!-- 3. Item Description & Quantity (Complete, un-truncated) -->
-          <td class="px-4 py-3.5 align-top min-w-[240px] max-w-sm">
-            <div class="flex flex-col space-y-1">
-              <div class="flex items-center gap-2">
-                <span class="px-2 py-0.5 rounded-lg bg-indigo-50 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300 font-extrabold text-xs tabular-nums border border-indigo-200/60 dark:border-indigo-800/60 shrink-0">
+          <!-- 3. Item Description & Quantity -->
+          <td class="px-4 py-3 align-middle min-w-[200px] max-w-xs">
+            <div class="flex flex-col space-y-0.5">
+              <div class="flex items-center gap-1.5">
+                <span class="px-1.5 py-0.2 rounded-md bg-indigo-50 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300 font-extrabold text-[10.5px] tabular-nums border border-indigo-200/60 dark:border-indigo-800/60 shrink-0">
                   ${(it.qty || 0).toLocaleString('en-IN')} Qty
                 </span>
               </div>
-              <span class="font-extrabold text-xs text-slate-900 dark:text-white whitespace-normal break-words leading-snug">${it.item}</span>
+              <span class="font-extrabold text-xs text-slate-900 dark:text-white line-clamp-2 leading-tight" title="${it.item || ''}">${it.item}</span>
             </div>
           </td>
 
           <!-- 4. Rate & Invoiced Amount -->
-          <td class="px-4 py-3.5 align-top whitespace-nowrap">
-            <div class="flex flex-col font-mono">
-              <span class="font-black text-xs text-slate-900 dark:text-white tabular-nums">₹${(it.amount || 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
-              <span class="text-[10px] text-slate-400 font-semibold mt-0.5">₹${(it.rate || 0).toFixed(2)} / unit</span>
-            </div>
+          <td class="px-4 py-3 align-middle whitespace-nowrap">
+            ${commercialsHtml}
           </td>
 
-          <!-- 5. Destination Clinic & Complete Address (Un-truncated) -->
-          <td class="px-4 py-3.5 align-top min-w-[260px] max-w-md">
-            <div class="flex flex-col space-y-1">
-              <div class="flex items-center gap-2 flex-wrap">
-                <span class="font-black text-xs text-slate-900 dark:text-white">${it.clinic}</span>
-                ${it.city ? `<span class="px-1.5 py-0.2 rounded text-[10px] font-bold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300">${it.city}</span>` : ''}
+          <!-- 5. Destination Clinic & Address (Symmetrical Single-Line Truncation) -->
+          <td class="px-4 py-3 align-middle min-w-[220px] max-w-sm">
+            <div class="flex flex-col min-w-0">
+              <div class="flex items-center gap-1.5">
+                <span class="font-extrabold text-xs text-slate-900 dark:text-white truncate max-w-[240px] block" title="${it.clinic || ''}">${it.clinic}</span>
+                ${it.city ? `<span class="px-1.5 py-0.2 rounded text-[9.5px] font-extrabold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 shrink-0">${it.city}</span>` : ''}
               </div>
-              ${it.address ? `<p class="text-[11px] text-slate-600 dark:text-slate-300 whitespace-normal break-words leading-snug">${it.address}</p>` : ''}
+              <p class="text-[11px] text-slate-500 dark:text-slate-400 truncate max-w-[250px] block mt-0.5" title="${it.address || ''}">
+                ${it.address || 'Standard Clinic Hub'}
+              </p>
             </div>
           </td>
 
           <!-- 6. Logistics: Dispatch Lab & Raised By -->
-          <td class="px-4 py-3.5 align-top whitespace-nowrap">
+          <td class="px-4 py-3 align-middle whitespace-nowrap">
             <div class="flex flex-col space-y-0.5">
               <div class="flex items-center gap-1 text-slate-800 dark:text-slate-200 font-bold">
                 <span class="material-symbols-outlined text-[14px] text-slate-400">domain</span>
-                <span>${it.issuedBy || 'Central WH'}</span>
+                <span class="text-[11px]">${it.issuedBy || 'Central WH'}</span>
               </div>
-              <span class="text-[10.5px] text-slate-400 font-medium">Req: ${it.raisedBy || '-'}</span>
+              <span class="text-[10px] text-slate-400 font-medium">Req: ${it.raisedBy || '-'}</span>
             </div>
           </td>
 
-          <!-- 7. Courier / Docket & Complete Remarks (Un-truncated) -->
-          <td class="px-4 py-3.5 align-top min-w-[200px] max-w-xs">
-            <div class="flex flex-col gap-1">
+          <!-- 7. Courier / Docket & Remarks -->
+          <td class="px-4 py-3 align-middle min-w-[180px] max-w-xs">
+            <div class="flex flex-col gap-0.5">
               ${docketBtn}
-              ${it.courierName && !docketBtn ? `<span class="font-extrabold text-slate-700 dark:text-slate-300 text-[11px]">${it.courierName}</span>` : ''}
-              ${it.remarks ? `<p class="text-[10.5px] text-slate-600 dark:text-slate-300 whitespace-normal break-words leading-snug mt-0.5">${it.remarks}</p>` : '<span class="text-[10.5px] text-slate-400 italic">None</span>'}
+              ${it.courierName && !docketBtn ? `<span class="font-bold text-slate-700 dark:text-slate-300 text-[11px]">${it.courierName}</span>` : ''}
+              <p class="text-[10.5px] text-slate-500 dark:text-slate-400 truncate max-w-[180px] mt-0.5" title="${it.remarks || ''}">
+                ${it.remarks || '<span class="italic text-slate-400">No remarks</span>'}
+              </p>
             </div>
           </td>
 
           <!-- 8. Actions (Details Modal) -->
-          <td class="px-4 py-3.5 align-top text-right whitespace-nowrap">
-            <button onclick="window.openKitsDetailModal(${idx}); event.stopPropagation();" class="px-2.5 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-900 hover:text-white dark:bg-slate-800 dark:hover:bg-white dark:hover:text-slate-900 text-slate-700 dark:text-slate-200 text-[11px] font-black border border-slate-200 dark:border-slate-700 transition-all shadow-xs flex items-center gap-1 ml-auto cursor-pointer group-hover:bg-slate-900 group-hover:text-white" title="Click to view all 14 fields">
+          <td class="px-4 py-3 align-middle text-right whitespace-nowrap">
+            <button onclick="window.openKitsDetailModal(${idx}); event.stopPropagation();" class="px-2.5 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-900 hover:text-white dark:bg-slate-800 dark:hover:bg-white dark:hover:text-slate-900 text-slate-700 dark:text-slate-200 text-[11px] font-black border border-slate-200 dark:border-slate-700 transition-all shadow-xs flex items-center gap-1 ml-auto cursor-pointer active:scale-95 group-hover:bg-slate-900 group-hover:text-white" title="Click to view all 14 fields">
               <span class="material-symbols-outlined text-[14px]">visibility</span>
               <span>Details</span>
             </button>
@@ -779,10 +844,13 @@
               </div>
             </div>
 
-            <!-- Rate & Total Amount -->
+            <!-- Rate & Total Amount (Clean Commercials) -->
             <div class="flex items-center justify-between pt-2 border-t border-slate-200/60 dark:border-slate-700/60 font-mono text-xs">
               <span class="text-slate-400 text-[10.5px]">Unit Rate: ₹${(it.rate || 0).toFixed(2)}</span>
-              <span class="font-black text-slate-900 dark:text-white">Amount: ₹${(it.amount || 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
+              ${(!it.amount || it.amount === 0) 
+                ? `<span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-slate-200/60 dark:bg-slate-700/60 text-slate-500 dark:text-slate-400">Complimentary</span>`
+                : `<span class="font-black text-emerald-600 dark:text-emerald-400">₹${it.amount.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>`
+              }
             </div>
           </div>
 
