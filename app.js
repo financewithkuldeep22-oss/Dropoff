@@ -2982,7 +2982,7 @@ if(syncBtnEl && !syncBtnEl.dataset.fix) {
     });
 
     // ══════════════════════════════════════════════════════════════
-    // NAV TABS REGISTRY & EXTERNAL PORTAL RIGHT-CLICK CONTEXT MENU
+    // NAV TABS REGISTRY & EXTERNAL PORTAL LAUNCHER (CTRL+CLICK)
     // ══════════════════════════════════════════════════════════════
     const NAV_TABS_REGISTRY = {
       'allo': {
@@ -3119,120 +3119,11 @@ if(syncBtnEl && !syncBtnEl.dataset.fix) {
     window.reloadMedibuddyFrame = function() { window.reloadTabFrame('medibuddy'); };
     window.reloadNsaFrame = function() { window.reloadTabFrame('nsa'); };
 
-    let activeContextTab = null;
-
-    function openNavContextMenu(x, y, info) {
-      const menu = document.getElementById('nav-tab-context-menu');
-      if (!menu) return;
-
-      activeContextTab = info;
-
-      const titleEl = document.getElementById('ctx-menu-title');
-      const badgeEl = document.getElementById('ctx-menu-badge');
-      const dotEl = document.getElementById('ctx-menu-dot');
-      const labelOpen = document.getElementById('ctx-label-open');
-      const subOpen = document.getElementById('ctx-sub-open');
-      const labelCopy = document.getElementById('ctx-label-copy');
-      const reloadBtn = document.getElementById('ctx-action-reload-frame');
-
-      if (titleEl) titleEl.textContent = info.name || 'Tab View';
-      if (badgeEl) {
-        badgeEl.textContent = info.badge || (info.isIframe ? 'Portal' : 'View');
-      }
-      if (dotEl) {
-        dotEl.className = 'w-2 h-2 rounded-full flex-shrink-0 ' + (info.isIframe ? 'bg-indigo-500 animate-pulse' : 'bg-emerald-500');
-      }
-
-      if (labelOpen) {
-        labelOpen.textContent = info.isIframe ? 'Open Original Portal in New Tab' : 'Open View in New Tab';
-      }
-      if (subOpen) {
-        subOpen.textContent = info.isIframe ? 'Bypass embedding • Standalone window' : 'Direct full-page view';
-      }
-      if (labelCopy) {
-        labelCopy.textContent = info.isIframe ? 'Copy Portal Direct Link' : 'Copy View Link';
-      }
-
-      if (reloadBtn) {
-        reloadBtn.style.display = info.isIframe ? 'flex' : 'none';
-      }
-
-      menu.classList.remove('hidden');
-      menu.style.display = 'block';
-
-      // Smart positioning to prevent overflow offscreen
-      const menuWidth = 285;
-      const menuHeight = info.isIframe ? 190 : 145;
-
-      let posX = x + 10;
-      let posY = y;
-
-      if (posX + menuWidth > window.innerWidth) {
-        posX = Math.max(10, x - menuWidth - 5);
-      }
-      if (posY + menuHeight > window.innerHeight) {
-        posY = Math.max(10, window.innerHeight - menuHeight - 16);
-      }
-
-      menu.style.left = posX + 'px';
-      menu.style.top = posY + 'px';
-
-      if (window.gsap) {
-        gsap.fromTo(menu, 
-          { opacity: 0, scale: 0.94, y: -4 },
-          { opacity: 1, scale: 1, y: 0, duration: 0.16, ease: 'power2.out' }
-        );
-      } else {
-        requestAnimationFrame(() => {
-          menu.classList.remove('scale-95', 'opacity-0', 'pointer-events-none');
-          menu.classList.add('scale-100', 'opacity-100', 'pointer-events-auto');
-        });
-      }
-      menu.classList.remove('pointer-events-none');
-      menu.classList.add('pointer-events-auto');
-    }
-
-    function closeNavContextMenu() {
-      const menu = document.getElementById('nav-tab-context-menu');
-      if (!menu) return;
-      if (window.gsap) {
-        gsap.to(menu, {
-          opacity: 0, scale: 0.95, duration: 0.12, ease: 'power2.in',
-          onComplete: () => {
-            menu.classList.add('hidden', 'pointer-events-none');
-            menu.style.display = 'none';
-          }
-        });
-      } else {
-        menu.classList.add('scale-95', 'opacity-0', 'pointer-events-none');
-        menu.classList.remove('scale-100', 'opacity-100', 'pointer-events-auto');
-        setTimeout(() => {
-          if (menu.classList.contains('opacity-0')) {
-            menu.classList.add('hidden');
-            menu.style.display = 'none';
-          }
-        }, 150);
-      }
-    }
-
-    function initNavTabContextMenu() {
+    // Ctrl+Click / Middle-Click External Portal Launcher (Direct New Tab without right-click menu)
+    function initNavTabExternalLauncher() {
       const dockContainer = document.getElementById('dock-tabs-container');
-      if (!dockContainer || dockContainer.dataset.ctxInitialized) return;
-      dockContainer.dataset.ctxInitialized = 'true';
-
-      // Right-Click Context Menu
-      dockContainer.addEventListener('contextmenu', function(e) {
-        const btn = e.target.closest('.nav-tab');
-        if (btn) {
-          const tabId = btn.getAttribute('data-tab-id') || btn.id.replace('tab-', '').replace('-btn', '');
-          const info = NAV_TABS_REGISTRY[tabId];
-          if (info) {
-            e.preventDefault();
-            e.stopPropagation();
-            openNavContextMenu(e.clientX, e.clientY, info);
-          }
-        }
-      });
+      if (!dockContainer || dockContainer.dataset.launcherInitialized) return;
+      dockContainer.dataset.launcherInitialized = 'true';
 
       // Middle-Click (Scroll wheel click) opens in new tab
       dockContainer.addEventListener('auxclick', function(e) {
@@ -3264,84 +3155,12 @@ if(syncBtnEl && !syncBtnEl.dataset.fix) {
           }
         }
       }, true);
-
-      // Context Menu Button Actions
-      const openBtn = document.getElementById('ctx-action-open-new-tab');
-      if (openBtn) {
-        openBtn.addEventListener('click', function(e) {
-          e.stopPropagation();
-          if (activeContextTab && activeContextTab.url) {
-            window.open(activeContextTab.url, '_blank', 'noopener,noreferrer');
-          }
-          closeNavContextMenu();
-        });
-      }
-
-      const copyBtn = document.getElementById('ctx-action-copy-url');
-      if (copyBtn) {
-        copyBtn.addEventListener('click', function(e) {
-          e.stopPropagation();
-          if (activeContextTab && activeContextTab.url) {
-            if (navigator.clipboard && navigator.clipboard.writeText) {
-              navigator.clipboard.writeText(activeContextTab.url).then(function() {
-                if (typeof wr === 'function') wr('Copied link: ' + activeContextTab.url);
-              }).catch(function() {
-                prompt('Copy Portal URL:', activeContextTab.url);
-              });
-            } else {
-              prompt('Copy Portal URL:', activeContextTab.url);
-            }
-          }
-          closeNavContextMenu();
-        });
-      }
-
-      const reloadBtn = document.getElementById('ctx-action-reload-frame');
-      if (reloadBtn) {
-        reloadBtn.addEventListener('click', function(e) {
-          e.stopPropagation();
-          if (activeContextTab && activeContextTab.id) {
-            window.reloadTabFrame(activeContextTab.id);
-          }
-          closeNavContextMenu();
-        });
-      }
-
-      const switchBtn = document.getElementById('ctx-action-switch-tab');
-      if (switchBtn) {
-        switchBtn.addEventListener('click', function(e) {
-          e.stopPropagation();
-          if (activeContextTab && activeContextTab.id) {
-            window.switchDashboardTab(activeContextTab.id);
-          }
-          closeNavContextMenu();
-        });
-      }
-
-      // Close handlers
-      document.addEventListener('click', function(e) {
-        if (!e.target.closest('#nav-tab-context-menu')) {
-          closeNavContextMenu();
-        }
-      });
-
-      document.addEventListener('contextmenu', function(e) {
-        if (!e.target.closest('#dock-tabs-container') && !e.target.closest('#nav-tab-context-menu')) {
-          closeNavContextMenu();
-        }
-      });
-
-      window.addEventListener('keydown', function(e) {
-        if (e.key === 'Escape') closeNavContextMenu();
-      });
-
-      window.addEventListener('resize', closeNavContextMenu);
     }
 
     if (document.readyState === 'loading') {
-      document.addEventListener('DOMContentLoaded', initNavTabContextMenu);
+      document.addEventListener('DOMContentLoaded', initNavTabExternalLauncher);
     } else {
-      initNavTabContextMenu();
+      initNavTabExternalLauncher();
     }
   let jr = 0;
   function Dr(e) {

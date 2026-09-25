@@ -256,21 +256,21 @@
       </button>
 
       <!-- 3. AlloHealth Tab -->
-      <button class="nav-tab relative flex items-center flex-shrink-0" id="tab-allo-btn" data-tab-id="allo" title="AlloHealth (Right-click to open in new tab)" onclick="window.switchDashboardTab('allo')">
+      <button class="nav-tab relative flex items-center flex-shrink-0" id="tab-allo-btn" data-tab-id="allo" title="AlloHealth (Ctrl+Click to open in new tab)" onclick="window.switchDashboardTab('allo')">
         <span class="material-symbols-outlined transition-transform duration-200">local_shipping</span>
         <span class="nav-label font-extrabold tracking-wider uppercase">AlloHealth</span>
         <span class="nav-badge ml-auto px-1.5 py-0.2 bg-rose-500 rounded-full text-white text-[9px] font-black shadow-sm" id="badge-allo" style="display:none;"></span>
       </button>
 
       <!-- 4. BHMC Tab -->
-      <button class="nav-tab relative flex items-center flex-shrink-0" id="tab-bhmc-btn" data-tab-id="bhmc" title="BHMC (Right-click to open in new tab)" onclick="window.switchDashboardTab('bhmc')">
+      <button class="nav-tab relative flex items-center flex-shrink-0" id="tab-bhmc-btn" data-tab-id="bhmc" title="BHMC (Ctrl+Click to open in new tab)" onclick="window.switchDashboardTab('bhmc')">
         <span class="material-symbols-outlined transition-transform duration-200">medical_services</span>
         <span class="nav-label font-extrabold tracking-wider uppercase">BHMC</span>
         <span class="nav-badge ml-auto px-1.5 py-0.2 bg-rose-500 rounded-full text-white text-[9px] font-black shadow-sm" id="badge-bhmc" style="display:none;"></span>
       </button>
 
       <!-- 5. Medibuddy Tab -->
-      <button class="nav-tab relative flex items-center flex-shrink-0" id="tab-medibuddy-btn" data-tab-id="medibuddy" title="Medibuddy (Right-click to open in new tab)" onclick="window.switchDashboardTab('medibuddy')">
+      <button class="nav-tab relative flex items-center flex-shrink-0" id="tab-medibuddy-btn" data-tab-id="medibuddy" title="Medibuddy (Ctrl+Click to open in new tab)" onclick="window.switchDashboardTab('medibuddy')">
         <span class="material-symbols-outlined transition-transform duration-200">health_and_safety</span>
         <span class="nav-label font-extrabold tracking-wider uppercase">Medibuddy</span>
         <span class="nav-badge ml-auto px-1.5 py-0.2 bg-rose-500 rounded-full text-white text-[9px] font-black shadow-sm" id="badge-medibuddy" style="display:none;"></span>
@@ -284,7 +284,7 @@
       </button>
 
       <!-- 7. NSA Dashboard Tab -->
-      <button class="nav-tab relative flex items-center flex-shrink-0" id="tab-nsa-btn" data-tab-id="nsa" title="NSA Dashboard (Right-click to open in new tab)" onclick="window.switchDashboardTab('nsa')">
+      <button class="nav-tab relative flex items-center flex-shrink-0" id="tab-nsa-btn" data-tab-id="nsa" title="NSA Dashboard (Ctrl+Click to open in new tab)" onclick="window.switchDashboardTab('nsa')">
         <span class="material-symbols-outlined transition-transform duration-200">space_dashboard</span>
         <span class="nav-label font-extrabold tracking-wider uppercase">NSA Dashboard</span>
       </button>
@@ -296,7 +296,7 @@
       </button>
 
       <!-- 9. Ops Tool Tab -->
-      <button class="nav-tab relative flex items-center flex-shrink-0" id="tab-ops-btn" data-tab-id="ops" title="Ops Tool (Right-click to open in new tab)" onclick="window.switchDashboardTab('ops')">
+      <button class="nav-tab relative flex items-center flex-shrink-0" id="tab-ops-btn" data-tab-id="ops" title="Ops Tool (Ctrl+Click to open in new tab)" onclick="window.switchDashboardTab('ops')">
         <span class="material-symbols-outlined transition-transform duration-200">build_circle</span>
         <span class="nav-label font-extrabold tracking-wider uppercase">Ops Tool</span>
         <span class="nav-badge ml-auto px-1.5 py-0.2 bg-rose-500 rounded-full text-white text-[9px] font-black shadow-sm" id="badge-ops" style="display:none;"></span>
@@ -2837,7 +2837,7 @@
   <script src="auth.js?v=6"></script>
   <script src="api_v2.js?v=5"></script>
   <script src="kits_tracker.js?v=4"></script>
-  <script src="app.js?v=45"></script>
+  <script src="app.js?v=46"></script>
   <!-- <script src="challan.js?v=6"></script> -->
 
   <!-- ==========================================
@@ -2963,33 +2963,6 @@
       </div>
     </div>
   </div>
-
-  <!-- ==========================================
-       NAVIGATION TABS RIGHT-CLICK CONTEXT MENU (Sleek Linear/Raycast Design)
-       ========================================== -->
-  <div id="nav-tab-context-menu" class="fixed z-[100000] hidden bg-white/95 dark:bg-slate-900/95 backdrop-blur-2xl border border-slate-200/90 dark:border-slate-800/90 rounded-2xl shadow-2xl p-1.5 min-w-[270px] max-w-[320px] text-xs transition-all duration-150 transform scale-95 opacity-0 pointer-events-none select-none ring-1 ring-black/5 dark:ring-white/10">
-    <!-- Clean Minimal Tab Header (No raw URL block) -->
-    <div class="px-2.5 py-1.5 mb-1 flex items-center justify-between gap-2 border-b border-slate-100 dark:border-slate-800/80">
-      <div class="flex items-center gap-2 min-w-0">
-        <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse flex-shrink-0" id="ctx-menu-dot"></span>
-        <span class="font-extrabold text-[12px] text-slate-800 dark:text-slate-100 truncate" id="ctx-menu-title">Tab Name</span>
-      </div>
-      <span class="text-[9px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded-full border border-slate-200 dark:border-slate-700 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300" id="ctx-menu-badge">Portal</span>
-    </div>
-
-    <!-- Action Items -->
-    <div class="flex flex-col gap-0.5">
-      <!-- 1. Open in New Tab (Primary) -->
-      <button type="button" id="ctx-action-open-new-tab" class="w-full flex items-center justify-between px-2.5 py-2 rounded-xl text-left font-bold text-slate-800 dark:text-slate-100 hover:bg-blue-50/80 dark:hover:bg-blue-950/50 hover:text-blue-600 dark:hover:text-blue-400 transition-all cursor-pointer group active:scale-[0.98]">
-        <div class="flex items-center gap-2.5 min-w-0">
-          <div class="w-7 h-7 rounded-lg bg-blue-50 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400 flex items-center justify-center flex-shrink-0 group-hover:scale-105 transition-transform">
-            <span class="material-symbols-outlined text-[17px]">open_in_new</span>
-          </div>
-          <div class="flex flex-col min-w-0">
-            <span class="text-[12px] leading-tight font-extrabold truncate" id="ctx-label-open">Open in New Tab</span>
-            <span class="text-[10px] text-slate-400 dark:text-slate-500 font-normal leading-tight truncate" id="ctx-sub-open">Standalone window access</span>
-          </div>
-        </div>
         <kbd class="px-1.5 py-0.5 text-[9px] font-mono font-bold bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 rounded-md border border-slate-200/80 dark:border-slate-700/80 flex-shrink-0 ml-2">Ctrl+Click</kbd>
       </button>
 
