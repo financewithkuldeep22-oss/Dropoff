@@ -2981,23 +2981,337 @@ if(syncBtnEl && !syncBtnEl.dataset.fix) {
       if (typeof window.routeFromURL === 'function') window.routeFromURL();
     });
 
-    window.reloadMedibuddyFrame = function() {
-      const frame = document.getElementById('medibuddy-frame');
-      if (frame) {
-        const url = 'https://script.google.com/a/macros/redcliffelabs.com/s/AKfycbxVGPygavvON2AKM-aTDPuKXQS0IDdc-ASj4wB7gCwqL4gldI8e9-r7zJC_EbI8tcts/exec';
-        frame.src = '';
-        setTimeout(() => { frame.src = url; }, 100);
+    // ══════════════════════════════════════════════════════════════
+    // NAV TABS REGISTRY & EXTERNAL PORTAL RIGHT-CLICK CONTEXT MENU
+    // ══════════════════════════════════════════════════════════════
+    const NAV_TABS_REGISTRY = {
+      'allo': {
+        id: 'allo',
+        name: 'AlloHealth Sample Logistics',
+        type: 'Embedded Web App',
+        badge: 'Internal App',
+        badgeClass: 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300 border-emerald-300 dark:border-emerald-800',
+        icon: 'local_shipping',
+        url: window.location.origin + '/allo.html',
+        isIframe: true,
+        frameId: 'allo-frame'
+      },
+      'bhmc': {
+        id: 'bhmc',
+        name: 'Bharath Home Medicare Tracker',
+        type: 'External Vercel Portal',
+        badge: 'Vercel App',
+        badgeClass: 'bg-blue-100 text-blue-800 dark:bg-blue-950/60 dark:text-blue-300 border-blue-300 dark:border-blue-800',
+        icon: 'medical_services',
+        url: 'https://bhmc-redcliffelabs.vercel.app',
+        isIframe: true,
+        frameId: 'bhmc-frame'
+      },
+      'medibuddy': {
+        id: 'medibuddy',
+        name: 'Medibuddy Drop-off Portal',
+        type: 'Google Apps Script Portal',
+        badge: 'Apps Script',
+        badgeClass: 'bg-amber-100 text-amber-800 dark:bg-amber-950/60 dark:text-amber-300 border-amber-300 dark:border-amber-800',
+        icon: 'health_and_safety',
+        url: 'https://script.google.com/a/macros/redcliffelabs.com/s/AKfycbxVGPygavvON2AKM-aTDPuKXQS0IDdc-ASj4wB7gCwqL4gldI8e9-r7zJC_EbI8tcts/exec',
+        isIframe: true,
+        frameId: 'medibuddy-frame'
+      },
+      'nsa': {
+        id: 'nsa',
+        name: 'NSA Operations Dashboard',
+        type: 'Google Apps Script Portal',
+        badge: 'Apps Script',
+        badgeClass: 'bg-indigo-100 text-indigo-800 dark:bg-indigo-950/60 dark:text-indigo-300 border-indigo-300 dark:border-indigo-800',
+        icon: 'space_dashboard',
+        url: 'https://script.google.com/a/macros/redcliffelabs.com/s/AKfycbzHvs-hjn-gvLpdAvfhdYB9_KJjBx4Gw1A1agbkq5DKD6g2Ei1xwfHoFnKPonkEgK1f3w/exec',
+        isIframe: true,
+        frameId: 'nsa-frame'
+      },
+      'ops': {
+        id: 'ops',
+        name: 'Booking Operations Suite',
+        type: 'Operations Web Tool',
+        badge: 'Internal Tool',
+        badgeClass: 'bg-purple-100 text-purple-800 dark:bg-purple-950/60 dark:text-purple-300 border-purple-300 dark:border-purple-800',
+        icon: 'build_circle',
+        url: window.location.origin + '/ops.html',
+        isIframe: true,
+        frameId: 'ops-frame'
+      },
+      'overview': {
+        id: 'overview',
+        name: 'Overview Dashboard',
+        type: 'Main Operations',
+        badge: 'Dashboard',
+        badgeClass: 'bg-slate-100 text-slate-800 dark:bg-slate-800 dark:text-slate-300 border-slate-300 dark:border-slate-700',
+        icon: 'grid_view',
+        url: window.location.origin + '/overview',
+        isIframe: false
+      },
+      'qc': {
+        id: 'qc',
+        name: 'QC Check Suite',
+        type: 'Sample Quality Control',
+        badge: 'QC Suite',
+        badgeClass: 'bg-slate-100 text-slate-800 dark:bg-slate-800 dark:text-slate-300 border-slate-300 dark:border-slate-700',
+        icon: 'biotech',
+        url: window.location.origin + '/qc',
+        isIframe: false
+      },
+      'kits': {
+        id: 'kits',
+        name: 'Kits & Consumables Tracker',
+        type: 'Inventory & Consignment',
+        badge: 'Inventory',
+        badgeClass: 'bg-amber-100 text-amber-800 dark:bg-amber-950/60 dark:text-amber-300 border-amber-300 dark:border-amber-800',
+        icon: 'inventory_2',
+        url: window.location.origin + '/kits',
+        isIframe: false
+      },
+      'challan': {
+        id: 'challan',
+        name: 'Delivery Challan System',
+        type: 'Billing & Dispatch',
+        badge: 'Billing',
+        badgeClass: 'bg-slate-100 text-slate-800 dark:bg-slate-800 dark:text-slate-300 border-slate-300 dark:border-slate-700',
+        icon: 'receipt_long',
+        url: window.location.origin + '/challan',
+        isIframe: false
+      },
+      'bulk-dl': {
+        id: 'bulk-dl',
+        name: 'Bulk Report Downloader',
+        type: 'Export Utility',
+        badge: 'Utility',
+        badgeClass: 'bg-slate-100 text-slate-800 dark:bg-slate-800 dark:text-slate-300 border-slate-300 dark:border-slate-700',
+        icon: 'cloud_download',
+        url: window.location.origin + '/bulk-dl',
+        isIframe: false
+      },
+      'bot-lab': {
+        id: 'bot-lab',
+        name: 'Bot Lab AI Command Center',
+        type: 'AI Browser & Automation',
+        badge: 'AI Suite',
+        badgeClass: 'bg-indigo-100 text-indigo-800 dark:bg-indigo-950/60 dark:text-indigo-300 border-indigo-300 dark:border-indigo-800',
+        icon: 'smart_toy',
+        url: window.location.origin + '/bot-lab',
+        isIframe: false
       }
     };
 
-    window.reloadNsaFrame = function() {
-      const frame = document.getElementById('nsa-frame');
+    window.NAV_TABS_REGISTRY = NAV_TABS_REGISTRY;
+
+    window.reloadTabFrame = function(tabId) {
+      const info = NAV_TABS_REGISTRY[tabId];
+      if (!info || !info.frameId) return;
+      const frame = document.getElementById(info.frameId);
       if (frame) {
-        const url = 'https://script.google.com/a/macros/redcliffelabs.com/s/AKfycbzHvs-hjn-gvLpdAvfhdYB9_KJjBx4Gw1A1agbkq5DKD6g2Ei1xwfHoFnKPonkEgK1f3w/exec';
-        frame.src = '';
-        setTimeout(() => { frame.src = url; }, 100);
+        const originalUrl = info.url;
+        frame.src = 'about:blank';
+        setTimeout(() => { frame.src = originalUrl; }, 100);
+        if (typeof wr === 'function') wr('Reloading ' + (info.name || tabId) + '...');
       }
     };
+
+    window.reloadMedibuddyFrame = function() { window.reloadTabFrame('medibuddy'); };
+    window.reloadNsaFrame = function() { window.reloadTabFrame('nsa'); };
+
+    let activeContextTab = null;
+
+    function openNavContextMenu(x, y, info) {
+      const menu = document.getElementById('nav-tab-context-menu');
+      if (!menu) return;
+
+      activeContextTab = info;
+
+      const titleEl = document.getElementById('ctx-menu-title');
+      const iconEl = document.getElementById('ctx-menu-icon');
+      const badgeEl = document.getElementById('ctx-menu-badge');
+      const urlEl = document.getElementById('ctx-menu-url');
+
+      if (titleEl) titleEl.textContent = info.name;
+      if (iconEl) iconEl.textContent = info.icon || 'open_in_new';
+      if (badgeEl) {
+        badgeEl.textContent = info.badge || 'Portal';
+        badgeEl.className = 'text-[9px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded border ' + (info.badgeClass || '');
+      }
+      if (urlEl) urlEl.textContent = info.url;
+
+      const reloadBtn = document.getElementById('ctx-action-reload-frame');
+      if (reloadBtn) {
+        reloadBtn.style.display = info.isIframe ? 'flex' : 'none';
+      }
+
+      menu.classList.remove('hidden');
+      menu.style.display = 'block';
+
+      // Smart positioning to prevent overflow offscreen
+      const menuWidth = 285;
+      const menuHeight = info.isIframe ? 200 : 160;
+
+      let posX = x + 10;
+      let posY = y;
+
+      if (posX + menuWidth > window.innerWidth) {
+        posX = Math.max(10, x - menuWidth - 5);
+      }
+      if (posY + menuHeight > window.innerHeight) {
+        posY = Math.max(10, window.innerHeight - menuHeight - 16);
+      }
+
+      menu.style.left = posX + 'px';
+      menu.style.top = posY + 'px';
+
+      requestAnimationFrame(() => {
+        menu.classList.remove('scale-95', 'opacity-0', 'pointer-events-none');
+        menu.classList.add('scale-100', 'opacity-100', 'pointer-events-auto');
+      });
+    }
+
+    function closeNavContextMenu() {
+      const menu = document.getElementById('nav-tab-context-menu');
+      if (!menu) return;
+      menu.classList.add('scale-95', 'opacity-0', 'pointer-events-none');
+      menu.classList.remove('scale-100', 'opacity-100', 'pointer-events-auto');
+      setTimeout(() => {
+        if (menu.classList.contains('opacity-0')) {
+          menu.classList.add('hidden');
+          menu.style.display = 'none';
+        }
+      }, 150);
+    }
+
+    function initNavTabContextMenu() {
+      const dockContainer = document.getElementById('dock-tabs-container');
+      if (!dockContainer || dockContainer.dataset.ctxInitialized) return;
+      dockContainer.dataset.ctxInitialized = 'true';
+
+      // Right-Click Context Menu
+      dockContainer.addEventListener('contextmenu', function(e) {
+        const btn = e.target.closest('.nav-tab');
+        if (btn) {
+          const tabId = btn.getAttribute('data-tab-id') || btn.id.replace('tab-', '').replace('-btn', '');
+          const info = NAV_TABS_REGISTRY[tabId];
+          if (info) {
+            e.preventDefault();
+            e.stopPropagation();
+            openNavContextMenu(e.clientX, e.clientY, info);
+          }
+        }
+      });
+
+      // Middle-Click (Scroll wheel click) opens in new tab
+      dockContainer.addEventListener('auxclick', function(e) {
+        if (e.button === 1) {
+          const btn = e.target.closest('.nav-tab');
+          if (btn) {
+            const tabId = btn.getAttribute('data-tab-id') || btn.id.replace('tab-', '').replace('-btn', '');
+            const info = NAV_TABS_REGISTRY[tabId];
+            if (info && info.url) {
+              e.preventDefault();
+              window.open(info.url, '_blank', 'noopener,noreferrer');
+            }
+          }
+        }
+      });
+
+      // Ctrl+Click / Cmd+Click opens in new tab
+      dockContainer.addEventListener('click', function(e) {
+        if (e.ctrlKey || e.metaKey) {
+          const btn = e.target.closest('.nav-tab');
+          if (btn) {
+            const tabId = btn.getAttribute('data-tab-id') || btn.id.replace('tab-', '').replace('-btn', '');
+            const info = NAV_TABS_REGISTRY[tabId];
+            if (info && info.url) {
+              e.preventDefault();
+              e.stopPropagation();
+              window.open(info.url, '_blank', 'noopener,noreferrer');
+            }
+          }
+        }
+      }, true);
+
+      // Context Menu Button Actions
+      const openBtn = document.getElementById('ctx-action-open-new-tab');
+      if (openBtn) {
+        openBtn.addEventListener('click', function(e) {
+          e.stopPropagation();
+          if (activeContextTab && activeContextTab.url) {
+            window.open(activeContextTab.url, '_blank', 'noopener,noreferrer');
+          }
+          closeNavContextMenu();
+        });
+      }
+
+      const copyBtn = document.getElementById('ctx-action-copy-url');
+      if (copyBtn) {
+        copyBtn.addEventListener('click', function(e) {
+          e.stopPropagation();
+          if (activeContextTab && activeContextTab.url) {
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+              navigator.clipboard.writeText(activeContextTab.url).then(function() {
+                if (typeof wr === 'function') wr('Copied link: ' + activeContextTab.url);
+              }).catch(function() {
+                prompt('Copy Portal URL:', activeContextTab.url);
+              });
+            } else {
+              prompt('Copy Portal URL:', activeContextTab.url);
+            }
+          }
+          closeNavContextMenu();
+        });
+      }
+
+      const reloadBtn = document.getElementById('ctx-action-reload-frame');
+      if (reloadBtn) {
+        reloadBtn.addEventListener('click', function(e) {
+          e.stopPropagation();
+          if (activeContextTab && activeContextTab.id) {
+            window.reloadTabFrame(activeContextTab.id);
+          }
+          closeNavContextMenu();
+        });
+      }
+
+      const switchBtn = document.getElementById('ctx-action-switch-tab');
+      if (switchBtn) {
+        switchBtn.addEventListener('click', function(e) {
+          e.stopPropagation();
+          if (activeContextTab && activeContextTab.id) {
+            window.switchDashboardTab(activeContextTab.id);
+          }
+          closeNavContextMenu();
+        });
+      }
+
+      // Close handlers
+      document.addEventListener('click', function(e) {
+        if (!e.target.closest('#nav-tab-context-menu')) {
+          closeNavContextMenu();
+        }
+      });
+
+      document.addEventListener('contextmenu', function(e) {
+        if (!e.target.closest('#dock-tabs-container') && !e.target.closest('#nav-tab-context-menu')) {
+          closeNavContextMenu();
+        }
+      });
+
+      window.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') closeNavContextMenu();
+      });
+
+      window.addEventListener('resize', closeNavContextMenu);
+    }
+
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', initNavTabContextMenu);
+    } else {
+      initNavTabContextMenu();
+    }
   let jr = 0;
   function Dr(e) {
     jr = parseInt(e) || 0;

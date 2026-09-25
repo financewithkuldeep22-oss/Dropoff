@@ -242,76 +242,74 @@
   <nav id="bottomNav" class="app-nav-rail fixed z-50 flex flex-col pointer-events-auto transition-all duration-300">
     <div id="dock-tabs-container" class="flex flex-col items-start relative z-10 w-full h-full gap-1">
       <!-- 1. Overview Tab -->
-      <button class="nav-tab relative flex items-center flex-shrink-0 active" id="tab-overview-btn" onclick="window.switchDashboardTab('overview')">
+      <button class="nav-tab relative flex items-center flex-shrink-0 active" id="tab-overview-btn" data-tab-id="overview" onclick="window.switchDashboardTab('overview')">
         <span class="material-symbols-outlined transition-transform duration-200">grid_view</span>
         <span class="nav-label font-extrabold tracking-wider uppercase">Overview</span>
         <span class="nav-badge ml-auto px-1.5 py-0.2 bg-rose-500 rounded-full text-white text-[9px] font-black shadow-sm" id="badge-overview" style="display:none;"></span>
       </button>
 
       <!-- 2. QC Check Tab -->
-      <button class="nav-tab relative flex items-center flex-shrink-0" id="tab-qc-btn" onclick="window.switchDashboardTab('qc')">
+      <button class="nav-tab relative flex items-center flex-shrink-0" id="tab-qc-btn" data-tab-id="qc" onclick="window.switchDashboardTab('qc')">
         <span class="material-symbols-outlined transition-transform duration-200">biotech</span>
         <span class="nav-label font-extrabold tracking-wider uppercase">QC Check</span>
         <span class="nav-badge ml-auto px-1.5 py-0.2 bg-rose-500 rounded-full text-white text-[9px] font-black shadow-sm" id="allo-badge-lbl" style="display:none;"></span>
       </button>
 
       <!-- 3. AlloHealth Tab -->
-      <button class="nav-tab relative flex items-center flex-shrink-0" id="tab-allo-btn" onclick="window.switchDashboardTab('allo')">
+      <button class="nav-tab relative flex items-center flex-shrink-0" id="tab-allo-btn" data-tab-id="allo" title="AlloHealth (Right-click to open in new tab)" onclick="window.switchDashboardTab('allo')">
         <span class="material-symbols-outlined transition-transform duration-200">local_shipping</span>
         <span class="nav-label font-extrabold tracking-wider uppercase">AlloHealth</span>
         <span class="nav-badge ml-auto px-1.5 py-0.2 bg-rose-500 rounded-full text-white text-[9px] font-black shadow-sm" id="badge-allo" style="display:none;"></span>
       </button>
 
       <!-- 4. BHMC Tab -->
-      <button class="nav-tab relative flex items-center flex-shrink-0" id="tab-bhmc-btn" onclick="window.switchDashboardTab('bhmc')">
+      <button class="nav-tab relative flex items-center flex-shrink-0" id="tab-bhmc-btn" data-tab-id="bhmc" title="BHMC (Right-click to open in new tab)" onclick="window.switchDashboardTab('bhmc')">
         <span class="material-symbols-outlined transition-transform duration-200">medical_services</span>
         <span class="nav-label font-extrabold tracking-wider uppercase">BHMC</span>
         <span class="nav-badge ml-auto px-1.5 py-0.2 bg-rose-500 rounded-full text-white text-[9px] font-black shadow-sm" id="badge-bhmc" style="display:none;"></span>
       </button>
 
       <!-- 5. Medibuddy Tab -->
-      <button class="nav-tab relative flex items-center flex-shrink-0" id="tab-medibuddy-btn" onclick="window.switchDashboardTab('medibuddy')">
+      <button class="nav-tab relative flex items-center flex-shrink-0" id="tab-medibuddy-btn" data-tab-id="medibuddy" title="Medibuddy (Right-click to open in new tab)" onclick="window.switchDashboardTab('medibuddy')">
         <span class="material-symbols-outlined transition-transform duration-200">health_and_safety</span>
         <span class="nav-label font-extrabold tracking-wider uppercase">Medibuddy</span>
         <span class="nav-badge ml-auto px-1.5 py-0.2 bg-rose-500 rounded-full text-white text-[9px] font-black shadow-sm" id="badge-medibuddy" style="display:none;"></span>
       </button>
 
       <!-- 6. Kits Tracker Tab -->
-      <button class="nav-tab relative flex items-center flex-shrink-0" id="tab-kits-btn" onclick="window.switchDashboardTab('kits')">
+      <button class="nav-tab relative flex items-center flex-shrink-0" id="tab-kits-btn" data-tab-id="kits" onclick="window.switchDashboardTab('kits')">
         <span class="material-symbols-outlined transition-transform duration-200">inventory_2</span>
         <span class="nav-label font-extrabold tracking-wider uppercase">Kits Tracker</span>
         <span class="nav-badge ml-auto px-1.5 py-0.2 bg-amber-500 rounded-full text-white text-[9px] font-black shadow-sm" id="badge-kits" style="display:none;"></span>
       </button>
 
       <!-- 7. NSA Dashboard Tab -->
-      <button class="nav-tab relative flex items-center flex-shrink-0" id="tab-nsa-btn" onclick="window.switchDashboardTab('nsa')">
+      <button class="nav-tab relative flex items-center flex-shrink-0" id="tab-nsa-btn" data-tab-id="nsa" title="NSA Dashboard (Right-click to open in new tab)" onclick="window.switchDashboardTab('nsa')">
         <span class="material-symbols-outlined transition-transform duration-200">space_dashboard</span>
         <span class="nav-label font-extrabold tracking-wider uppercase">NSA Dashboard</span>
       </button>
 
-      <!-- 6. Challan Tab -->
-      <button class="nav-tab relative flex items-center flex-shrink-0" id="tab-challan-btn" onclick="window.switchDashboardTab('challan')">
+      <!-- 8. Challan Tab -->
+      <button class="nav-tab relative flex items-center flex-shrink-0" id="tab-challan-btn" data-tab-id="challan" onclick="window.switchDashboardTab('challan')">
         <span class="material-symbols-outlined transition-transform duration-200">receipt_long</span>
         <span class="nav-label font-extrabold tracking-wider uppercase">Challan</span>
       </button>
 
-      <!-- 7. Ops Tool Tab -->
-      <button class="nav-tab relative flex items-center flex-shrink-0" id="tab-ops-btn" onclick="window.switchDashboardTab('ops')">
+      <!-- 9. Ops Tool Tab -->
+      <button class="nav-tab relative flex items-center flex-shrink-0" id="tab-ops-btn" data-tab-id="ops" title="Ops Tool (Right-click to open in new tab)" onclick="window.switchDashboardTab('ops')">
         <span class="material-symbols-outlined transition-transform duration-200">build_circle</span>
         <span class="nav-label font-extrabold tracking-wider uppercase">Ops Tool</span>
         <span class="nav-badge ml-auto px-1.5 py-0.2 bg-rose-500 rounded-full text-white text-[9px] font-black shadow-sm" id="badge-ops" style="display:none;"></span>
       </button>
 
-      <!-- 8. Bulk DL Tab -->
-      <button class="nav-tab relative flex items-center flex-shrink-0" id="tab-bulk-dl-btn" onclick="window.switchDashboardTab('bulk-dl')">
+      <!-- 10. Bulk DL Tab -->
+      <button class="nav-tab relative flex items-center flex-shrink-0" id="tab-bulk-dl-btn" data-tab-id="bulk-dl" onclick="window.switchDashboardTab('bulk-dl')">
         <span class="material-symbols-outlined transition-transform duration-200">cloud_download</span>
         <span class="nav-label font-extrabold tracking-wider uppercase">Bulk DL</span>
       </button>
 
-      
-
-      <!-- 9. Bot Lab Tab -->
-      <button class="nav-tab relative flex items-center flex-shrink-0" id="tab-bot-lab-btn" onclick="window.switchDashboardTab('bot-lab')">
+      <!-- 11. Bot Lab Tab -->
+      <button class="nav-tab relative flex items-center flex-shrink-0" id="tab-bot-lab-btn" data-tab-id="bot-lab" onclick="window.switchDashboardTab('bot-lab')">
         <span class="material-symbols-outlined transition-transform duration-200">smart_toy</span>
         <span class="nav-label font-extrabold tracking-wider uppercase">Bot Lab</span>
         <span class="nav-badge ml-auto px-1.5 py-0.2 bg-indigo-500 rounded-full text-white text-[9px] font-black shadow-sm" id="badge-bot-lab" style="display:none;"></span>
@@ -1256,21 +1254,6 @@
 
       <!-- ══ NSA DASHBOARD — Embedded Google Apps Script Portal ══ -->
       <div id="tab-content-nsa" class="tab-content flex flex-col flex-1 w-full h-full relative bg-[#f8fafc] dark:bg-slate-900" style="display:none;">
-        <div class="flex items-center justify-between px-4 py-2 bg-white dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 text-xs shadow-xs z-10 flex-shrink-0">
-          <div class="flex items-center gap-2">
-            <span class="inline-block w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
-            <span class="font-extrabold text-slate-800 dark:text-slate-100 tracking-wide uppercase text-[11px]">NSA Operations Dashboard</span>
-            <span class="text-[10px] text-slate-400 font-medium px-2 py-0.5 bg-slate-100 dark:bg-slate-700 rounded-md">Enterprise Live Portal</span>
-          </div>
-          <div class="flex items-center gap-2">
-            <button type="button" onclick="window.reloadNsaFrame()" class="flex items-center gap-1.5 px-2.5 py-1 text-[11px] font-semibold text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 rounded-md transition shadow-xs cursor-pointer">
-              <span class="material-symbols-outlined text-[13px]">refresh</span> Reload
-            </button>
-            <a href="https://script.google.com/a/macros/redcliffelabs.com/s/AKfycbzHvs-hjn-gvLpdAvfhdYB9_KJjBx4Gw1A1agbkq5DKD6g2Ei1xwfHoFnKPonkEgK1f3w/exec" target="_blank" rel="noopener noreferrer" class="flex items-center gap-1.5 px-3 py-1 text-[11px] font-bold text-white bg-blue-600 hover:bg-blue-700 rounded-md transition shadow-xs">
-              <span class="material-symbols-outlined text-[13px]">open_in_new</span> Open in New Tab
-            </a>
-          </div>
-        </div>
         <iframe id="nsa-frame" src="about:blank" data-src="https://script.google.com/a/macros/redcliffelabs.com/s/AKfycbzHvs-hjn-gvLpdAvfhdYB9_KJjBx4Gw1A1agbkq5DKD6g2Ei1xwfHoFnKPonkEgK1f3w/exec" class="w-full flex-1 border-0" title="NSA Dashboard" allow="clipboard-read; clipboard-write; fullscreen"></iframe>
       </div>
 
@@ -2836,7 +2819,7 @@
   <script src="auth.js?v=6"></script>
   <script src="api_v2.js?v=5"></script>
   <script src="kits_tracker.js?v=3"></script>
-  <script src="app.js?v=43"></script>
+  <script src="app.js?v=44"></script>
   <!-- <script src="challan.js?v=6"></script> -->
 
   <!-- ==========================================
@@ -2960,6 +2943,56 @@
           Close Window
         </button>
       </div>
+    </div>
+  </div>
+
+  <!-- ==========================================
+       NAVIGATION TABS RIGHT-CLICK CONTEXT MENU
+       ========================================== -->
+  <div id="nav-tab-context-menu" class="fixed z-[100000] hidden bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl border border-slate-200/90 dark:border-slate-700/90 rounded-2xl shadow-2xl p-2 min-w-[280px] max-w-[340px] text-xs transition-all duration-150 transform scale-95 opacity-0 pointer-events-none select-none">
+    <!-- Header: Portal Name + Badge -->
+    <div class="px-2.5 py-2 mb-1.5 border-b border-slate-100 dark:border-slate-800/80">
+      <div class="flex items-center justify-between gap-2">
+        <div class="flex items-center gap-1.5 min-w-0">
+          <span class="material-symbols-outlined text-[17px] text-blue-600 dark:text-blue-400 flex-shrink-0" id="ctx-menu-icon">open_in_new</span>
+          <span class="font-extrabold text-[12px] text-slate-800 dark:text-slate-100 truncate" id="ctx-menu-title">Portal Title</span>
+        </div>
+        <span class="text-[9px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded border" id="ctx-menu-badge">Portal</span>
+      </div>
+      <div class="text-[10px] text-slate-400 dark:text-slate-500 font-mono truncate mt-1" id="ctx-menu-url">https://...</div>
+    </div>
+
+    <!-- Action Items -->
+    <div class="flex flex-col gap-1">
+      <!-- Open in New Tab -->
+      <button type="button" id="ctx-action-open-new-tab" class="w-full flex items-center justify-between px-2.5 py-2 rounded-xl text-left font-bold text-slate-800 dark:text-slate-100 hover:bg-blue-50 dark:hover:bg-blue-950/40 hover:text-blue-600 dark:hover:text-blue-400 transition cursor-pointer group">
+        <div class="flex items-center gap-2 min-w-0">
+          <span class="material-symbols-outlined text-[18px] text-blue-500 group-hover:scale-110 transition-transform flex-shrink-0">open_in_new</span>
+          <div class="flex flex-col min-w-0">
+            <span class="text-[11.5px] leading-tight font-extrabold truncate">Open in New Tab</span>
+            <span class="text-[9.5px] text-slate-400 font-normal leading-tight truncate">External standalone window</span>
+          </div>
+        </div>
+        <kbd class="px-1.5 py-0.5 text-[9px] font-mono font-semibold bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 rounded border border-slate-200 dark:border-slate-700 flex-shrink-0 ml-2">Ctrl+Click</kbd>
+      </button>
+
+      <!-- Copy Direct Link -->
+      <button type="button" id="ctx-action-copy-url" class="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-xl text-left font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition cursor-pointer">
+        <span class="material-symbols-outlined text-[16px] text-slate-400 flex-shrink-0">content_copy</span>
+        <span class="text-[11px] truncate">Copy Portal Direct Link</span>
+      </button>
+
+      <!-- Reload Frame (only if isIframe) -->
+      <button type="button" id="ctx-action-reload-frame" class="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-xl text-left font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition cursor-pointer">
+        <span class="material-symbols-outlined text-[16px] text-slate-400 flex-shrink-0">refresh</span>
+        <span class="text-[11px] truncate">Reload Embedded Frame</span>
+      </button>
+
+      <!-- Open Inside Dashboard -->
+      <button type="button" id="ctx-action-switch-tab" class="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-xl text-left font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition cursor-pointer border-t border-slate-100 dark:border-slate-800/80 mt-0.5 pt-1.5">
+        <span class="material-symbols-outlined text-[16px] text-slate-400 flex-shrink-0">dock_to_left</span>
+        <span class="text-[11px] truncate">Switch to This Tab Inside App</span>
+      </button>
     </div>
   </div>
 </body>
