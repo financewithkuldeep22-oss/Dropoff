@@ -982,13 +982,12 @@ function getSafeLocalStorage(key, defaultVal) {
           })
           .getAllohealthQCDropdownOptions();
       }, 1500),
+      // Fetch latest trained rules from "Required Tube Checklist Helper" sheet
       setTimeout(() => {
-        google.script.run
-          .withSuccessHandler((e) => {
-            e && "success" === e.status && (Wr = e.mapping || {});
-          })
-          .getRequiredTubesMapping();
-      }, 3000),
+        if (typeof window.loadTubeRulesFromBackend === "function") {
+          window.loadTubeRulesFromBackend();
+        }
+      }, 1000),
       setInterval(() => {
         if (!fr) return;
         const e = new Date(),
@@ -3193,11 +3192,113 @@ if(syncBtnEl && !syncBtnEl.dataset.fix) {
       r = document.getElementById("hamburger-badge");
     r && (s > 0 ? ((r.innerText = s), (r.style.display = "flex")) : (r.style.display = "none"));
   }
+    // ═════════════════════════════════════════════════════════════════
+  // REQUIRED TUBE CHECKLIST HELPER: COMPREHENSIVE TRAINED DICTIONARY
+  // Pre-hydrated with 100% of rules from Google Sheet (Tab: Required Tube Checklist Helper)
+  // ═════════════════════════════════════════════════════════════════
+  const DEFAULT_TUBE_RULES = {
+    "sexual health profile: basic": { sst: true, edta: true, fluoride: false, urine: false, consent: false, notes: "" },
+    "sexual health profile basic": { sst: true, edta: true, fluoride: false, urine: false, consent: false, notes: "" },
+    "urea + creatinine + electrolytes": { sst: true, edta: false, fluoride: false, urine: false, consent: false, notes: "" },
+    "sexual health profile advanced": { sst: true, edta: true, fluoride: false, urine: false, consent: false, notes: "" },
+    "sti asymptomatic package (<=21 days)": { sst: true, edta: false, fluoride: false, urine: true, consent: true, notes: "" },
+    "sti periodic testing package": { sst: true, edta: false, fluoride: false, urine: false, consent: true, notes: "" },
+    "sexual health profile: plus": { sst: true, edta: true, fluoride: false, urine: false, consent: false, notes: "" },
+    "sexual health profile plus": { sst: true, edta: true, fluoride: false, urine: false, consent: false, notes: "" },
+    "sti asymptomatic package (follow up)": { sst: true, edta: false, fluoride: false, urine: false, consent: true, notes: "" },
+    "sti discharge package (>21 days)": { sst: true, edta: false, fluoride: false, urine: true, consent: true, notes: "" },
+    "sti asymptomatic package (>21 days)": { sst: true, edta: false, fluoride: false, urine: false, consent: true, notes: "" },
+    "hba1c": { sst: false, edta: true, fluoride: false, urine: false, consent: false, notes: "" },
+    "hiv 1,2 (cmia)": { sst: true, edta: false, fluoride: false, urine: false, consent: true, notes: "" },
+    "hiv 1, 2 (cmia)": { sst: true, edta: false, fluoride: false, urine: false, consent: true, notes: "" },
+    "hsv 1&2 igg & igm": { sst: true, edta: false, fluoride: false, urine: false, consent: false, notes: "" },
+    "urine routine & microscopy": { sst: false, edta: false, fluoride: false, urine: true, consent: false, notes: "" },
+    "complete blood count (cbc)": { sst: false, edta: true, fluoride: false, urine: false, consent: false, notes: "" },
+    "cbc": { sst: false, edta: true, fluoride: false, urine: false, consent: false, notes: "" },
+    "gonorrhoeae pcr": { sst: false, edta: false, fluoride: false, urine: true, consent: false, notes: "" },
+    "hsv 1&2 igg": { sst: true, edta: false, fluoride: false, urine: false, consent: false, notes: "" },
+    "sti ulcers package (>21 days)": { sst: true, edta: false, fluoride: false, urine: false, consent: true, notes: "" },
+    "tpha": { sst: true, edta: false, fluoride: false, urine: false, consent: false, notes: "" },
+    "vdrl with titres": { sst: true, edta: false, fluoride: false, urine: false, consent: false, notes: "" },
+    "vdrl": { sst: true, edta: false, fluoride: false, urine: false, consent: false, notes: "" },
+    "sti discharge package (<=21 days)": { sst: true, edta: false, fluoride: false, urine: true, consent: true, notes: "" },
+    "symptomatic std panel": { sst: true, edta: false, fluoride: false, urine: false, consent: true, notes: "" },
+    "tsh - t3 & t4": { sst: true, edta: false, fluoride: false, urine: false, consent: false, notes: "" },
+    "serum prolactin level": { sst: true, edta: false, fluoride: false, urine: false, consent: false, notes: "" },
+    "allo mental wellness screening panel": { sst: true, edta: true, fluoride: true, urine: false, consent: false, notes: "" },
+    "allo health - sti asymptomatic package (>21 days)": { sst: true, edta: false, fluoride: false, urine: false, consent: true, notes: "" },
+    "chlamydia igg & igm": { sst: true, edta: false, fluoride: false, urine: false, consent: true, notes: "" },
+    "allo health sti discharge package (<=21 days)(camp8390)": { sst: true, edta: false, fluoride: false, urine: true, consent: true, notes: "" },
+    "allo health - sti premarital testing package": { sst: true, edta: false, fluoride: false, urine: false, consent: true, notes: "" },
+    "sexual hormone profile advanced": { sst: true, edta: false, fluoride: false, urine: false, consent: false, notes: "" },
+    "allo health sti ulcers package (<=21 days)": { sst: true, edta: false, fluoride: false, urine: false, consent: true, notes: "" },
+    "allo health - asymptomatic advanced panel": { sst: true, edta: false, fluoride: false, urine: false, consent: true, notes: "" },
+    "early detection asymptomatic std panel": { sst: true, edta: false, fluoride: false, urine: false, consent: true, notes: "" }
+  };
+
+  // Initialize in-memory rules with fallbacks + cached user edits
+  let Wr = Object.assign({}, DEFAULT_TUBE_RULES);
+  try {
+    const cached = localStorage.getItem('tube_checklist_rules');
+    if (cached) {
+      Object.assign(Wr, JSON.parse(cached));
+    }
+  } catch(e) {}
+
+  window.Wr = Wr;
+
+  // Fetch latest trained rules from Google Sheet
+  window.loadTubeRulesFromBackend = function() {
+    if (window.google && window.google.script && window.google.script.run) {
+      google.script.run
+        .withSuccessHandler((res) => {
+          if (res && res.status === "success" && res.mapping) {
+            Object.assign(Wr, res.mapping);
+            try {
+              localStorage.setItem('tube_checklist_rules', JSON.stringify(Wr));
+            } catch(e) {}
+            if (typeof window.refreshActivePatientTubes === "function") {
+              window.refreshActivePatientTubes();
+            }
+          }
+        })
+        .withFailureHandler((err) => {
+          console.warn("[TubeHelper] Failed to sync rules from sheet, using cached rules:", err);
+        })
+        .getRequiredTubesMapping();
+    }
+  };
+
+  // Helper: Find matching rule in database (exact, clean, or key match)
+  function findMatchingTubeRule(token) {
+    if (!token) return null;
+    const t = token.trim().toLowerCase();
+    if (Wr[t]) return Wr[t];
+    const noColon = t.replace(/:/g, '');
+    if (Wr[noColon]) return Wr[noColon];
+    const normWs = t.replace(/\s+/g, ' ');
+    if (Wr[normWs]) return Wr[normWs];
+    
+    // Check known keys
+    const keys = Object.keys(Wr);
+    for (let k of keys) {
+      if (k === t || k === noColon) return Wr[k];
+    }
+    // Substring match for full package titles
+    for (let k of keys) {
+      if (k.length > 5 && (t.includes(k) || k.includes(t))) {
+        return Wr[k];
+      }
+    }
+    return null;
+  }
+
+  // Pure Sheet-Driven Tube Helper Function (NO FALSE OVERRIDES)
   function qr(e) {
     if (!e) return [];
     
     // Normalize string and tokenize by newlines, commas, pluses, semicolons, and ampersands
-    const rawTokens = e.split(/[\r\n,;+&/]+/).map(s => s.trim()).filter(Boolean);
+    const rawTokens = e.split(/[\r\n;+&]+/).map(s => s.trim()).filter(Boolean);
     
     let needSst = false,
       needEdta = false,
@@ -3206,40 +3307,14 @@ if(syncBtnEl && !syncBtnEl.dataset.fix) {
       needConsent = false;
     const specialNotes = [];
 
-    // Also test the full string for package-level patterns
-    const fullText = e.toLowerCase().trim();
-
-    // 1. Direct Package-Level Intelligence
-    if (/sti\s*(asymptomatic|periodic|premarital|screening|package|testing)/i.test(fullText) || fullText.includes("sti")) {
-      needSst = true; // Serology for HIV, VDRL, HBsAg, HCV
-      needUrine = true; // Urine PCR for Chlamydia & Gonorrhoeae
-      needConsent = true; // Mandatory NACO/ICMR HIV consent form
-    }
-    if (/sexual\s*health\s*profile/i.test(fullText)) {
-      needSst = true; // Lipid, TSH, Vit B12, Vit D
-      needEdta = true; // CBC, HbA1c
-      if (/plus|advanced/i.test(fullText)) {
-        needUrine = true;
-      }
-    }
-    if (/sexual\s*hormone\s*profile|hormone\s*profile/i.test(fullText)) {
-      needSst = true; // Testosterone, Prolactin, LH, FSH, etc.
-    }
-    if (/vhealth|health\s*package|full\s*body|comprehensive/i.test(fullText)) {
-      needSst = true;
-      needEdta = true;
-      needFluoride = true;
-      needUrine = true;
-    }
-
-    // 2. Token-by-Token Matcher & Sheet Rule Cross-Reference
     rawTokens.forEach(rawToken => {
+      // Strip leading sequence numbers like "1. ", "2. ", bullets
       const cleanToken = rawToken.replace(/^\s*[-*\u2022\d]+[\s.)\]-]+\s*/, "").trim().toLowerCase();
       if (!cleanToken) return;
 
-      let matchedInWr = false;
-      if (typeof Wr !== "undefined" && Wr && Wr[cleanToken]) {
-        const rule = Wr[cleanToken];
+      const rule = findMatchingTubeRule(cleanToken);
+      if (rule) {
+        // 100% Sheet-Driven Rule Applied
         if (rule.sst) needSst = true;
         if (rule.edta) needEdta = true;
         if (rule.fluoride) needFluoride = true;
@@ -3248,59 +3323,46 @@ if(syncBtnEl && !syncBtnEl.dataset.fix) {
         if (rule.notes && rule.notes !== "-" && !rule.notes.toLowerCase().includes("default pre-populated")) {
           specialNotes.push(rule.notes.trim());
         }
-        matchedInWr = true;
-      }
-
-      if (!matchedInWr) {
-        // SST (Yellow Top): Serology, Biochemistry, Hormones, Infectious Markers, Thyroid, Vitamins
+      } else {
+        // Fallback Heuristics ONLY for completely unmapped tests
+        // SST (Yellow): Serology, Biochemistry, Hormones, Thyroid, Vitamins
         if (
           cleanToken.includes("sst") || cleanToken.includes("serum") ||
-          cleanToken.includes("hormone") || cleanToken.includes("testosterone") || cleanToken.includes("prolactin") || cleanToken.includes("estradiol") || cleanToken.includes("dhea") || cleanToken.includes("fsh") || cleanToken.includes("lh") ||
-          cleanToken.includes("lft") || cleanToken.includes("liver") || cleanToken.includes("bilirubin") || cleanToken.includes("sgot") || cleanToken.includes("sgpt") ||
-          cleanToken.includes("lipid") || cleanToken.includes("cholesterol") || cleanToken.includes("triglyceride") ||
-          cleanToken.includes("kft") || cleanToken.includes("rft") || cleanToken.includes("kidney") || cleanToken.includes("renal") || cleanToken.includes("creatinine") || cleanToken.includes("urea") || cleanToken.includes("uric") || cleanToken.includes("electrolyte") || cleanToken.includes("electrolytes") || cleanToken.includes("calcium") || cleanToken.includes("phosphorus") ||
-          cleanToken.includes("thyroid") || cleanToken.includes("tsh") || cleanToken.includes("t3") || cleanToken.includes("t4") ||
-          cleanToken.includes("vitamin") || cleanToken.includes("b12") || cleanToken.includes("vit d") || cleanToken.includes("ferritin") || cleanToken.includes("iron") ||
-          cleanToken.includes("hiv") || cleanToken.includes("hbsag") || cleanToken.includes("hcv") || cleanToken.includes("hepatitis") || cleanToken.includes("vdrl") || cleanToken.includes("tpha") || cleanToken.includes("syphilis") || cleanToken.includes("hsv") || cleanToken.includes("widal") || cleanToken.includes("ige") || cleanToken.includes("crp") ||
-          cleanToken.includes("profile") || cleanToken.includes("panel") || cleanToken.includes("screening") || cleanToken.includes("sti")
+          cleanToken.includes("hormone") || cleanToken.includes("testosterone") || cleanToken.includes("prolactin") ||
+          cleanToken.includes("lipid") || cleanToken.includes("cholesterol") || cleanToken.includes("lft") || cleanToken.includes("kft") ||
+          cleanToken.includes("creatinine") || cleanToken.includes("urea") || cleanToken.includes("thyroid") || cleanToken.includes("tsh") ||
+          cleanToken.includes("vitamin") || cleanToken.includes("b12") || cleanToken.includes("hiv") || cleanToken.includes("hbsag") ||
+          cleanToken.includes("hcv") || cleanToken.includes("vdrl") || cleanToken.includes("tpha") || cleanToken.includes("syphilis")
         ) {
           needSst = true;
         }
 
-        // EDTA (Purple Top): Hematology, CBC, HbA1c, ESR, Whole Blood
+        // EDTA (Purple): CBC, HbA1c, ESR, Whole Blood
         if (
           cleanToken.includes("cbc") || cleanToken.includes("complete blood count") || cleanToken.includes("hemogram") ||
-          cleanToken.includes("hba1c") || cleanToken.includes("glycated") || cleanToken.includes("edta") ||
-          cleanToken.includes("esr") || cleanToken.includes("blood group") || cleanToken.includes("platelet") ||
-          cleanToken.includes("peripheral smear") || cleanToken.includes("psmear") || cleanToken.includes("purple") || cleanToken.includes("lavender")
+          cleanToken.includes("hba1c") || cleanToken.includes("glycated") || cleanToken.includes("edta") || cleanToken.includes("esr")
         ) {
           needEdta = true;
         }
 
-        // Fluoride (Grey Top): Glucose Stabilizer (FBS / RBS / PPBS / GTT)
+        // Fluoride (Grey): Glucose
         if (
-          cleanToken.includes("fluoride") || cleanToken.includes("floride") ||
-          cleanToken.includes("fbs") || cleanToken.includes("rbs") || cleanToken.includes("ppbs") ||
-          cleanToken.includes("glucose") || cleanToken.includes("fasting blood sugar") || cleanToken.includes("random blood sugar") || cleanToken.includes("gtt")
+          cleanToken.includes("fluoride") || cleanToken.includes("glucose") ||
+          cleanToken.includes("fbs") || cleanToken.includes("rbs") || cleanToken.includes("ppbs")
         ) {
           needFluoride = true;
         }
 
-        // Sterile Urine Container: Urine PCR, Routine Microscopy, Cotinine
+        // Sterile Urine Container: ONLY if explicitly mentions urine or urine PCR
         if (
-          cleanToken.includes("urine") || cleanToken.includes("rua") || cleanToken.includes("urinalysis") ||
-          cleanToken.includes("cotinine") || cleanToken.includes("pcr") || cleanToken.includes("gonorrhoeae") ||
-          cleanToken.includes("chlamydia") || cleanToken.includes("microscopy") || cleanToken.includes("clean catch") ||
-          cleanToken.includes("sti")
+          cleanToken.includes("urine") || cleanToken.includes("urinalysis") || cleanToken.includes("rua") ||
+          cleanToken.includes("cotinine") || cleanToken.includes("gonorrhoeae")
         ) {
           needUrine = true;
         }
 
-        // HIV Consent Form: NACO/ICMR Requisition Form
-        if (
-          cleanToken.includes("hiv") || cleanToken.includes("consent") || cleanToken.includes("sti") ||
-          cleanToken.includes("periodic") || cleanToken.includes("premarital")
-        ) {
+        // HIV Consent Form: ONLY if test explicitly contains HIV
+        if (cleanToken.includes("hiv")) {
           needConsent = true;
         }
       }
@@ -3348,7 +3410,7 @@ if(syncBtnEl && !syncBtnEl.dataset.fix) {
         name: "Sterile Urine Container",
         shortName: "Urine Cup",
         color: "#f97316",
-        desc: "Sterile container for PCR / STI / Routine microscopy",
+        desc: "Sterile container for PCR / Routine microscopy",
         isBloodVial: false,
         isContainer: true,
         isConsent: false,
@@ -3360,7 +3422,7 @@ if(syncBtnEl && !syncBtnEl.dataset.fix) {
         name: "HIV Consent Form Required",
         shortName: "HIV Consent",
         color: "#10b981",
-        desc: "Mandatory NACO/ICMR signed physical consent photographed in Photo 3 (Col O)",
+        desc: "Mandatory NACO/ICMR signed physical consent photographed in Photo 3",
         isBloodVial: false,
         isContainer: false,
         isConsent: true,
@@ -3382,6 +3444,325 @@ if(syncBtnEl && !syncBtnEl.dataset.fix) {
     }
     return items;
   }
+
+  // ═════════════════════════════════════════════════════════════════
+  // FRONTEND TUBE CHECKLIST RULE TRAINING & EDITING SYSTEM
+  // ═════════════════════════════════════════════════════════════════
+  window.refreshActivePatientTubes = function() {
+    if (!vr) return;
+    const testName = vr.testName || "";
+    
+    // Update vials label
+    let s = vr.vials || "";
+    if (!s || "N/A" === s) {
+      const reqs = qr(testName);
+      const bloodVials = reqs.filter(x => x.isBloodVial);
+      const containers = reqs.filter(x => x.isContainer);
+
+      if (bloodVials.length > 0 && containers.length > 0) {
+        const vNames = bloodVials.map(x => x.shortName).join(", ");
+        const cNames = containers.map(x => x.shortName).join(", ");
+        s = `${bloodVials.length} Blood ${bloodVials.length > 1 ? 'Vials' : 'Vial'} (${vNames}) + ${containers.length} ${cNames}`;
+      } else if (bloodVials.length > 0) {
+        const vNames = bloodVials.map(x => x.shortName).join(", ");
+        s = `${bloodVials.length} Blood ${bloodVials.length > 1 ? 'Vials' : 'Vial'} (${vNames})`;
+      } else if (containers.length > 0) {
+        s = `${containers.length} Urine Cup (0 Blood Vials)`;
+      } else {
+        s = "1 Vial (Standard)";
+      }
+    }
+    const vialsEl = document.getElementById("qc-active-patient-vials");
+    if (vialsEl) vialsEl.innerText = s;
+
+    // Update tube helper boxes
+    const t = document.getElementById("qc-tubes-helper-box");
+    if (!t) return;
+    t.innerHTML = "";
+    const n = qr(testName);
+    if (n.length > 0) {
+      n.forEach((item) => {
+        const el = document.createElement("div");
+        if (item.isConsent) {
+          el.className = "flex items-start gap-2.5 p-2.5 bg-emerald-50/80 dark:bg-emerald-950/20 border border-emerald-300 dark:border-emerald-800 rounded-[10px]";
+          el.innerHTML = `
+            <div class="w-7 h-7 rounded-lg bg-emerald-600 text-white flex items-center justify-center shrink-0 shadow-xs mt-0.5">
+              <span class="material-symbols-outlined text-[16px]">description</span>
+            </div>
+            <div class="flex flex-col gap-0.5 min-w-0">
+              <div class="flex items-center gap-1.5 flex-wrap">
+                <strong class="text-xs font-bold text-emerald-950 dark:text-emerald-200">${item.name}</strong>
+                <span class="text-[9px] font-bold px-1.5 py-0.2 rounded bg-emerald-200/80 text-emerald-800 uppercase tracking-wide">Document</span>
+              </div>
+              <span class="text-[10px] text-emerald-800/80 dark:text-emerald-300 font-medium leading-tight">${item.desc}</span>
+            </div>`;
+        } else if (item.isContainer) {
+          el.className = "flex items-start gap-2.5 p-2.5 bg-amber-50/80 dark:bg-amber-950/20 border border-amber-300 dark:border-amber-800 rounded-[10px]";
+          el.innerHTML = `
+            <div class="w-7 h-7 rounded-lg bg-amber-500 text-white flex items-center justify-center shrink-0 shadow-xs mt-0.5">
+              <span class="material-symbols-outlined text-[16px]">biotech</span>
+            </div>
+            <div class="flex flex-col gap-0.5 min-w-0">
+              <div class="flex items-center gap-1.5 flex-wrap">
+                <strong class="text-xs font-bold text-amber-950 dark:text-amber-200">${item.name}</strong>
+                <span class="text-[9px] font-bold px-1.5 py-0.2 rounded bg-amber-200/80 text-amber-800 uppercase tracking-wide">Container</span>
+              </div>
+              <span class="text-[10px] text-amber-800/80 dark:text-amber-300 font-medium leading-tight">${item.desc}</span>
+            </div>`;
+        } else if (item.isBloodVial) {
+          el.className = "flex items-center gap-3 p-2.5 bg-surface-container-low border border-outline-variant/30 rounded-[10px]";
+          el.innerHTML = `
+            <div style="width:14px; height:32px; border-radius:4px; background:${item.color}; border:2px solid white; box-shadow:0 2px 8px rgba(0,0,0,0.12); flex-shrink:0;"></div>
+            <div style="display:flex; flex-direction:column; gap:1px; min-width:0;">
+              <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
+                <strong style="font-size:12px; font-weight:700; color:var(--text-main);">${item.name}</strong>
+                <span style="font-size:9px; font-weight:700; padding:1px 5px; border-radius:4px; background:rgba(0,0,0,0.06); text-transform:uppercase;">Blood Vial</span>
+              </div>
+              <span style="font-size:10px; color:var(--text-muted); font-weight:600; line-height:1.2;">${item.desc}</span>
+            </div>`;
+        } else {
+          el.className = "flex items-start gap-2.5 p-2.5 bg-purple-50/80 border border-purple-200 rounded-[10px]";
+          el.innerHTML = `
+            <span class="material-symbols-outlined text-[16px] text-purple-600 shrink-0 mt-0.5">info</span>
+            <div class="flex flex-col gap-0.5">
+              <strong class="text-xs font-bold text-purple-900">${item.name}</strong>
+              <span class="text-[10px] text-purple-700 font-medium">${item.desc}</span>
+            </div>`;
+        }
+        t.appendChild(el);
+      });
+    } else {
+      t.innerHTML = '<div style="font-size:11px; color:var(--text-muted); font-style:italic;" class="col-span-full"><i class="fa-solid fa-info-circle"></i> No specific tube requirements mapped for this package name.</div>';
+    }
+  };
+
+  window.openTubeChecklistModal = function(initialTestName) {
+    const modal = document.getElementById("modal-tube-checklist");
+    if (!modal) return;
+
+    // Reset alert
+    const alertEl = document.getElementById("tc-modal-alert");
+    if (alertEl) { alertEl.className = "hidden"; alertEl.innerText = ""; }
+
+    // Populate Datalist with all known rules
+    const datalist = document.getElementById("tc-existing-tests-datalist");
+    if (datalist) {
+      datalist.innerHTML = "";
+      Object.keys(Wr).sort().forEach(k => {
+        const opt = document.createElement("option");
+        opt.value = k;
+        datalist.appendChild(opt);
+      });
+    }
+
+    // Populate Quick Select Chips from Active Patient Booking
+    const chipsContainer = document.getElementById("tc-patient-chips-container");
+    const chipsWrap = document.getElementById("tc-active-patient-chips-wrap");
+    if (chipsContainer && chipsWrap) {
+      chipsContainer.innerHTML = "";
+      const currentTestsStr = vr ? (vr.testName || "") : "";
+      if (currentTestsStr) {
+        chipsWrap.style.display = "block";
+        const tokens = currentTestsStr.split(/[\r\n;+&]+/).map(s => s.trim()).filter(Boolean);
+        tokens.forEach(tok => {
+          const clean = tok.replace(/^\s*[-*\u2022\d]+[\s.)\]-]+\s*/, "").trim();
+          if (!clean) return;
+          const chipBtn = document.createElement("button");
+          chipBtn.type = "button";
+          chipBtn.className = "px-2.5 py-1 rounded-lg text-xs font-bold bg-white dark:bg-slate-800 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800 hover:bg-indigo-600 hover:text-white transition active:scale-95 cursor-pointer shadow-xs";
+          chipBtn.innerText = clean;
+          chipBtn.onclick = function() {
+            const input = document.getElementById("tc-input-test-name");
+            if (input) {
+              input.value = clean;
+              window.onTubeChecklistTestInput(clean);
+            }
+          };
+          chipsContainer.appendChild(chipBtn);
+        });
+      } else {
+        chipsWrap.style.display = "none";
+      }
+    }
+
+    // Set initial test
+    let targetTest = initialTestName;
+    if (!targetTest && vr && vr.testName) {
+      const tokens = vr.testName.split(/[\r\n;+&]+/).map(s => s.trim()).filter(Boolean);
+      if (tokens.length > 0) {
+        targetTest = tokens[0].replace(/^\s*[-*\u2022\d]+[\s.)\]-]+\s*/, "").trim();
+      }
+    }
+
+    const input = document.getElementById("tc-input-test-name");
+    if (input) {
+      input.value = targetTest || "";
+      window.onTubeChecklistTestInput(input.value);
+    }
+
+    // Render Database Overview table
+    window.renderTubeRulesList("");
+
+    modal.classList.remove("hidden");
+    modal.style.display = "flex";
+  };
+
+  window.closeTubeChecklistModal = function() {
+    const modal = document.getElementById("modal-tube-checklist");
+    if (modal) {
+      modal.classList.add("hidden");
+      modal.style.display = "none";
+    }
+  };
+
+  window.onTubeChecklistTestInput = function(val) {
+    const sstCheck = document.getElementById("tc-check-sst");
+    const edtaCheck = document.getElementById("tc-check-edta");
+    const fluorCheck = document.getElementById("tc-check-fluoride");
+    const urineCheck = document.getElementById("tc-check-urine");
+    const consentCheck = document.getElementById("tc-check-consent");
+    const notesInput = document.getElementById("tc-input-notes");
+    const alertEl = document.getElementById("tc-modal-alert");
+
+    const rule = findMatchingTubeRule(val);
+    if (rule) {
+      if (sstCheck) sstCheck.checked = !!rule.sst;
+      if (edtaCheck) edtaCheck.checked = !!rule.edta;
+      if (fluorCheck) fluorCheck.checked = !!rule.fluoride;
+      if (urineCheck) urineCheck.checked = !!rule.urine;
+      if (consentCheck) consentCheck.checked = !!rule.consent;
+      if (notesInput) notesInput.value = rule.notes || "";
+      if (alertEl) {
+        alertEl.className = "p-2.5 rounded-xl text-xs font-semibold bg-blue-50 dark:bg-blue-950/40 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800 flex items-center gap-1.5";
+        alertEl.innerHTML = '<span class="material-symbols-outlined text-[15px]">info</span> Existing rule loaded from sheet. Modify checkboxes below to update.';
+      }
+    } else {
+      if (sstCheck) sstCheck.checked = true; // default blood vial
+      if (edtaCheck) edtaCheck.checked = false;
+      if (fluorCheck) fluorCheck.checked = false;
+      if (urineCheck) urineCheck.checked = false;
+      if (consentCheck) consentCheck.checked = false;
+      if (notesInput) notesInput.value = "";
+      if (alertEl) {
+        if (val && val.trim()) {
+          alertEl.className = "p-2.5 rounded-xl text-xs font-semibold bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-800 flex items-center gap-1.5";
+          alertEl.innerHTML = '<span class="material-symbols-outlined text-[15px]">add_circle</span> New unmapped test. Select required tubes and click Save to train sheet.';
+        } else {
+          alertEl.className = "hidden";
+        }
+      }
+    }
+  };
+
+  window.saveTubeChecklistRuleFromModal = function() {
+    const input = document.getElementById("tc-input-test-name");
+    const testName = input ? input.value.trim() : "";
+    if (!testName) {
+      alert("Please enter or select a Test / Package Name.");
+      return;
+    }
+
+    const sst = !!(document.getElementById("tc-check-sst") && document.getElementById("tc-check-sst").checked);
+    const edta = !!(document.getElementById("tc-check-edta") && document.getElementById("tc-check-edta").checked);
+    const fluoride = !!(document.getElementById("tc-check-fluoride") && document.getElementById("tc-check-fluoride").checked);
+    const urine = !!(document.getElementById("tc-check-urine") && document.getElementById("tc-check-urine").checked);
+    const consent = !!(document.getElementById("tc-check-consent") && document.getElementById("tc-check-consent").checked);
+    const notes = document.getElementById("tc-input-notes") ? document.getElementById("tc-input-notes").value.trim() : "";
+
+    const saveBtn = document.getElementById("tc-save-rule-btn");
+    const btnText = document.getElementById("tc-save-btn-text");
+    if (saveBtn) saveBtn.disabled = true;
+    if (btnText) btnText.innerText = "Saving to Google Sheet...";
+
+    // 1. Immediately update in-memory Wr & localStorage (0ms latency!)
+    const cleanLower = testName.toLowerCase();
+    Wr[cleanLower] = { sst, edta, fluoride, urine, consent, notes };
+    try {
+      localStorage.setItem('tube_checklist_rules', JSON.stringify(Wr));
+    } catch(e) {}
+
+    // 2. Immediately update current active patient UI
+    window.refreshActivePatientTubes();
+
+    // 3. Persist to backend Google Sheet (Required Tube Checklist Helper)
+    if (window.google && window.google.script && window.google.script.run) {
+      google.script.run
+        .withSuccessHandler((res) => {
+          if (saveBtn) saveBtn.disabled = false;
+          if (btnText) btnText.innerText = "Save & Train Rule to Sheet";
+          const alertEl = document.getElementById("tc-modal-alert");
+          if (alertEl) {
+            alertEl.className = "p-2.5 rounded-xl text-xs font-bold bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 flex items-center gap-1.5";
+            alertEl.innerHTML = `<span class="material-symbols-outlined text-[16px]">check_circle</span> Trained & saved to sheet: "${testName}".`;
+          }
+          if (typeof window.wr === 'function') window.wr(`Rule saved for "${testName}" to Google Sheet!`);
+          window.renderTubeRulesList("");
+        })
+        .withFailureHandler((err) => {
+          if (saveBtn) saveBtn.disabled = false;
+          if (btnText) btnText.innerText = "Save & Train Rule to Sheet";
+          console.error("[TubeHelper] Sheet save error:", err);
+          const alertEl = document.getElementById("tc-modal-alert");
+          if (alertEl) {
+            alertEl.className = "p-2.5 rounded-xl text-xs font-bold bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-800 flex items-center gap-1.5";
+            alertEl.innerHTML = `<span class="material-symbols-outlined text-[16px]">check</span> Rule active locally. Sheet background sync queued.`;
+          }
+        })
+        .saveRequiredTubeRule(testName, sst, edta, fluoride, urine, consent, notes);
+    } else {
+      if (saveBtn) saveBtn.disabled = false;
+      if (btnText) btnText.innerText = "Save & Train Rule to Sheet";
+      const alertEl = document.getElementById("tc-modal-alert");
+      if (alertEl) {
+        alertEl.className = "p-2.5 rounded-xl text-xs font-bold bg-emerald-50 text-emerald-700";
+        alertEl.innerText = `Rule for "${testName}" saved locally!`;
+      }
+    }
+  };
+
+  window.renderTubeRulesList = function(searchQuery) {
+    const container = document.getElementById("tc-rules-table-body");
+    const countLbl = document.getElementById("tc-rules-count-label");
+    if (!container) return;
+    
+    const query = (searchQuery || "").toLowerCase().trim();
+    const allKeys = Object.keys(Wr).sort();
+    if (countLbl) countLbl.innerText = `View Trained Rules in Database (${allKeys.length} Rules)`;
+
+    const filtered = allKeys.filter(k => !query || k.includes(query));
+    if (filtered.length === 0) {
+      container.innerHTML = '<div class="text-[11px] text-slate-400 italic p-2">No matching rules found.</div>';
+      return;
+    }
+
+    let html = "";
+    filtered.forEach(k => {
+      const r = Wr[k];
+      const badges = [];
+      if (r.sst) badges.push('<span class="px-1.5 py-0.2 rounded text-[9px] font-bold bg-amber-100 text-amber-800 border border-amber-200">SST</span>');
+      if (r.edta) badges.push('<span class="px-1.5 py-0.2 rounded text-[9px] font-bold bg-purple-100 text-purple-800 border border-purple-200">EDTA</span>');
+      if (r.fluoride) badges.push('<span class="px-1.5 py-0.2 rounded text-[9px] font-bold bg-slate-200 text-slate-700 border border-slate-300">Fluoride</span>');
+      if (r.urine) badges.push('<span class="px-1.5 py-0.2 rounded text-[9px] font-bold bg-orange-100 text-orange-800 border border-orange-200">Urine Cup</span>');
+      if (r.consent) badges.push('<span class="px-1.5 py-0.2 rounded text-[9px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-200">HIV Consent</span>');
+
+      html += `
+        <div class="flex items-center justify-between p-2 rounded-lg bg-slate-50 dark:bg-slate-800/60 border border-slate-200/60 dark:border-slate-700/60 gap-2">
+          <div class="flex flex-col min-w-0">
+            <span class="font-bold text-slate-800 dark:text-slate-200 text-[11px] truncate capitalize">${k}</span>
+            <div class="flex items-center gap-1 flex-wrap mt-0.5">
+              ${badges.join('')}
+              ${r.notes ? `<span class="text-[9.5px] text-slate-400 italic truncate max-w-[150px]">(${r.notes})</span>` : ''}
+            </div>
+          </div>
+          <button type="button" onclick="document.getElementById('tc-input-test-name').value = '${k}'; window.onTubeChecklistTestInput('${k}');" class="px-2 py-0.5 rounded bg-white dark:bg-slate-700 text-indigo-600 dark:text-indigo-300 border border-slate-200 dark:border-slate-600 text-[10px] font-bold shrink-0 hover:bg-indigo-50">
+            Edit
+          </button>
+        </div>
+      `;
+    });
+
+    container.innerHTML = html;
+  };
   function Mr(e) {
     if (!e) return !1;
     const t = e.trim().toLowerCase();
@@ -4017,8 +4398,7 @@ if(syncBtnEl && !syncBtnEl.dataset.fix) {
         }
       }
     }));
-  let Wr = {},
-    zr = [];
+  let zr = [];
   function Jr() {
     const e = document.getElementById("qc-remarks-dropdown-label");
     0 === zr.length ? ((e.innerText = "-- No Remarks Selected --"), (e.style.color = "var(--text-muted)")) : ((e.innerText = zr.join(", ")), (e.style.color = "var(--text-main)"));

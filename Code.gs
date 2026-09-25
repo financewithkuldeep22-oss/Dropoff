@@ -2041,6 +2041,67 @@ function getRequiredTubesMapping() {
 }
 
 /**
+ * Saves or updates a test rule in the "Required Tube Checklist Helper" sheet.
+ * Can be called from the frontend rule training modal.
+ */
+function saveRequiredTubeRule(testName, sst, edta, fluoride, urine, consent, notes) {
+  try {
+    if (!testName || !testName.toString().trim()) {
+      return { status: 'error', message: 'Test / Package name is required.' };
+    }
+    initRequiredTubesChecklistSheet();
+    var doc = getActiveSpreadsheetSafe();
+    var sheetName = "Required Tube Checklist Helper";
+    var helperSheet = doc.getSheetByName(sheetName);
+    if (!helperSheet) {
+      return { status: 'error', message: 'Required Tube Checklist Helper sheet could not be found.' };
+    }
+
+    var cleanName = testName.toString().trim();
+    var cleanLower = cleanName.toLowerCase();
+    var data = helperSheet.getDataRange().getValues();
+    var foundRow = -1;
+
+    for (var i = 1; i < data.length; i++) {
+      var rowName = (data[i][0] || '').toString().trim().toLowerCase();
+      if (rowName === cleanLower) {
+        foundRow = i + 1;
+        break;
+      }
+    }
+
+    var sstVal = (sst === true || sst === "YES" || sst === "yes") ? "YES" : "NO";
+    var edtaVal = (edta === true || edta === "YES" || edta === "yes") ? "YES" : "NO";
+    var fluorVal = (fluoride === true || fluoride === "YES" || fluoride === "yes") ? "YES" : "NO";
+    var urineVal = (urine === true || urine === "YES" || urine === "yes") ? "YES" : "NO";
+    var consentVal = (consent === true || consent === "YES" || consent === "yes") ? "YES" : "NO";
+    var notesVal = notes ? notes.toString().trim() : "";
+
+    if (foundRow !== -1) {
+      helperSheet.getRange(foundRow, 1, 1, 7).setValues([[cleanName, sstVal, edtaVal, fluorVal, urineVal, consentVal, notesVal]]);
+    } else {
+      helperSheet.appendRow([cleanName, sstVal, edtaVal, fluorVal, urineVal, consentVal, notesVal]);
+    }
+
+    return { 
+      status: 'success', 
+      message: 'Rule for "' + cleanName + '" saved successfully to sheet!',
+      rule: {
+        testName: cleanName,
+        sst: sstVal === "YES",
+        edta: edtaVal === "YES",
+        fluoride: fluorVal === "YES",
+        urine: urineVal === "YES",
+        consent: consentVal === "YES",
+        notes: notesVal
+      }
+    };
+  } catch(e) {
+    return { status: 'error', message: 'Error saving tube rule: ' + e.toString() };
+  }
+}
+
+/**
  * Web App HTTP POST Entry Point
  * Routes incoming JSON requests from Vercel/GitHub to the correct function.
  */
@@ -2107,6 +2168,7 @@ function doPost(e) {
       'getAllohealthQCData', 
       'getGoogleDriveImageBase64', 
       'getRequiredTubesMapping',
+      'saveRequiredTubeRule',
       'getPendingQCBookings',
       'getAllohealthQCDropdownOptions',
       'writeQCStatus',

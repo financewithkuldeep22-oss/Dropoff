@@ -734,9 +734,15 @@
               
               <!-- Required Tubes Checklist -->
               <div class="p-2.5 border-b border-outline-variant/20">
-                <div class="flex items-center gap-1.5 mb-2">
-                  <span class="material-symbols-outlined text-primary text-[15px]">vaccines</span>
-                  <span class="font-bold text-navy text-[11px] uppercase tracking-wide">Tube Helper</span>
+                <div class="flex items-center justify-between mb-2">
+                  <div class="flex items-center gap-1.5">
+                    <span class="material-symbols-outlined text-primary text-[15px]">vaccines</span>
+                    <span class="font-bold text-navy text-[11px] uppercase tracking-wide">Tube Helper</span>
+                  </div>
+                  <button type="button" onclick="window.openTubeChecklistModal()" class="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-indigo-50 hover:bg-indigo-100 dark:bg-indigo-950/60 dark:hover:bg-indigo-900/60 text-indigo-700 dark:text-indigo-300 text-[10px] font-black border border-indigo-200/80 dark:border-indigo-800 transition active:scale-95 cursor-pointer" title="Train / Update Required Tube Checklist Helper rules">
+                    <span class="material-symbols-outlined text-[13px]">tune</span>
+                    <span>Edit Rules</span>
+                  </button>
                 </div>
                 <div id="qc-tubes-helper-box" class="flex flex-col gap-1.5">
                   <!-- Dynamically populated by JS -->
@@ -2837,7 +2843,7 @@
   <script src="auth.js?v=6"></script>
   <script src="api_v2.js?v=5"></script>
   <script src="kits_tracker.js?v=4"></script>
-  <script src="app.js?v=46"></script>
+  <script src="app.js?v=47"></script>
   <!-- <script src="challan.js?v=6"></script> -->
 
   <!-- ==========================================
@@ -2999,6 +3005,165 @@
         <span class="material-symbols-outlined text-[16px] text-slate-400">dock_to_left</span>
         <span class="text-[11px] truncate">Switch to This Tab Inside App</span>
       </button>
+    </div>
+  </div>
+
+  <!-- ==========================================
+       MODAL: REQUIRED TUBE CHECKLIST HELPER RULE TRAINER / EDITOR
+       ========================================== -->
+  <div id="modal-tube-checklist" class="fixed inset-0 z-[100001] bg-slate-950/70 backdrop-blur-md hidden flex items-center justify-center p-3 sm:p-5" onclick="window.closeTubeChecklistModal()">
+    <div class="bg-white dark:bg-slate-900 rounded-3xl w-full max-w-xl max-h-[92vh] shadow-2xl border border-slate-200 dark:border-slate-800 flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-200" onclick="event.stopPropagation()">
+      <!-- Modal Header -->
+      <div class="p-4 sm:p-5 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between bg-gradient-to-r from-indigo-50/60 to-purple-50/40 dark:from-slate-900 dark:to-slate-800 shrink-0">
+        <div class="flex items-center gap-3 min-w-0">
+          <div class="w-10 h-10 rounded-2xl bg-indigo-600 text-white flex items-center justify-center shadow-lg shadow-indigo-600/25 shrink-0">
+            <span class="material-symbols-outlined text-[22px]">tune</span>
+          </div>
+          <div class="min-w-0">
+            <div class="flex items-center gap-2">
+              <h3 class="text-base font-black text-slate-900 dark:text-white truncate">Tube Checklist Rule Trainer</h3>
+              <span class="px-2 py-0.5 rounded-full text-[9px] font-extrabold bg-indigo-100 dark:bg-indigo-950 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800 uppercase tracking-wider">Sheet Synced</span>
+            </div>
+            <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5 truncate">Trains "Required Tube Checklist Helper" sheet directly from frontend</p>
+          </div>
+        </div>
+        <button onclick="window.closeTubeChecklistModal()" class="w-8 h-8 rounded-xl bg-slate-100 hover:bg-rose-500 hover:text-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 flex items-center justify-center transition-all cursor-pointer shrink-0">
+          <span class="material-symbols-outlined text-[18px]">close</span>
+        </button>
+      </div>
+
+      <!-- Modal Body (Scrollable) -->
+      <div class="p-5 overflow-y-auto space-y-4 text-xs">
+        <!-- Quick Select Chips from Active Patient Booking -->
+        <div id="tc-active-patient-chips-wrap" class="p-3 bg-indigo-50/50 dark:bg-indigo-950/20 rounded-2xl border border-indigo-100 dark:border-indigo-900/60 space-y-2">
+          <span class="text-[10px] font-black uppercase text-indigo-700 dark:text-indigo-300 tracking-wider block">Quick Select from Active Patient Booking:</span>
+          <div id="tc-patient-chips-container" class="flex flex-wrap gap-1.5">
+            <!-- Dynamically populated with active patient tests -->
+          </div>
+        </div>
+
+        <!-- Test Name Input -->
+        <div class="space-y-1">
+          <label class="text-[11px] font-black text-slate-700 dark:text-slate-300 uppercase tracking-wider block">
+            Test / Package Name <span class="text-rose-500">*</span>
+          </label>
+          <div class="relative">
+            <input type="text" id="tc-input-test-name" placeholder="e.g. Sexual Health Profile: Plus, TPHA, Urine PCR..." class="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl text-xs font-bold text-slate-900 dark:text-white placeholder:text-slate-400 outline-none focus:border-indigo-500 transition-all" list="tc-existing-tests-datalist" oninput="window.onTubeChecklistTestInput(this.value)">
+            <datalist id="tc-existing-tests-datalist"></datalist>
+          </div>
+          <p class="text-[10px] text-slate-400 font-medium">Exact or normalized package title as received from partner portal</p>
+        </div>
+
+        <!-- Tube & Container Selection Switches -->
+        <div class="space-y-2 pt-1">
+          <label class="text-[11px] font-black text-slate-700 dark:text-slate-300 uppercase tracking-wider block">Required Specimen Containers & Forms</label>
+          
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+            <!-- SST Yellow -->
+            <label class="flex items-center justify-between p-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/60 dark:bg-slate-950/40 hover:bg-slate-100 dark:hover:bg-slate-900 transition cursor-pointer group">
+              <div class="flex items-center gap-2.5">
+                <div class="w-4 h-7 rounded bg-amber-400 border border-amber-500 shrink-0"></div>
+                <div>
+                  <span class="font-extrabold text-slate-900 dark:text-white text-xs block">SST Tube (Yellow)</span>
+                  <span class="text-[10px] text-slate-400 font-medium">Serology, Hormones, LFT/KFT</span>
+                </div>
+              </div>
+              <input type="checkbox" id="tc-check-sst" class="w-4 h-4 rounded text-indigo-600 focus:ring-indigo-500 cursor-pointer">
+            </label>
+
+            <!-- EDTA Purple -->
+            <label class="flex items-center justify-between p-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/60 dark:bg-slate-950/40 hover:bg-slate-100 dark:hover:bg-slate-900 transition cursor-pointer group">
+              <div class="flex items-center gap-2.5">
+                <div class="w-4 h-7 rounded bg-purple-500 border border-purple-600 shrink-0"></div>
+                <div>
+                  <span class="font-extrabold text-slate-900 dark:text-white text-xs block">EDTA Tube (Purple)</span>
+                  <span class="text-[10px] text-slate-400 font-medium">CBC, Hemogram, HbA1c</span>
+                </div>
+              </div>
+              <input type="checkbox" id="tc-check-edta" class="w-4 h-4 rounded text-indigo-600 focus:ring-indigo-500 cursor-pointer">
+            </label>
+
+            <!-- Fluoride Grey -->
+            <label class="flex items-center justify-between p-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/60 dark:bg-slate-950/40 hover:bg-slate-100 dark:hover:bg-slate-900 transition cursor-pointer group">
+              <div class="flex items-center gap-2.5">
+                <div class="w-4 h-7 rounded bg-slate-400 border border-slate-500 shrink-0"></div>
+                <div>
+                  <span class="font-extrabold text-slate-900 dark:text-white text-xs block">Fluoride Tube (Grey)</span>
+                  <span class="text-[10px] text-slate-400 font-medium">Glucose (FBS / RBS / PPBS)</span>
+                </div>
+              </div>
+              <input type="checkbox" id="tc-check-fluoride" class="w-4 h-4 rounded text-indigo-600 focus:ring-indigo-500 cursor-pointer">
+            </label>
+
+            <!-- Sterile Urine Container -->
+            <label class="flex items-center justify-between p-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/60 dark:bg-slate-950/40 hover:bg-slate-100 dark:hover:bg-slate-900 transition cursor-pointer group">
+              <div class="flex items-center gap-2.5">
+                <div class="w-7 h-7 rounded-lg bg-orange-500 text-white flex items-center justify-center shrink-0">
+                  <span class="material-symbols-outlined text-[15px]">biotech</span>
+                </div>
+                <div>
+                  <span class="font-extrabold text-slate-900 dark:text-white text-xs block">Urine Container</span>
+                  <span class="text-[10px] text-slate-400 font-medium">Microscopy, Routine, PCR</span>
+                </div>
+              </div>
+              <input type="checkbox" id="tc-check-urine" class="w-4 h-4 rounded text-indigo-600 focus:ring-indigo-500 cursor-pointer">
+            </label>
+
+            <!-- HIV Consent Form -->
+            <label class="flex items-center justify-between p-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/60 dark:bg-slate-950/40 hover:bg-slate-100 dark:hover:bg-slate-900 transition cursor-pointer group sm:col-span-2">
+              <div class="flex items-center gap-2.5">
+                <div class="w-7 h-7 rounded-lg bg-emerald-600 text-white flex items-center justify-center shrink-0">
+                  <span class="material-symbols-outlined text-[15px]">description</span>
+                </div>
+                <div>
+                  <span class="font-extrabold text-slate-900 dark:text-white text-xs block">HIV Consent Form Required</span>
+                  <span class="text-[10px] text-slate-400 font-medium">Mandatory physical NACO consent form photographed in Photo 3</span>
+                </div>
+              </div>
+              <input type="checkbox" id="tc-check-consent" class="w-4 h-4 rounded text-indigo-600 focus:ring-indigo-500 cursor-pointer">
+            </label>
+          </div>
+        </div>
+
+        <!-- Special Instructions / Notes -->
+        <div class="space-y-1 pt-1">
+          <label class="text-[11px] font-black text-slate-700 dark:text-slate-300 uppercase tracking-wider block">Other Instructions / Handling Notes</label>
+          <input type="text" id="tc-input-notes" placeholder="e.g. Centrifuge immediately, Fasting required, Clean catch midstream..." class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl text-xs font-semibold text-slate-900 dark:text-white placeholder:text-slate-400 outline-none focus:border-indigo-500">
+        </div>
+
+        <!-- Status / Feedback Toast -->
+        <div id="tc-modal-alert" class="hidden p-3 rounded-xl text-xs font-bold"></div>
+
+        <!-- Collapsible: Currently Trained Rules Overview -->
+        <div class="pt-2 border-t border-slate-100 dark:border-slate-800">
+          <details class="group cursor-pointer">
+            <summary class="flex items-center justify-between py-1 text-slate-500 dark:text-slate-400 text-xs font-bold hover:text-slate-900 dark:hover:text-white select-none">
+              <span class="flex items-center gap-1.5">
+                <span class="material-symbols-outlined text-[16px]">list_alt</span>
+                <span id="tc-rules-count-label">View Trained Rules in Database (42 Rules)</span>
+              </span>
+              <span class="material-symbols-outlined text-[16px] group-open:rotate-180 transition-transform">expand_more</span>
+            </summary>
+            <div class="mt-2 max-h-48 overflow-y-auto space-y-1.5 p-1">
+              <input type="text" id="tc-filter-rules-search" placeholder="Search rules..." oninput="window.renderTubeRulesList(this.value)" class="w-full px-2.5 py-1.5 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-lg text-xs font-medium outline-none mb-1">
+              <div id="tc-rules-table-body" class="space-y-1">
+                <!-- Dynamically populated -->
+              </div>
+            </div>
+          </details>
+        </div>
+      </div>
+
+      <!-- Modal Footer -->
+      <div class="p-4 border-t border-slate-100 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-800/70 flex items-center justify-between shrink-0">
+        <button type="button" onclick="window.closeTubeChecklistModal()" class="px-4 py-2 rounded-xl text-xs font-bold text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 transition cursor-pointer">
+          Cancel
+        </button>
+        <button type="button" id="tc-save-rule-btn" onclick="window.saveTubeChecklistRuleFromModal()" class="px-5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-black shadow-md shadow-indigo-600/25 transition active:scale-95 cursor-pointer flex items-center gap-1.5">
+          <span class="material-symbols-outlined text-[16px]">save</span>
+          <span id="tc-save-btn-text">Save & Train Rule to Sheet</span>
+        </button>
+      </div>
     </div>
   </div>
 </body>
