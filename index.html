@@ -668,35 +668,14 @@
           
           <!-- Empty State (Enterprise Zero Pendency Screen) -->
           <div class="flex-1 flex flex-col items-center justify-center p-8 sm:p-14 relative overflow-hidden card-elevated rounded-[24px] border border-slate-200/60 shadow-[0_4px_24px_rgba(15,23,42,0.04)] bg-white/70 backdrop-blur-xl" id="allo-qc-empty-state" style="opacity: 1 !important; display: flex;">
-            <div class="flex flex-col items-center justify-center text-center p-4 max-w-[480px] mx-auto z-10">
-              <svg class="w-20 h-20 mb-5" viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <circle cx="40" cy="40" r="38" fill="url(#qcSuccessBg)" stroke="#10B981" stroke-width="1.5" stroke-opacity="0.3"/>
-                <circle cx="40" cy="40" r="28" fill="#ECFDF5" stroke="#34D399" stroke-width="1.5" stroke-dasharray="3 3"/>
-                <path d="M28 40.5L36 48.5L53 31.5" stroke="#059669" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
-                <defs>
-                  <radialGradient id="qcSuccessBg" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(40 40) rotate(90) scale(38)">
-                    <stop stop-color="#D1FAE5" stop-opacity="0.8"/>
-                    <stop offset="1" stop-color="#F0FDF4" stop-opacity="0.2"/>
-                  </radialGradient>
-                </defs>
-              </svg>
-              <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200 mb-3">
-                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span> Queue Cleared &bull; 100% Verified
-              </span>
-              <h3 class="font-headline-md text-xl font-bold text-navy tracking-tight mb-2">
-                All Quality Checks Completed
+<div class="flex flex-col items-center justify-center text-center p-6 max-w-[420px] mx-auto z-10">
+              <div class="w-10 h-10 rounded-full border-3 border-sky-200 border-t-sky-600 animate-spin mb-3"></div>
+              <h3 class="font-headline-md text-base font-bold text-navy tracking-tight mb-1">
+                Loading Quality Control Workspace...
               </h3>
-              <p class="text-xs text-slate-500 leading-relaxed max-w-[420px] mb-6">
-                There are currently no pending sample verifications in the queue. All received patient collections have been reviewed.
+              <p class="text-xs text-slate-500 leading-relaxed">
+                Preparing sample inspection queue, tube checklists, and requisition photos.
               </p>
-              <div class="flex flex-wrap items-center justify-center gap-3">
-                <button onclick="window.syncAllDashboardData(true)" class="px-5 py-2.5 rounded-xl bg-navy hover:bg-slate-800 text-white text-xs font-semibold transition-all shadow-sm flex items-center gap-2 cursor-pointer">
-                  <span class="material-symbols-outlined text-[16px]">sync</span> Refresh Queue
-                </button>
-                <button onclick="window.switchDashboardTab('overview')" class="px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold transition-all border border-slate-200 cursor-pointer">
-                  View Overview Metrics
-                </button>
-              </div>
             </div>
           </div>
 

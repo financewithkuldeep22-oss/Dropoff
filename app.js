@@ -928,6 +928,29 @@ function getSafeLocalStorage(key, defaultVal) {
       })(),
       Ao(),
       window.syncAllDashboardData(!1),
+      // Instant QC Queue Pre-render and Background Sync
+      (function hydrateAndSyncQCQueue() {
+        try {
+          const ls = localStorage.getItem('allohealth_qc_cache');
+          if (ls && (!_r || _r.length === 0)) {
+            const parsed = JSON.parse(ls);
+            if (parsed && parsed.status === 'success' && Array.isArray(parsed.data)) {
+              _r = parsed.data.filter(item => !submittedRowBlacklist.has(parseInt(item.rowNum)) && !submittedRowBlacklist.has(item.rowNum.toString()));
+              if (_r.length > 0) {
+                Dr(_r.length);
+                Br(_r);
+              }
+            }
+          } else if (_r && _r.length > 0) {
+            Dr(_r.length);
+            Br(_r);
+          }
+        } catch(e) {}
+        // Silent background pre-fetch within 500ms of boot
+        setTimeout(() => {
+          if (typeof Lr === "function") Lr(!0);
+        }, 500);
+      })(),
       setTimeout(() => {
         google.script.run
           .withSuccessHandler((e) => {
@@ -1281,11 +1304,11 @@ function getSafeLocalStorage(key, defaultVal) {
             skel.style.display = "flex";
           });
         }
-        const qcTabBtn = document.getElementById("tab-qc-btn");
-        if (qcTabBtn && qcTabBtn.classList.contains("active") && typeof Lr === "function") {
+        // Continuous background QC sync across all dashboard views
+        if (typeof Lr === "function") {
           setTimeout(() => {
-            if (typeof Lr === "function") Lr(!0);
-          }, 2000);
+            Lr(!0);
+          }, 1500);
         }
         const filterStartEl = document.getElementById("filter-start-date");
         if (filterStartEl && !filterStartEl.value) dr();
@@ -2103,6 +2126,25 @@ if(syncBtnEl && !syncBtnEl.dataset.fix) {
   const Er = new Map(),
     Sr = new Set();
 
+  // Instant QC Cache Hydration: Preload cached QC queue from localStorage immediately on startup
+  try {
+    const _cachedQCJson = localStorage.getItem('allohealth_qc_cache');
+    if (_cachedQCJson) {
+      const _parsedQC = JSON.parse(_cachedQCJson);
+      if (_parsedQC && _parsedQC.status === 'success' && Array.isArray(_parsedQC.data)) {
+        _r = _parsedQC.data.filter(item => {
+          if (typeof submittedRowBlacklist !== 'undefined') {
+            return !submittedRowBlacklist.has(parseInt(item.rowNum)) && !submittedRowBlacklist.has(item.rowNum.toString());
+          }
+          return true;
+        });
+        if (_r.length > 0) {
+          console.log(`[QC Boot] Instantly hydrated ${_r.length} pending QC records from local cache`);
+        }
+      }
+    }
+  } catch(e) {}
+
   // ── IndexedDB QC Photo Cache Layer (DropoffQCCache, 24h TTL) ──
   const QcPhotoCache = (function () {
     const DB_NAME = "DropoffQCCache";
@@ -2326,10 +2368,31 @@ if(syncBtnEl && !syncBtnEl.dataset.fix) {
       })
       .getAllohealthPendingCountAndIDs(e, t);
   }
+  let _isQCLoading = false;
   function Lr(e = !1) {
     const t = document.getElementById("allo-qc-queue");
     if (!t) return;
-    e || (t.innerHTML = '<div style="text-align:center; padding:40px; color:var(--text-muted);"><i class="fa-solid fa-spinner fa-spin" style="margin-right:8px;"></i> Loading QC queue...</div>');
+    _isQCLoading = true;
+    if (!e && (!_r || _r.length === 0)) {
+      t.innerHTML = '<div style="text-align:center; padding:40px 10px; color:var(--text-muted);"><i class="fa-solid fa-spinner fa-spin" style="margin-right:8px; color:var(--color-primary, #0284c7);"></i> Loading QC queue...</div>';
+      const emptyEl = document.getElementById("allo-qc-empty-state");
+      const panelEl = document.getElementById("allo-qc-review-panel");
+      if (panelEl) panelEl.style.display = "none";
+      if (emptyEl) {
+        emptyEl.style.display = "flex";
+        emptyEl.innerHTML = `
+          <div class="flex flex-col items-center justify-center text-center p-8 max-w-[420px] mx-auto z-10">
+            <div class="w-12 h-12 rounded-full border-3 border-sky-200 border-t-sky-600 animate-spin mb-4"></div>
+            <h3 class="font-headline-md text-base font-bold text-navy tracking-tight mb-1">
+              Loading Quality Control Queue...
+            </h3>
+            <p class="text-xs text-slate-500 leading-relaxed">
+              Synchronizing pending sample records from Allohealth in real-time.
+            </p>
+          </div>
+        `;
+      }
+    }
     const startEl = document.getElementById("filter-start-date");
     const endEl = document.getElementById("filter-end-date");
     const n = startEl ? startEl.value : "",
@@ -2342,6 +2405,7 @@ if(syncBtnEl && !syncBtnEl.dataset.fix) {
     if (typeof Sr !== 'undefined' && Sr.clear) Sr.clear();
     google.script.run
       .withSuccessHandler((res) => {
+        _isQCLoading = false;
         if (res && "success" === res.status) {
           const freshData = (res.data || []).filter(item => !submittedRowBlacklist.has(parseInt(item.rowNum)) && !submittedRowBlacklist.has(item.rowNum.toString()));
           _r = freshData;
@@ -2371,6 +2435,7 @@ if(syncBtnEl && !syncBtnEl.dataset.fix) {
         }
       })
       .withFailureHandler((err) => {
+        _isQCLoading = false;
         const errMsg = Gs(err);
         // CRITICAL GUARD: Never destroy active queue cards if already present!
         if (_r && _r.length > 0) {
@@ -2399,6 +2464,9 @@ if(syncBtnEl && !syncBtnEl.dataset.fix) {
   function updateQCEmptyState(queueLength) {
     const emptyEl = document.getElementById("allo-qc-empty-state");
     if (!emptyEl) return;
+    if (_isQCLoading && (!_r || _r.length === 0)) {
+      return; // Never show zero pendency when fetch is actively loading
+    }
     if (queueLength === 0) {
       // Auto-switch to overview if currently viewing the QC tab
       const qcTab = document.getElementById("tab-content-qc");
@@ -2717,9 +2785,27 @@ if(syncBtnEl && !syncBtnEl.dataset.fix) {
         if(el) {
            if (key === tabId) {
              el.style.display = "flex";
-             if (key === 'qc' && typeof Lr === 'function' && (!_r || _r.length === 0)) {
-               Lr(!1);
-             }
+             if (key === 'qc') {
+              if (!_r || _r.length === 0) {
+                try {
+                  const ls = localStorage.getItem('allohealth_qc_cache');
+                  if (ls) {
+                    const parsed = JSON.parse(ls);
+                    if (parsed && parsed.status === 'success' && Array.isArray(parsed.data)) {
+                      _r = parsed.data.filter(item => !submittedRowBlacklist.has(parseInt(item.rowNum)) && !submittedRowBlacklist.has(item.rowNum.toString()));
+                      if (_r.length > 0) {
+                        Dr(_r.length);
+                        Br(_r);
+                      }
+                    }
+                  }
+                } catch(e) {}
+              }
+              if (typeof Lr === 'function') {
+                const isSilent = (_r && _r.length > 0);
+                Lr(isSilent);
+              }
+            }
              if (key === 'challan' && typeof window.initChallanApp === 'function') {
                window.initChallanApp();
              }
@@ -2900,78 +2986,192 @@ if(syncBtnEl && !syncBtnEl.dataset.fix) {
   }
   function qr(e) {
     if (!e) return [];
-    const t = e.split("\n");
-    let n = !1,
-      s = !1,
-      r = !1,
-      o = !1,
-      i = !1;
-    const a = [],
-      l = [];
-    if (
-      (t.forEach((e) => {
-        const t = e.replace(/^\s*[-*\u2022\d+]+[\s.)\]-]+\s*/, "").trim();
-        t && l.push(t);
-      }),
-      0 === l.length)
-    )
-      return [];
-    l.forEach((e) => {
-      const t = e.toLowerCase();
-      let l = !1;
-      if (void 0 !== Wr && Wr && Wr[t]) {
-        const e = Wr[t];
-        (e.sst && (n = !0), e.edta && (s = !0), e.fluoride && (r = !0), e.urine && (o = !0), e.consent && (i = !0), e.notes && "-" !== e.notes && !e.notes.toLowerCase().includes("default pre-populated") && a.push(e.notes.trim()), (l = !0));
+    
+    // Normalize string and tokenize by newlines, commas, pluses, semicolons, and ampersands
+    const rawTokens = e.split(/[\r\n,;+&/]+/).map(s => s.trim()).filter(Boolean);
+    
+    let needSst = false,
+      needEdta = false,
+      needFluoride = false,
+      needUrine = false,
+      needConsent = false;
+    const specialNotes = [];
+
+    // Also test the full string for package-level patterns
+    const fullText = e.toLowerCase().trim();
+
+    // 1. Direct Package-Level Intelligence
+    if (/sti\s*(asymptomatic|periodic|premarital|screening|package|testing)/i.test(fullText) || fullText.includes("sti")) {
+      needSst = true; // Serology for HIV, VDRL, HBsAg, HCV
+      needUrine = true; // Urine PCR for Chlamydia & Gonorrhoeae
+      needConsent = true; // Mandatory NACO/ICMR HIV consent form
+    }
+    if (/sexual\s*health\s*profile/i.test(fullText)) {
+      needSst = true; // Lipid, TSH, Vit B12, Vit D
+      needEdta = true; // CBC, HbA1c
+      if (/plus|advanced/i.test(fullText)) {
+        needUrine = true;
       }
-      l ||
-        ((t.includes("sst") || t.includes("hormone") || t.includes("lft") || t.includes("lipid") || t.includes("kft") || t.includes("thyroid") || t.includes("hiv") || t.includes("hbsag") || t.includes("vitamin") || t.includes("profile")) && (n = !0),
-        (t.includes("cbc") || t.includes("hba1c") || t.includes("edta") || t.includes("hemogram") || t.includes("antibodies")) && (s = !0),
-        (t.includes("fluoride") || t.includes("glucose") || t.includes("fbs") || t.includes("rbs") || t.includes("floride")) && (r = !0),
-        (t.includes("urine") || t.includes("pcr") || t.includes("gonorrhoeae") || t.includes("sti") || t.includes("rua") || t.includes("microscopy")) && (o = !0),
-        (t.includes("hiv") || t.includes("periodic") || t.includes("sti")) && (i = !0));
+    }
+    if (/sexual\s*hormone\s*profile|hormone\s*profile/i.test(fullText)) {
+      needSst = true; // Testosterone, Prolactin, LH, FSH, etc.
+    }
+    if (/vhealth|health\s*package|full\s*body|comprehensive/i.test(fullText)) {
+      needSst = true;
+      needEdta = true;
+      needFluoride = true;
+      needUrine = true;
+    }
+
+    // 2. Token-by-Token Matcher & Sheet Rule Cross-Reference
+    rawTokens.forEach(rawToken => {
+      const cleanToken = rawToken.replace(/^\s*[-*\u2022\d]+[\s.)\]-]+\s*/, "").trim().toLowerCase();
+      if (!cleanToken) return;
+
+      let matchedInWr = false;
+      if (typeof Wr !== "undefined" && Wr && Wr[cleanToken]) {
+        const rule = Wr[cleanToken];
+        if (rule.sst) needSst = true;
+        if (rule.edta) needEdta = true;
+        if (rule.fluoride) needFluoride = true;
+        if (rule.urine) needUrine = true;
+        if (rule.consent) needConsent = true;
+        if (rule.notes && rule.notes !== "-" && !rule.notes.toLowerCase().includes("default pre-populated")) {
+          specialNotes.push(rule.notes.trim());
+        }
+        matchedInWr = true;
+      }
+
+      if (!matchedInWr) {
+        // SST (Yellow Top): Serology, Biochemistry, Hormones, Infectious Markers, Thyroid, Vitamins
+        if (
+          cleanToken.includes("sst") || cleanToken.includes("serum") ||
+          cleanToken.includes("hormone") || cleanToken.includes("testosterone") || cleanToken.includes("prolactin") || cleanToken.includes("estradiol") || cleanToken.includes("dhea") || cleanToken.includes("fsh") || cleanToken.includes("lh") ||
+          cleanToken.includes("lft") || cleanToken.includes("liver") || cleanToken.includes("bilirubin") || cleanToken.includes("sgot") || cleanToken.includes("sgpt") ||
+          cleanToken.includes("lipid") || cleanToken.includes("cholesterol") || cleanToken.includes("triglyceride") ||
+          cleanToken.includes("kft") || cleanToken.includes("rft") || cleanToken.includes("kidney") || cleanToken.includes("renal") || cleanToken.includes("creatinine") || cleanToken.includes("urea") || cleanToken.includes("uric") || cleanToken.includes("electrolyte") || cleanToken.includes("electrolytes") || cleanToken.includes("calcium") || cleanToken.includes("phosphorus") ||
+          cleanToken.includes("thyroid") || cleanToken.includes("tsh") || cleanToken.includes("t3") || cleanToken.includes("t4") ||
+          cleanToken.includes("vitamin") || cleanToken.includes("b12") || cleanToken.includes("vit d") || cleanToken.includes("ferritin") || cleanToken.includes("iron") ||
+          cleanToken.includes("hiv") || cleanToken.includes("hbsag") || cleanToken.includes("hcv") || cleanToken.includes("hepatitis") || cleanToken.includes("vdrl") || cleanToken.includes("tpha") || cleanToken.includes("syphilis") || cleanToken.includes("hsv") || cleanToken.includes("widal") || cleanToken.includes("ige") || cleanToken.includes("crp") ||
+          cleanToken.includes("profile") || cleanToken.includes("panel") || cleanToken.includes("screening") || cleanToken.includes("sti")
+        ) {
+          needSst = true;
+        }
+
+        // EDTA (Purple Top): Hematology, CBC, HbA1c, ESR, Whole Blood
+        if (
+          cleanToken.includes("cbc") || cleanToken.includes("complete blood count") || cleanToken.includes("hemogram") ||
+          cleanToken.includes("hba1c") || cleanToken.includes("glycated") || cleanToken.includes("edta") ||
+          cleanToken.includes("esr") || cleanToken.includes("blood group") || cleanToken.includes("platelet") ||
+          cleanToken.includes("peripheral smear") || cleanToken.includes("psmear") || cleanToken.includes("purple") || cleanToken.includes("lavender")
+        ) {
+          needEdta = true;
+        }
+
+        // Fluoride (Grey Top): Glucose Stabilizer (FBS / RBS / PPBS / GTT)
+        if (
+          cleanToken.includes("fluoride") || cleanToken.includes("floride") ||
+          cleanToken.includes("fbs") || cleanToken.includes("rbs") || cleanToken.includes("ppbs") ||
+          cleanToken.includes("glucose") || cleanToken.includes("fasting blood sugar") || cleanToken.includes("random blood sugar") || cleanToken.includes("gtt")
+        ) {
+          needFluoride = true;
+        }
+
+        // Sterile Urine Container: Urine PCR, Routine Microscopy, Cotinine
+        if (
+          cleanToken.includes("urine") || cleanToken.includes("rua") || cleanToken.includes("urinalysis") ||
+          cleanToken.includes("cotinine") || cleanToken.includes("pcr") || cleanToken.includes("gonorrhoeae") ||
+          cleanToken.includes("chlamydia") || cleanToken.includes("microscopy") || cleanToken.includes("clean catch") ||
+          cleanToken.includes("sti")
+        ) {
+          needUrine = true;
+        }
+
+        // HIV Consent Form: NACO/ICMR Requisition Form
+        if (
+          cleanToken.includes("hiv") || cleanToken.includes("consent") || cleanToken.includes("sti") ||
+          cleanToken.includes("periodic") || cleanToken.includes("premarital")
+        ) {
+          needConsent = true;
+        }
+      }
     });
-    const c = [];
-    if (
-      (n &&
-        c.push({
-          name: "SST Tube (Yellow Top)",
-          color: "#eab308",
-          desc: "SST Gel tube for hormones, thyroid, and biochemistry",
-        }),
-      s &&
-        c.push({
-          name: "EDTA Tube (Purple/Lavender)",
-          color: "#a855f7",
-          desc: "EDTA Whole Blood for CBC/Hemogram/HbA1c tests",
-        }),
-      r &&
-        c.push({
-          name: "Fluoride Tube (Grey Top)",
-          color: "#64748b",
-          desc: "Sodium Fluoride for glucose preservation",
-        }),
-      o &&
-        c.push({
-          name: "Urine Container",
-          color: "#f97316",
-          desc: "Sterile urine container for PCR / STI / microscopy",
-        }),
-      i &&
-        c.push({
-          name: "HIV Consent Form Required",
-          color: "#10b981",
-          desc: "Consent form must be signed and photographed in Column O",
-        }),
-      a.length > 0)
-    ) {
-      const e = [...new Set(a)];
-      c.push({
-        name: "Special Instructions",
-        color: "#7c3aed",
-        desc: e.join("; "),
+
+    const items = [];
+    if (needSst) {
+      items.push({
+        name: "SST Tube (Yellow Top)",
+        shortName: "SST",
+        color: "#eab308",
+        desc: "SST Gel tube for serology, hormones, and biochemistry",
+        isBloodVial: true,
+        isContainer: false,
+        isConsent: false,
+        type: "tube"
       });
     }
-    return c;
+    if (needEdta) {
+      items.push({
+        name: "EDTA Tube (Purple/Lavender)",
+        shortName: "EDTA",
+        color: "#a855f7",
+        desc: "EDTA Whole Blood for CBC / Hemogram / HbA1c tests",
+        isBloodVial: true,
+        isContainer: false,
+        isConsent: false,
+        type: "tube"
+      });
+    }
+    if (needFluoride) {
+      items.push({
+        name: "Fluoride Tube (Grey Top)",
+        shortName: "Fluoride",
+        color: "#64748b",
+        desc: "Sodium Fluoride for glucose preservation (FBS / RBS)",
+        isBloodVial: true,
+        isContainer: false,
+        isConsent: false,
+        type: "tube"
+      });
+    }
+    if (needUrine) {
+      items.push({
+        name: "Sterile Urine Container",
+        shortName: "Urine Cup",
+        color: "#f97316",
+        desc: "Sterile container for PCR / STI / Routine microscopy",
+        isBloodVial: false,
+        isContainer: true,
+        isConsent: false,
+        type: "container"
+      });
+    }
+    if (needConsent) {
+      items.push({
+        name: "HIV Consent Form Required",
+        shortName: "HIV Consent",
+        color: "#10b981",
+        desc: "Mandatory NACO/ICMR signed physical consent photographed in Photo 3 (Col O)",
+        isBloodVial: false,
+        isContainer: false,
+        isConsent: true,
+        type: "consent"
+      });
+    }
+    if (specialNotes.length > 0) {
+      const unique = [...new Set(specialNotes)];
+      items.push({
+        name: "Special Instructions",
+        shortName: "Notes",
+        color: "#7c3aed",
+        desc: unique.join("; "),
+        isBloodVial: false,
+        isContainer: false,
+        isConsent: false,
+        type: "notes"
+      });
+    }
+    return items;
   }
   function Mr(e) {
     if (!e) return !1;
@@ -3058,8 +3258,22 @@ if(syncBtnEl && !syncBtnEl.dataset.fix) {
       
       let s = e.vials || "";
       if (!s || "N/A" === s) {
-        const t = qr(e.testName || "");
-        s = t.length > 0 ? t.length + " (" + t.map((e) => e.name.split(" ")[0]).join(", ") + ")" : "N/A";
+        const reqs = qr(e.testName || "");
+        const bloodVials = reqs.filter(x => x.isBloodVial);
+        const containers = reqs.filter(x => x.isContainer);
+
+        if (bloodVials.length > 0 && containers.length > 0) {
+          const vNames = bloodVials.map(x => x.shortName).join(", ");
+          const cNames = containers.map(x => x.shortName).join(", ");
+          s = `${bloodVials.length} Blood ${bloodVials.length > 1 ? 'Vials' : 'Vial'} (${vNames}) + ${containers.length} ${cNames}`;
+        } else if (bloodVials.length > 0) {
+          const vNames = bloodVials.map(x => x.shortName).join(", ");
+          s = `${bloodVials.length} Blood ${bloodVials.length > 1 ? 'Vials' : 'Vial'} (${vNames})`;
+        } else if (containers.length > 0) {
+          s = `${containers.length} Urine Cup (0 Blood Vials)`;
+        } else {
+          s = "1 Vial (Standard)";
+        }
       }
       document.getElementById("qc-active-patient-vials").innerText = s;
       
@@ -3069,15 +3283,54 @@ if(syncBtnEl && !syncBtnEl.dataset.fix) {
         t.innerHTML = "";
         const n = qr(testName);
         if (n.length > 0) {
-          n.forEach((e) => {
+          n.forEach((item) => {
             const el = document.createElement("div");
-            el.className = "flex items-center gap-3 p-3 bg-surface-container-low border border-outline-variant/30 rounded-[10px]";
-            el.innerHTML = `
-              <div style="width:14px; height:32px; border-radius:4px; background:${e.color}; border:2px solid white; box-shadow:0 2px 8px rgba(0,0,0,0.12);"></div>
-              <div style="display:flex; flex-direction:column; gap:1px;">
-                <strong style="font-size:12px; font-weight:700; color:var(--text-main);">${e.name}</strong>
-                <span style="font-size:10px; color:var(--text-muted); font-weight:600;">${e.desc}</span>
-              </div>`;
+            if (item.isConsent) {
+              el.className = "flex items-start gap-2.5 p-2.5 bg-emerald-50/80 dark:bg-emerald-950/20 border border-emerald-300 dark:border-emerald-800 rounded-[10px]";
+              el.innerHTML = `
+                <div class="w-7 h-7 rounded-lg bg-emerald-600 text-white flex items-center justify-center shrink-0 shadow-xs mt-0.5">
+                  <span class="material-symbols-outlined text-[16px]">description</span>
+                </div>
+                <div class="flex flex-col gap-0.5 min-w-0">
+                  <div class="flex items-center gap-1.5 flex-wrap">
+                    <strong class="text-xs font-bold text-emerald-950 dark:text-emerald-200">${item.name}</strong>
+                    <span class="text-[9px] font-bold px-1.5 py-0.2 rounded bg-emerald-200/80 text-emerald-800 uppercase tracking-wide">Document</span>
+                  </div>
+                  <span class="text-[10px] text-emerald-800/80 dark:text-emerald-300 font-medium leading-tight">${item.desc}</span>
+                </div>`;
+            } else if (item.isContainer) {
+              el.className = "flex items-start gap-2.5 p-2.5 bg-amber-50/80 dark:bg-amber-950/20 border border-amber-300 dark:border-amber-800 rounded-[10px]";
+              el.innerHTML = `
+                <div class="w-7 h-7 rounded-lg bg-amber-500 text-white flex items-center justify-center shrink-0 shadow-xs mt-0.5">
+                  <span class="material-symbols-outlined text-[16px]">biotech</span>
+                </div>
+                <div class="flex flex-col gap-0.5 min-w-0">
+                  <div class="flex items-center gap-1.5 flex-wrap">
+                    <strong class="text-xs font-bold text-amber-950 dark:text-amber-200">${item.name}</strong>
+                    <span class="text-[9px] font-bold px-1.5 py-0.2 rounded bg-amber-200/80 text-amber-800 uppercase tracking-wide">Container</span>
+                  </div>
+                  <span class="text-[10px] text-amber-800/80 dark:text-amber-300 font-medium leading-tight">${item.desc}</span>
+                </div>`;
+            } else if (item.isBloodVial) {
+              el.className = "flex items-center gap-3 p-2.5 bg-surface-container-low border border-outline-variant/30 rounded-[10px]";
+              el.innerHTML = `
+                <div style="width:14px; height:32px; border-radius:4px; background:${item.color}; border:2px solid white; box-shadow:0 2px 8px rgba(0,0,0,0.12); flex-shrink:0;"></div>
+                <div style="display:flex; flex-direction:column; gap:1px; min-width:0;">
+                  <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
+                    <strong style="font-size:12px; font-weight:700; color:var(--text-main);">${item.name}</strong>
+                    <span style="font-size:9px; font-weight:700; padding:1px 5px; border-radius:4px; background:rgba(0,0,0,0.06); text-transform:uppercase;">Blood Vial</span>
+                  </div>
+                  <span style="font-size:10px; color:var(--text-muted); font-weight:600; line-height:1.2;">${item.desc}</span>
+                </div>`;
+            } else {
+              el.className = "flex items-start gap-2.5 p-2.5 bg-purple-50/80 border border-purple-200 rounded-[10px]";
+              el.innerHTML = `
+                <span class="material-symbols-outlined text-[16px] text-purple-600 shrink-0 mt-0.5">info</span>
+                <div class="flex flex-col gap-0.5">
+                  <strong class="text-xs font-bold text-purple-900">${item.name}</strong>
+                  <span class="text-[10px] text-purple-700 font-medium">${item.desc}</span>
+                </div>`;
+            }
             t.appendChild(el);
           });
         } else {
@@ -3090,7 +3343,7 @@ if(syncBtnEl && !syncBtnEl.dataset.fix) {
 
       // Auto-check for HIV consent if required
       const requiredTubes = qr(e.testName || "");
-      const isHivRequired = requiredTubes.some(t => (t.name || "").includes("Consent"));
+      const isHivRequired = requiredTubes.some(t => t.isConsent || (t.name || "").includes("Consent"));
       const noHivPhoto = (!e.consentPhoto || e.consentPhoto === "N/A" || e.consentPhoto === "-" || e.consentPhoto === "");
       
       if (isHivRequired && noHivPhoto) {
