@@ -3424,6 +3424,7 @@ html.has-session #app.app-shell:not(.hidden) {
         <select id="modal-qc-status" class="field__input">
           <option value="">Select QC Outcome...</option>
           <option value="Accepted">Accepted (QC Pass)</option>
+          <option value="Future Collection">Future Collection</option>
           <option value="Rejected - Hemolysed">Rejected - Hemolysed</option>
           <option value="Rejected - Tube Leakage">Rejected - Tube Leakage</option>
           <option value="Rejected - Quantity Insufficient">Rejected - Quantity Insufficient</option>
@@ -3460,6 +3461,7 @@ html.has-session #app.app-shell:not(.hidden) {
         <label class="field__label" for="modal-bulk-qc-status">Batch QC Status</label>
         <select id="modal-bulk-qc-status" class="field__input">
           <option value="Accepted" selected>Accepted (QC Pass - Intact)</option>
+          <option value="Future Collection">Future Collection</option>
           <option value="Rejected - Hemolysed">Rejected - Hemolysed</option>
           <option value="Rejected - Tube Leakage">Rejected - Tube Leakage</option>
           <option value="Rejected - Quantity Insufficient">Rejected - Quantity Insufficient</option>
@@ -3623,6 +3625,6 @@ html.has-session #app.app-shell:not(.hidden) {
 </div>
 
   <script src="allo-gsap.min.js?v=3.12.5"></script>
-  <script src="allo-app.min.js?v=1"></script>
+  <script src="allo-app.min.js?v=2"></script>
 </body>
 </html>

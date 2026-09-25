@@ -1243,7 +1243,7 @@
       </div>
 
       <div id="tab-content-allo" class="tab-content flex flex-col flex-1 w-full h-full relative bg-[#f8fafc]" style="display:none;">
-        <iframe id="allo-frame" src="allo.html?v=1" class="w-full flex-1 border-0" title="AlloHealth Sample Logistics Tracker" allow="clipboard-read; clipboard-write; fullscreen"></iframe>
+        <iframe id="allo-frame" src="allo.html?v=2" class="w-full flex-1 border-0" title="AlloHealth Sample Logistics Tracker" allow="clipboard-read; clipboard-write; fullscreen"></iframe>
       </div>
 
       <div id="tab-content-bhmc" class="tab-content flex flex-col flex-1 w-full h-full relative bg-[#f8fafc]" style="display:none;">
@@ -1256,6 +1256,21 @@
 
       <!-- ══ NSA DASHBOARD — Embedded Google Apps Script Portal ══ -->
       <div id="tab-content-nsa" class="tab-content flex flex-col flex-1 w-full h-full relative bg-[#f8fafc] dark:bg-slate-900" style="display:none;">
+        <div class="flex items-center justify-between px-4 py-2 bg-white dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 text-xs shadow-xs z-10 flex-shrink-0">
+          <div class="flex items-center gap-2">
+            <span class="inline-block w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
+            <span class="font-extrabold text-slate-800 dark:text-slate-100 tracking-wide uppercase text-[11px]">NSA Operations Dashboard</span>
+            <span class="text-[10px] text-slate-400 font-medium px-2 py-0.5 bg-slate-100 dark:bg-slate-700 rounded-md">Enterprise Live Portal</span>
+          </div>
+          <div class="flex items-center gap-2">
+            <button type="button" onclick="window.reloadNsaFrame()" class="flex items-center gap-1.5 px-2.5 py-1 text-[11px] font-semibold text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 rounded-md transition shadow-xs cursor-pointer">
+              <span class="material-symbols-outlined text-[13px]">refresh</span> Reload
+            </button>
+            <a href="https://script.google.com/a/macros/redcliffelabs.com/s/AKfycbzHvs-hjn-gvLpdAvfhdYB9_KJjBx4Gw1A1agbkq5DKD6g2Ei1xwfHoFnKPonkEgK1f3w/exec" target="_blank" rel="noopener noreferrer" class="flex items-center gap-1.5 px-3 py-1 text-[11px] font-bold text-white bg-blue-600 hover:bg-blue-700 rounded-md transition shadow-xs">
+              <span class="material-symbols-outlined text-[13px]">open_in_new</span> Open in New Tab
+            </a>
+          </div>
+        </div>
         <iframe id="nsa-frame" src="about:blank" data-src="https://script.google.com/a/macros/redcliffelabs.com/s/AKfycbzHvs-hjn-gvLpdAvfhdYB9_KJjBx4Gw1A1agbkq5DKD6g2Ei1xwfHoFnKPonkEgK1f3w/exec" class="w-full flex-1 border-0" title="NSA Dashboard" allow="clipboard-read; clipboard-write; fullscreen"></iframe>
       </div>
 
@@ -2821,7 +2836,7 @@
   <script src="auth.js?v=6"></script>
   <script src="api_v2.js?v=5"></script>
   <script src="kits_tracker.js?v=3"></script>
-  <script src="app.js?v=42"></script>
+  <script src="app.js?v=43"></script>
   <!-- <script src="challan.js?v=6"></script> -->
 
   <!-- ==========================================
