@@ -711,4 +711,40 @@ Initializes dashboard data sync
   - There is NO action whitelist. Any global function in `Code.gs` (including `addManualPendingRow`, spreadsheet mutations, internal helpers) can be called directly by any client knowing the public web app URL.
   - Furthermore, duplicate `doPost(e)` declarations exist at `Code.gs:2022` and `Code.gs:3024`, and duplicate `onOpen()` at `Code.gs:35` and `Code.gs:3081`.
   - **Resolution**: Deprecate legacy duplicates and introduce a strict `ALLOWED_ACTIONS` dictionary in `doPost`.
+---
 
+## 26. Kits & Consumables Tracker Engine & Dynamic Consignment Intelligence (September 2026)
+
+### 26.1 Operational Background & Business Need
+In addition to daily patient specimen intake and phlebotomy drop-offs, Redcliffe Labs coordinates the national distribution of medical collection kits and consumables (blood collection kits, EDTA/SST/Fluoride vacutainer tubes, urine containers, viral transport swabs, needle holders, biohazard bags) dispatched to network clinics (e.g. HCL Healthcare clinics, Allo clinics, and regional diagnostic collection centres).
+Previously, operations coordinators tracked dispatches via a view-only Google Sheet (`HCL & ALLO Clinic`, Sheet ID: `1eim2C_w97UxX8yLBrWPCIZVh02x0F7gFu8ApVjjAVxU`, Tab: `Raw`). Being view-only, coordinators lacked:
+1. Multi-dimensional filtering (by destination clinic, city, consignment status, date ranges).
+2. Courier tracking intelligence (instant parsing and 1-click clipboard copy of courier names and docket numbers).
+3. Lead-time metrics (transit turnaround calculation from request to clinic delivery).
+4. Aggregate volume metrics (total units dispatched, delivered percentages, active pipeline counts).
+5. Offline accessibility (zero-latency instant access without Google Sheets connection overhead).
+
+### 26.2 Architecture & Technical Implementation
+- **Frontend Controller (`kits_tracker.js`):** An isolated, high-performance state machine (`window._kitsState`) managing:
+  - **Dual-View Rendering Engine:** Instant 1-click toggle between an enterprise **Data Grid Table View** (dense tabular layout with column sorting on Date, Status, Quantity, and Destination Clinic) and a modern **Consignment Cards View** (grid of responsive cards showing status pills, courier chips, lead-time badges, and action buttons).
+  - **Courier Intelligence Parser:** RegEx engine extracting courier partner (`GST Logistics`, `Via Rider`, `Trackon`, `Bluedart`) and tracking docket numbers from freeform remark text with 1-click clipboard copy and toast notifications.
+  - **Lead-Time Calculation:** Automatic computation of transit turnaround (`deliveryDate - requestDate`) displayed as discrete lead badges (e.g. `2d transit`).
+  - **Zero-Flash Instant Hydration Pipeline:** 
+    1. Instant 0ms render from `localStorage.getItem('kits_tracker_cache')`.
+    2. Fallback to bundled pre-compiled `kits_data.json` (372 records, 26,571 units).
+    3. Background asynchronous sync with Google Apps Script backend (`getKitsTrackerData`) with automatic cache storage.
+  - **Multi-Filter & Export Engine:** Instant dynamic multi-filtering across search query, status chips (`All`, `Delivered`, `In-Transit`, `In-Process`, `Approval pending`, `Un-Delivered`), dynamic clinic dropdown, dynamic city dropdown, and preset/custom date pickers. Filtered records exportable to CSV at any time with proper escaping.
+- **Backend RPC (`Code.gs` -> `getKitsTrackerData`):**
+  - Whitelisted in `doPost` (`allowedActions`).
+  - Accesses spreadsheet `1eim2C_w97UxX8yLBrWPCIZVh02x0F7gFu8ApVjjAVxU` directly under user credentials.
+  - Multi-tier cache (`getLargeCache` / `putLargeCache`) with 600-second TTL to eliminate redundant Google Sheets I/O.
+- **API Proxy (`api_v2.js`):**
+  - Configured with 28s timeout, failover caching in `localStorage`, and seamless fallback to `kits_data.json` to prevent UI errors during network drops.
+
+### 26.3 Recent QC Console & Bookings Inspector Optimizations
+1. **Specimen QC Station Background Pre-Fetching & Loading Parity:**
+   - Preloads cached QC records from `localStorage.getItem('allohealth_qc_cache')` on initial page load, preventing the delay when clicking the QC tab.
+   - Fixed vacutainer tube and vial count calculations to accurately reflect test requirements.
+   - Synchronized QC badge counter to hide immediately when pending count reaches 0.
+2. **Bookings Inspector Data & KPI Reconciliation:**
+   - Corrected discrepancy where KPI displayed real pending count (36) while the list view showed a filtered subset. Synchronized client-level pending aggregations directly with the authoritative `Qs.clientStats` dataset.

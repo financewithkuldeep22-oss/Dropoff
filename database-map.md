@@ -4,9 +4,10 @@
 
 ## 1. Hub-and-Spoke Persistence Model
 
-Data is organized across a centralized Master Hub spreadsheet and distributed Spoke Client spreadsheets:
+Data is organized across a centralized Master Hub spreadsheet, distributed Spoke Client spreadsheets, and dedicated operational inventory spreadsheets:
 - **Master Hub Spreadsheet ID:** `1Aw23-gBmndNS-21OIiVyv_Ry7GI89njzRnPhw5z-unU`
 - **Spoke Spreadsheets:** Dynamic Google Sheets registered in `Client_Config`.
+- **Kits & Consumables Tracking Spreadsheet ID:** `1eim2C_w97UxX8yLBrWPCIZVh02x0F7gFu8ApVjjAVxU`
 
 ---
 
@@ -72,3 +73,30 @@ Data is organized across a centralized Master Hub spreadsheet and distributed Sp
 | O (15) | `Consent Photo` | `consentPhoto` | Signed consent form photo link / ID |
 | P (16) | `QC Status` | `qcStatus` | Updated by portal (`Approved` / `Rejected`) |
 | Q (17) | `QC Remarks` | `qcRemarks` | Standardized rejection reason or remarks |
+
+---
+
+## 4. Dedicated Consignment Sheet: `HCL & ALLO Clinic` (Kits & Consumables Tracker)
+
+- **Spreadsheet ID:** `1eim2C_w97UxX8yLBrWPCIZVh02x0F7gFu8ApVjjAVxU`
+- **Tab Name:** `Raw`
+- **Access Level:** Internal View-Only (Synced via Apps Script `SpreadsheetApp.openById`)
+
+| Column | Header Name | Model Field | Data Type | Sample Values | Description / Logic |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| A (1) | `Request Date` | `requestDate` | Date String | `01-Jan-25`, `15-Dec-24` | Date consignment was requisitioned |
+| B (2) | `Raised By` | `raisedBy` | String | `Anurag Phlebo`, `Amit Sharma` | Requisitioning phlebotomist or coordinator |
+| C (3) | `Approval Date`| `approvalDate`| Date String | `02-Jan-25` | Approval timestamp by inventory ops |
+| D (4) | `Delivery Date`| `deliveryDate`| Date String | `04-Jan-25` | Actual date delivered to destination clinic |
+| E (5) | `ITEM Description`| `item` | String | `BLOOD COLLECTION KIT`, `URINE CUP` | Item / consumable catalog name |
+| F (6) | `QTY` | `qty` | Integer | `50`, `100`, `500` | Number of consumable units dispatched |
+| G (7) | `Rate` | `rate` | Float | `12.50`, `0.00` | Unit price per consumable |
+| H (8) | `Amount` | `amount` | Float | `625.00` | Total billing consignment amount |
+| I (9) | `Status` | `status` | Enum String | `Delivered`, `In-Transit`, `In-Process`, `Approval pending`, `Un-Delivered` | Delivery lifecycle stage with status badge |
+| J (10) | `Clinic Name` | `clinic` | String | `HCL Noida Sec 24`, `Allo Bangalore` | Receiving healthcare clinic / partner hub |
+| K (11) | `Clinic City` | `city` | String | `Noida`, `Bengaluru`, `Delhi` | Geographic hub for regional filtering |
+| L (12) | `Clinic Address`| `address`| String | `Plot 12, Sector 24, Noida, UP` | Detailed destination delivery address |
+| M (13) | `Issued By` | `issuedBy` | String | `Central Warehouse`, `Rishabh Lab` | Central lab/warehouse issuing the items |
+| N (14) | `Remarks` | `remarks` | String | `Courier: GST Logistics, Docket: 70014885` | Freeform notes parsed for courier & docket |
+| Virtual | `docketNo` | `docketNo` | String | `70014885` | Extracted regex from `Remarks` with 1-click copy |
+| Virtual | `courierName` | `courierName`| String | `GST Logistics`, `Via Rider` | Extracted regex from `Remarks` |

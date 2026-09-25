@@ -2752,10 +2752,14 @@ if(syncBtnEl && !syncBtnEl.dataset.fix) {
         'mb': 'medibuddy',
         'medi-buddy': 'medibuddy',
         'bot-lab': 'bot-lab',
-        'botlab': 'bot-lab'
+        'botlab': 'bot-lab',
+        'kits': 'kits',
+        'kits-tracker': 'kits',
+        'kit-tracker': 'kits',
+        'inventory': 'kits'
       };
       const tabId = aliasMap[e] || e || 'overview';
-      const tabs = ['overview', 'qc', 'allo', 'bhmc', 'medibuddy', 'challan', 'ops', 'bulk-dl', 'bookings', 'bot-lab'];
+      const tabs = ['overview', 'qc', 'allo', 'bhmc', 'medibuddy', 'challan', 'ops', 'bulk-dl', 'bookings', 'bot-lab', 'kits'];
       const contents = {
         'overview': document.getElementById("tab-content-overview"),
         'qc': document.getElementById("tab-content-qc"),
@@ -2766,7 +2770,8 @@ if(syncBtnEl && !syncBtnEl.dataset.fix) {
         'ops': document.getElementById("tab-content-ops"),
         'bulk-dl': document.getElementById("tab-content-bulk-dl"),
         'bookings': document.getElementById("tab-content-bookings"),
-        'bot-lab': document.getElementById("tab-content-bot-lab")
+        'bot-lab': document.getElementById("tab-content-bot-lab"),
+        'kits': document.getElementById("tab-content-kits")
       };
       
       // Update nav UI
@@ -2857,6 +2862,9 @@ if(syncBtnEl && !syncBtnEl.dataset.fix) {
               if (key === 'bot-lab') {
                 if (typeof window.initBotlab === 'function') window.initBotlab();
               }
+              if (key === 'kits' && typeof window.renderKitsTrackerView === 'function') {
+                window.renderKitsTrackerView();
+              }
               // GSAP Animation
               if(window.gsap) {
                  gsap.fromTo(el, 
@@ -2881,7 +2889,8 @@ if(syncBtnEl && !syncBtnEl.dataset.fix) {
           'bulk-dl': '/bulk',
           'challan': '/challan',
           'ops': '/ops',
-          'bot-lab': '/bot-lab'
+          'bot-lab': '/bot-lab',
+          'kits': '/kits'
         };
         const newPath = routeUrlMap[tabId] || ('/' + tabId);
         if (window.location.pathname !== newPath && window.location.pathname !== newPath + '/') {
@@ -2902,7 +2911,8 @@ if(syncBtnEl && !syncBtnEl.dataset.fix) {
           'ops': 'Ops Tool',
           'bulk-dl': 'Bulk DL',
           'bookings': 'Bookings',
-          'bot-lab': 'Bot Lab'
+          'bot-lab': 'Bot Lab',
+          'kits': 'Kits Tracker'
         };
         pillTitle.innerText = titleMap[tabId] || 'Navigation';
       }
@@ -2934,6 +2944,9 @@ if(syncBtnEl && !syncBtnEl.dataset.fix) {
         window.switchDashboardTab('bhmc', false);
       } else if (path === 'medibuddy' || path === 'mb' || path === 'medi-buddy') {
         window.switchDashboardTab('medibuddy', false);
+      } else if (path === 'kits' || path === 'kits-tracker' || path === 'inventory') {
+        window.switchDashboardTab('kits', false);
+        if (typeof window.renderKitsTrackerView === 'function') window.renderKitsTrackerView();
       } else if (path === 'bot-lab' || path === 'botlab') {
         window.switchDashboardTab('bot-lab', false);
       } else if (path === 'config' || path === 'settings') {

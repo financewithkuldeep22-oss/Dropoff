@@ -2137,7 +2137,8 @@ function doPost(e) {
       'botlabChat',
       'getBotlabKnowledgeBase',
       'addManualPendingRow',
-      'getClientTabs'
+      'getClientTabs',
+      'getKitsTrackerData'
     ];
     
     if (!action || allowedActions.indexOf(action) === -1) {
@@ -3532,5 +3533,126 @@ function getClientTabs(clientName) {
     return { status: 'success', tabs: tabNames };
   } catch (e) {
     return { status: 'success', tabs: ['Main', 'Sheet1'], fallback: true, message: e.toString() };
+  }
+}
+
+
+/**
+ * Kits & Consumables Tracker API Endpoint
+ * Reads consignment rows from HCL & ALLO Clinic Google Sheet (Tab: Raw)
+ * Sheet ID: 1eim2C_w97UxX8yLBrWPCIZVh02x0F7gFu8ApVjjAVxU
+ */
+function getKitsTrackerData(forceRefresh) {
+  var cacheKey = "kits_tracker_cache_v1";
+  if (!forceRefresh) {
+    try {
+      var cached = getLargeCache(cacheKey);
+      if (cached) {
+        var parsed = JSON.parse(cached);
+        if (parsed && parsed.status === 'success' && parsed.data && parsed.data.length > 0) {
+          return parsed;
+        }
+      }
+    } catch(e) {}
+  }
+  
+  try {
+    var sheetId = "1eim2C_w97UxX8yLBrWPCIZVh02x0F7gFu8ApVjjAVxU";
+    var ss = SpreadsheetApp.openById(sheetId);
+    var sheet = ss.getSheetByName("Raw") || ss.getSheets()[0];
+    if (!sheet) {
+      return { status: 'error', message: 'Kits tracker raw sheet not found' };
+    }
+    
+    var data = sheet.getDataRange().getValues();
+    if (!data || data.length < 2) {
+      return { status: 'success', data: [], lastSync: new Date().toISOString() };
+    }
+    
+    var headers = data[0].map(function(h) { return String(h || "").trim().toLowerCase(); });
+    
+    function getCol(names, defaultIdx) {
+      for (var n = 0; n < names.length; n++) {
+        var idx = headers.indexOf(names[n].toLowerCase());
+        if (idx !== -1) return idx;
+      }
+      return defaultIdx;
+    }
+    
+    var cReqDate = getCol(["request date", "req date"], 0);
+    var cRaisedBy = getCol(["raised by"], 1);
+    var cAppDate = getCol(["approval date", "app date"], 2);
+    var cDelDate = getCol(["delivery date", "del date"], 3);
+    var cItem = getCol(["item description", "item", "description"], 4);
+    var cQty = getCol(["qty", "quantity"], 5);
+    var cRate = getCol(["rate", "unit rate"], 6);
+    var cAmount = getCol(["amount", "total amount"], 7);
+    var cStatus = getCol(["status"], 8);
+    var cClinic = getCol(["clinic name", "clinic"], 9);
+    var cCity = getCol(["clinic city", "city"], 10);
+    var cAddress = getCol(["clinic address", "address"], 11);
+    var cIssuedBy = getCol(["issued by"], 12);
+    var cRemarks = getCol(["remarks", "remark"], 13);
+    
+    var items = [];
+    for (var i = 1; i < data.length; i++) {
+      var row = data[i];
+      var itemDesc = String(row[cItem] || "").trim();
+      var clinicName = String(row[cClinic] || "").trim();
+      var statusVal = String(row[cStatus] || "").trim();
+      var reqDateVal = row[cReqDate];
+      
+      if (!itemDesc && !clinicName && !reqDateVal) continue;
+      
+      function fmtDate(v) {
+        if (!v) return "";
+        if (v instanceof Date) {
+          var months = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+          return v.getDate() + "-" + months[v.getMonth()] + "-" + v.getFullYear();
+        }
+        return String(v).trim();
+      }
+      
+      var remarksStr = String(row[cRemarks] || "").trim();
+      var docketMatch = remarksStr.match(/Docket\s*(?:no\.?|#)?\s*[:\-\s]?\s*([A-Za-z0-9]+)/i);
+      var courierMatch = remarksStr.match(/Courier\s*(?:Name)?\s*[:\-\s]?\s*([^,;]+)/i);
+      var docketNo = docketMatch ? docketMatch[1].trim() : "";
+      var courierName = courierMatch ? courierMatch[1].trim() : "";
+      
+      items.push({
+        rowNum: i + 1,
+        requestDate: fmtDate(reqDateVal),
+        raisedBy: String(row[cRaisedBy] || "").trim(),
+        approvalDate: fmtDate(row[cAppDate]),
+        deliveryDate: fmtDate(row[cDelDate]),
+        item: itemDesc || "Standard Sample Collection Kits",
+        qty: parseInt(row[cQty], 10) || 1,
+        rate: parseFloat(row[cRate]) || 0,
+        amount: parseFloat(row[cAmount]) || 0,
+        status: statusVal || "Delivered",
+        clinic: clinicName || "Unassigned Clinic",
+        city: String(row[cCity] || "").trim(),
+        address: String(row[cAddress] || "").trim(),
+        issuedBy: String(row[cIssuedBy] || "").trim(),
+        remarks: remarksStr,
+        docketNo: docketNo,
+        courierName: courierName
+      });
+    }
+    
+    var result = {
+      status: 'success',
+      lastSync: new Date().toISOString(),
+      count: items.length,
+      data: items
+    };
+    
+    try {
+      putLargeCache(cacheKey, JSON.stringify(result), 600);
+    } catch(e) {}
+    
+    return result;
+  } catch(err) {
+    return { status: 'error', message: 'Failed to fetch Kits Tracker data: ' + err.toString() };
   }
 }

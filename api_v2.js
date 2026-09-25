@@ -61,7 +61,8 @@ function createRunContext(successHandler = null, failureHandler = null) {
         for (let attempt = 0; attempt <= maxRetries; attempt++) {
           const controller = new AbortController();
           const timeoutMs = (prop === 'getDashboardLogsData') ? 38000 : 
-                            (prop === 'getAllohealthQCData') ? 28000 : 
+                            (prop === 'getAllohealthQCData') ? 28000 :
+                            (prop === 'getKitsTrackerData') ? 28000 : 
                             (prop === 'getGoogleDriveImageBase64') ? 25000 : 20000;
           const timeoutTimer = setTimeout(() => controller.abort(), timeoutMs);
           try {
@@ -121,6 +122,10 @@ function createRunContext(successHandler = null, failureHandler = null) {
               try {
                 localStorage.setItem('dropoff_dashboard_cache', JSON.stringify(result));
               } catch(e) {}
+            } else if (prop === 'getKitsTrackerData' && result && result.status === 'success') {
+              try {
+                localStorage.setItem('kits_tracker_cache', JSON.stringify(result));
+              } catch(e) {}
             } else if (prop === 'getAllohealthQCData' && result && result.status === 'success') {
               _lastAllohealthQCCache = result;
               window._lastAllohealthQCCache = result;
@@ -179,6 +184,28 @@ function createRunContext(successHandler = null, failureHandler = null) {
             }
             if (cachedObj && cachedObj.status === 'success') {
               console.warn("[API] Transient network delay; seamlessly serving active dashboard snapshot.");
+              if (successHandler) {
+                successHandler(cachedObj);
+                return;
+              }
+            }
+          } catch(e) {}
+        } else if (prop === 'getKitsTrackerData') {
+          try {
+            let cachedObj = null;
+            const ls = localStorage.getItem('kits_tracker_cache');
+            if (ls) cachedObj = JSON.parse(ls);
+            if (!cachedObj && typeof fetch === 'function' && window.location.protocol !== 'file:') {
+              try {
+                const staticRes = await fetch('/kits_data.json');
+                if (staticRes.ok) {
+                  const raw = await staticRes.json();
+                  cachedObj = { status: 'success', data: raw.data || raw, lastSync: new Date().toISOString(), fallback: true };
+                }
+              } catch(sErr) {}
+            }
+            if (cachedObj && cachedObj.status === 'success') {
+              console.warn("[API] Serving active cached Kits Tracker data.");
               if (successHandler) {
                 successHandler(cachedObj);
                 return;
