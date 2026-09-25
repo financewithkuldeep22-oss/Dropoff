@@ -238,6 +238,16 @@ function createRunContext(successHandler = null, failureHandler = null) {
             successHandler({ status: 'success', tabs: ['Main', 'Sheet1'], fallback: true });
             return;
           }
+        } else if (prop === 'getUserEmail') {
+          try {
+            const session = (window.AuthManager && window.AuthManager.getUser && window.AuthManager.getUser()) ||
+              JSON.parse(localStorage.getItem('dropoff_user_session') || localStorage.getItem('dropoff_user') || '{}');
+            const email = (session && session.email) || (session && session.username) || 'kuldeep.bisht@redcliffelabs.com';
+            if (successHandler) {
+              successHandler(email);
+              return;
+            }
+          } catch(e) {}
         }
 
         if (isHeavyRead) {

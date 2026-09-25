@@ -2200,7 +2200,8 @@ function doPost(e) {
       'getBotlabKnowledgeBase',
       'addManualPendingRow',
       'getClientTabs',
-      'getKitsTrackerData'
+      'getKitsTrackerData',
+      'getUserEmail'
     ];
     
     if (!action || allowedActions.indexOf(action) === -1) {
