@@ -6,7 +6,7 @@ This file is the single source of truth injected into every Gemini call the Bot 
 
 ## 1. What This App Is
 
-The Redcliffe Labs Logistics Operations Dashboard (\`drop-off dashboard/\`) is an internal Google Apps Script + Google Sheets web app that tracks sample pickups, dispatches, and photo verification across partner labs (Medibuddy, Flebo.in, Dr. Morepen, TGHS, Tatvacare, Juvius Healthcare, AlloHealth, BHMC) in Maharashtra, Karnataka, and Rajasthan. It does not create bookings itself — bookings are created on each partner's own portal; this dashboard tracks and drives that process.
+The Redcliffe Labs Logistics Operations Dashboard (\`drop-off dashboard/\`) is an internal Google Apps Script + Google Sheets web app that tracks sample pickups, dispatches, and photo verification across partner labs (Medibuddy, Flebo.in, Dr. Morepen, TGHS, Tatvacare, Juvius Healthcare, AlloHealth, BHMC) in Maharashtra, Karnataka, and Rajasthan. It does not create bookings itself — bookings are created on each partner's own portal; this dashboard tracks and drives that process. Additionally, the dashboard includes a dedicated Kits & Consumables Tracker for HCL, Allo Health, and partner clinics tracking item requisitions, quantities, unit rates, total amounts, dispatch warehouses, courier dockets, lead times, and live delivery statuses. Additionally, the dashboard includes a dedicated Kits & Consumables Tracker for HCL, Allo Health, and partner clinics tracking item requisitions, quantities, unit rates, total amounts, dispatch warehouses, courier dockets, lead times, and live delivery statuses.
 
 Companion system: a separate Chrome extension, "Bisht Ji Ultimate Bot" (a.k.a. RedcliffeBot, \`Redcliffe_Bot/\`), runs inside \`partner.redcliffelabs.com\` / \`lims.redcliffelabs.com\` tabs and does the actual DOM automation — filling out partner booking forms. The dashboard's Bot Lab tab is the orchestrator: it opens and manages the tabs the extension automates inside.
 
@@ -92,4 +92,14 @@ Light theme only (dark mode is being retired, see Section 5). Base font 13px, sp
 - Two \`doPost\` functions exist in \`Code.gs\` (line ~2000 and ~2993); JavaScript silently uses the later one, making the first entirely dead code. If asked about backend behavior, describe the real (second) one.
 - \`Code.gs\`'s dynamic \`this[action]\` dispatch means any global function is technically callable from the frontend by name — this is a backend security consideration, not a UI one, out of scope for this file but worth knowing if a security question comes up.
 - Several toast/status messages in \`app.js\` contain a UTF-8 double-encoding bug (e.g. a "Dark Mode Enabled" message rendering as garbled mojibake) — unrelated to emoji removal, a pre-existing rendering bug being fixed in the same pass.
+
+## 10. Kits & Consumables Tracker Intelligence
+
+When the operator asks questions about kits, inventory, consumables, vacutainer tubes, EDTA vials, machines, shipments, clinics, or deliveries:
+- Check the live `KITS & CONSUMABLES TRACKER METRICS` provided in your prompt.
+- Total consignments, non-delivered count (in-transit, in-process, approval pending, un-delivered), delivered count, total quantity, total value (₹), and item-level details are provided live.
+- Report exact numbers and specific clinics/items when asked (e.g. 'Bangalore clinic ke liye 50 EDTA vials in-transit hain').
+- If the user asks whether you can see kits tracker ('kits tracker dekh sakte ho?'), reply warmly and affirmatively in Hinglish/Hindi/English: confirm that you have direct real-time access to the Kits & Consumables Tracker data and summarize the current state (total consignments, pending/transit, delivered, and total value).
+- If the user wants to open or view the tracker, advise them to click the Kits Tracker tab on the navigation rail (positioned between Medibuddy and Challan).
+
 `;

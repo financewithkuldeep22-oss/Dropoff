@@ -13,10 +13,10 @@ Navigation routing is managed dynamically by `window.switchDashboardTab(tabId)` 
 | `allo` | `#tab-content-allo` | `#tab-allo-btn` | 3 | Yes | Embedded AlloHealth Sample Logistics Tracker (`allo.html`) |
 | `bhmc` | `#tab-content-bhmc` | `#tab-bhmc-btn` | 4 | Yes | Embedded Bharath Home Medicare Tracker (`bhmc-redcliffelabs.vercel.app`) |
 | `medibuddy` | `#tab-content-medibuddy`| `#tab-medibuddy-btn` | 5 | Yes | Embedded Medibuddy Drop-off Portal with auto-authorized domain access |
-| `challan` | `#tab-content-challan` | `#tab-challan-btn` | 6 | Yes | Phlebotomist Challan Maker with auto-numbering and PDF export |
-| `ops` | `#tab-content-ops` | `#tab-ops-btn` | 7 | Yes | Integrated Operations Tool suite (`ops.html`) |
-| `bulk-dl` | `#tab-content-bulk-dl` | `#tab-bulk-dl-btn` | 8 | Yes | Mass report export and bulk sample manifest generator |
-| `kits` | `#tab-content-kits` | `#tab-kits-btn` | 9 | Yes | Kits & Consumables Tracker (HCL & Allo Clinic), inventory dispatch grid, consignment cards, courier docket copying, lead-time metrics, CSV export |
+| `kits` | `#tab-content-kits` | `#tab-kits-btn` | 6 | Yes | Kits & Consumables Tracker (HCL & Allo Clinic), inventory dispatch grid, consignment cards, courier docket copying, lead-time metrics, CSV export |
+| `challan` | `#tab-content-challan` | `#tab-challan-btn` | 7 | Yes | Phlebotomist Challan Maker with auto-numbering and PDF export |
+| `ops` | `#tab-content-ops` | `#tab-ops-btn` | 8 | Yes | Integrated Operations Tool suite (`ops.html`) |
+| `bulk-dl` | `#tab-content-bulk-dl` | `#tab-bulk-dl-btn` | 9 | Yes | Mass report export and bulk sample manifest generator |
 | `bot-lab` | `#tab-content-bot-lab` | `#tab-bot-lab-btn` | 10 | Yes | Embedded multi-tab partner portal browser & AI command automation center |
 | `config` | Triggered via Modal | `#sidebar-manage-sheets-btn`| 11 | Yes (Admin) | Client Google Sheet connection registry manager |
 | `bookings` | Nested in `#tab-content-overview`| Deep link / Button | - | Yes | Detailed booking inspector and real-time client filter |

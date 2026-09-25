@@ -3268,6 +3268,26 @@ function botlabChat(userMessage, historyJson, liveContextJson) {
               liveDataSection += "- All clients currently clear (0 pending).\n";
             }
           }
+          if (ctx.kitsTracker) {
+            liveDataSection += "\n=== KITS & CONSUMABLES TRACKER METRICS ===\n";
+            liveDataSection += "- Total Consignments: " + ctx.kitsTracker.totalConsignments + "\n";
+            liveDataSection += "- Non-Delivered Consignments (Badge Count): " + ctx.kitsTracker.nonDeliveredCount + "\n";
+            liveDataSection += "- Delivered Consignments: " + ctx.kitsTracker.deliveredCount + "\n";
+            liveDataSection += "- Total Dispatched Items Quantity: " + ctx.kitsTracker.totalQuantity + "\n";
+            liveDataSection += "- Total Value: ₹" + ctx.kitsTracker.totalAmount + "\n";
+            if (ctx.kitsTracker.statusBreakdown) {
+              liveDataSection += "- Status Breakdown: " + JSON.stringify(ctx.kitsTracker.statusBreakdown) + "\n";
+            }
+            if (Array.isArray(ctx.kitsTracker.nonDeliveredItems) && ctx.kitsTracker.nonDeliveredItems.length > 0) {
+              liveDataSection += "- Non-Delivered Consignments Details:\n";
+              ctx.kitsTracker.nonDeliveredItems.forEach(function(item) {
+                liveDataSection += "  • [" + item.status + "] " + item.item + " | Qty: " + item.qty + " | Clinic: " + item.clinic + " (" + item.city + ") | Value: ₹" + item.amount + " | Remarks: " + (item.remarks || "None") + "\n";
+              });
+            }
+            if (Array.isArray(ctx.kitsTracker.clinicSummary)) {
+              liveDataSection += "- Clinic Consignments Summary: " + ctx.kitsTracker.clinicSummary.map(function(cs) { return cs.clinic + " (" + cs.consignments + ")"; }).join(", ") + "\n";
+            }
+          }
         }
       } catch (e) {}
     }
@@ -3278,7 +3298,8 @@ function botlabChat(userMessage, historyJson, liveContextJson) {
       "2. CRITICAL ACCURACY: Always answer questions about pending drop-offs, bookings, QC, or client stats using the exact LIVE DASHBOARD METRICS provided above. Never say 0 pending if the live metrics show pending drop-offs.\n" +
       "3. When reporting pending drop-offs, clearly name which client has pending items (e.g. 'HCL ke 6 drop-offs pending hain').\n" +
       "4. Be actionable: Offer next operational steps when helpful (e.g. 'Aap Dispatch Matrix khol kar inhein process kar sakte hain', ya 'QC Review tab me jakar photos verify kar sakte hain').\n" +
-      "5. No emojis in your response. Keep answers concise, direct, and well-structured with bullet points where appropriate.";
+      "5. No emojis in your response. Keep answers concise, direct, and well-structured with bullet points where appropriate.\n" +
+      "6. KITS & CONSUMABLES TRACKER ACCESS: You have direct real-time access to the Kits & Consumables Tracker (positioned on the navigation rail between Medibuddy and Challan). When asked about kits tracker, kit consignments, status, quantities, rates, amounts, or clinics, answer directly and accurately using the KITS & CONSUMABLES TRACKER METRICS provided above. Always confirm you can see the kits data when asked.";
 
     var prompt = systemInstructions + "\n\n" + kb + liveDataSection + "\n\n---\nRecent conversation:\n" + historyText +
       "\n\nUser's new message: \"" + userMessage + "\"\n\n" +
@@ -3313,7 +3334,7 @@ function botlabChat(userMessage, historyJson, liveContextJson) {
 var DEFAULT_BOTLAB_KB_TEXT = "# Bot Lab AI — Knowledge Base\n" +
   "You are BishtJiBot (Bot Lab AI), the operations assistant for Redcliffe Labs Logistics Operations Dashboard.\n" +
   "You help operators track sample pickups, dispatch bookings, check live pending drop-offs, review QC photos, " +
-  "navigate partner tabs (Allohealth, BHMC, Medibuddy), and assist with manual booking entries.\n" +
+  "track Kits & Consumables shipments (HCL & Allo clinics), navigate partner tabs (Allohealth, BHMC, Medibuddy, Kits Tracker), and assist with manual booking entries.\n" +
   "Rules:\n" +
   "- Keep answers short, direct, and operational.\n" +
   "- Reply in the same language mix (Hindi, Hinglish, English) used by the user.\n" +

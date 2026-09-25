@@ -276,6 +276,13 @@
         <span class="nav-badge ml-auto px-1.5 py-0.2 bg-rose-500 rounded-full text-white text-[9px] font-black shadow-sm" id="badge-medibuddy" style="display:none;"></span>
       </button>
 
+      <!-- 6. Kits Tracker Tab -->
+      <button class="nav-tab relative flex items-center flex-shrink-0" id="tab-kits-btn" onclick="window.switchDashboardTab('kits')">
+        <span class="material-symbols-outlined transition-transform duration-200">inventory_2</span>
+        <span class="nav-label font-extrabold tracking-wider uppercase">Kits Tracker</span>
+        <span class="nav-badge ml-auto px-1.5 py-0.2 bg-amber-500 rounded-full text-white text-[9px] font-black shadow-sm" id="badge-kits" style="display:none;"></span>
+      </button>
+
       <!-- 6. Challan Tab -->
       <button class="nav-tab relative flex items-center flex-shrink-0" id="tab-challan-btn" onclick="window.switchDashboardTab('challan')">
         <span class="material-symbols-outlined transition-transform duration-200">receipt_long</span>
@@ -295,12 +302,7 @@
         <span class="nav-label font-extrabold tracking-wider uppercase">Bulk DL</span>
       </button>
 
-      <!-- Kits Tracker Tab -->
-      <button class="nav-tab relative flex items-center flex-shrink-0" id="tab-kits-btn" onclick="window.switchDashboardTab('kits')">
-        <span class="material-symbols-outlined transition-transform duration-200">inventory_2</span>
-        <span class="nav-label font-extrabold tracking-wider uppercase">Kits Tracker</span>
-        <span class="nav-badge ml-auto px-1.5 py-0.2 bg-amber-500 rounded-full text-white text-[9px] font-black shadow-sm" id="badge-kits" style="display:none;"></span>
-      </button>
+      
 
       <!-- 9. Bot Lab Tab -->
       <button class="nav-tab relative flex items-center flex-shrink-0" id="tab-bot-lab-btn" onclick="window.switchDashboardTab('bot-lab')">
@@ -2807,9 +2809,133 @@
   <script src="offline-game.js"></script>
   <script src="auth.js?v=6"></script>
   <script src="api_v2.js?v=5"></script>
-  <script src="kits_tracker.js?v=2"></script>
-  <script src="app.js?v=40"></script>
+  <script src="kits_tracker.js?v=3"></script>
+  <script src="app.js?v=41"></script>
   <!-- <script src="challan.js?v=6"></script> -->
+
+  <!-- ==========================================
+       MODAL: KITS CONSIGNMENT COMPLETE DETAIL VIEWER
+       ========================================== -->
+  <div id="modal-kits-detail" class="fixed inset-0 z-[100] bg-slate-950/70 backdrop-blur-md hidden flex items-center justify-center p-3 sm:p-5" onclick="window.closeKitsDetailModal()">
+    <div class="bg-white dark:bg-slate-900 rounded-3xl w-full max-w-2xl max-h-[90vh] shadow-2xl border border-slate-200 dark:border-slate-800 flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-200" onclick="event.stopPropagation()">
+      <!-- Modal Header -->
+      <div class="p-5 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between bg-gradient-to-r from-slate-50 to-amber-50/40 dark:from-slate-900 dark:to-slate-800 shrink-0">
+        <div class="flex items-center gap-3 min-w-0">
+          <div class="w-11 h-11 rounded-2xl bg-amber-500 text-white flex items-center justify-center shadow-lg shadow-amber-500/25 shrink-0">
+            <span class="material-symbols-outlined text-[24px]">inventory_2</span>
+          </div>
+          <div class="min-w-0">
+            <div class="flex items-center gap-2 flex-wrap">
+              <h3 class="text-base font-black text-slate-900 dark:text-white truncate" id="kd-item-title">Consignment Details</h3>
+              <span id="kd-status-badge" class="px-2.5 py-0.5 rounded-full text-xs font-extrabold border">Status</span>
+            </div>
+            <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5" id="kd-clinic-city-sub">HCL & Allo Clinic</p>
+          </div>
+        </div>
+        <button onclick="window.closeKitsDetailModal()" class="w-8 h-8 rounded-xl bg-slate-100 hover:bg-rose-500 hover:text-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 flex items-center justify-center transition-all cursor-pointer shrink-0">
+          <span class="material-symbols-outlined text-[18px]">close</span>
+        </button>
+      </div>
+
+      <!-- Modal Body (Scrollable) -->
+      <div class="p-6 overflow-y-auto space-y-5 text-xs text-slate-800 dark:text-slate-200" id="kd-modal-content">
+        <!-- Section 1: Item & Financials -->
+        <div class="bg-slate-50 dark:bg-slate-800/60 rounded-2xl p-4 border border-slate-200/80 dark:border-slate-700/80 space-y-3">
+          <div class="flex items-center justify-between pb-2 border-b border-slate-200/60 dark:border-slate-700">
+            <span class="text-[11px] font-extrabold uppercase text-slate-400 tracking-wider">Item & Commercials</span>
+            <span class="text-xs font-mono font-bold text-slate-500" id="kd-row-num">Sheet Row #</span>
+          </div>
+          <div class="space-y-1">
+            <span class="text-[11px] font-bold text-slate-400 uppercase">Item Description:</span>
+            <div class="text-sm font-extrabold text-slate-900 dark:text-white break-words" id="kd-full-item">-</div>
+          </div>
+          <div class="grid grid-cols-3 gap-3 pt-2">
+            <div class="bg-white dark:bg-slate-900 p-2.5 rounded-xl border border-slate-200/70 dark:border-slate-700">
+              <span class="text-[10px] font-bold text-slate-400 uppercase block">Quantity</span>
+              <span class="text-sm font-black text-indigo-600 dark:text-indigo-400" id="kd-qty">0</span>
+            </div>
+            <div class="bg-white dark:bg-slate-900 p-2.5 rounded-xl border border-slate-200/70 dark:border-slate-700">
+              <span class="text-[10px] font-bold text-slate-400 uppercase block">Unit Rate</span>
+              <span class="text-sm font-black text-slate-700 dark:text-slate-300 font-mono" id="kd-rate">₹0.00</span>
+            </div>
+            <div class="bg-white dark:bg-slate-900 p-2.5 rounded-xl border border-slate-200/70 dark:border-slate-700">
+              <span class="text-[10px] font-bold text-slate-400 uppercase block">Total Amount</span>
+              <span class="text-sm font-black text-emerald-600 dark:text-emerald-400 font-mono" id="kd-amount">₹0.00</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Section 2: Requisition & Delivery Timeline -->
+        <div class="bg-slate-50 dark:bg-slate-800/60 rounded-2xl p-4 border border-slate-200/80 dark:border-slate-700/80 space-y-3">
+          <div class="flex items-center justify-between pb-2 border-b border-slate-200/60 dark:border-slate-700">
+            <span class="text-[11px] font-extrabold uppercase text-slate-400 tracking-wider">Timeline & Lead Times</span>
+            <span id="kd-lead-badge" class="px-2 py-0.5 rounded text-[10px] font-extrabold bg-blue-100 text-blue-700">Lead Time</span>
+          </div>
+          <div class="grid grid-cols-3 gap-3">
+            <div>
+              <span class="text-[10px] font-bold text-slate-400 uppercase block">1. Requisition Date</span>
+              <span class="text-xs font-extrabold text-slate-800 dark:text-slate-200" id="kd-req-date">-</span>
+            </div>
+            <div>
+              <span class="text-[10px] font-bold text-slate-400 uppercase block">2. Approval Date</span>
+              <span class="text-xs font-extrabold text-slate-800 dark:text-slate-200" id="kd-app-date">-</span>
+            </div>
+            <div>
+              <span class="text-[10px] font-bold text-slate-400 uppercase block">3. Delivery Date</span>
+              <span class="text-xs font-extrabold text-slate-800 dark:text-slate-200" id="kd-del-date">-</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Section 3: Consignee & Full Address -->
+        <div class="bg-slate-50 dark:bg-slate-800/60 rounded-2xl p-4 border border-slate-200/80 dark:border-slate-700/80 space-y-2">
+          <span class="text-[11px] font-extrabold uppercase text-slate-400 tracking-wider block pb-2 border-b border-slate-200/60 dark:border-slate-700">Destination Clinic Details</span>
+          <div class="flex items-center gap-2">
+            <span class="text-xs font-extrabold text-slate-900 dark:text-white" id="kd-clinic-name">-</span>
+            <span class="px-2 py-0.5 rounded bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-200 text-[10px] font-bold" id="kd-city">-</span>
+          </div>
+          <div class="space-y-0.5">
+            <span class="text-[10px] font-bold text-slate-400 uppercase">Complete Delivery Address:</span>
+            <p class="text-xs text-slate-700 dark:text-slate-300 leading-relaxed font-medium break-words bg-white dark:bg-slate-900 p-3 rounded-xl border border-slate-200/70 dark:border-slate-700" id="kd-full-address">-</p>
+          </div>
+        </div>
+
+        <!-- Section 4: Dispatch Logistics, Courier & Remarks -->
+        <div class="bg-slate-50 dark:bg-slate-800/60 rounded-2xl p-4 border border-slate-200/80 dark:border-slate-700/80 space-y-3">
+          <span class="text-[11px] font-extrabold uppercase text-slate-400 tracking-wider block pb-2 border-b border-slate-200/60 dark:border-slate-700">Logistics & Tracking</span>
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <span class="text-[10px] font-bold text-slate-400 uppercase block">Dispatch Lab / Warehouse</span>
+              <span class="text-xs font-extrabold text-slate-800 dark:text-slate-200" id="kd-issued-by">-</span>
+            </div>
+            <div>
+              <span class="text-[10px] font-bold text-slate-400 uppercase block">Requisition Raised By</span>
+              <span class="text-xs font-extrabold text-slate-800 dark:text-slate-200" id="kd-raised-by">-</span>
+            </div>
+          </div>
+
+          <div class="pt-2 border-t border-slate-200/60 dark:border-slate-700/60 space-y-2">
+            <div class="flex items-center justify-between">
+              <span class="text-[10px] font-bold text-slate-400 uppercase">Courier Docket:</span>
+              <div id="kd-docket-action"></div>
+            </div>
+            <div class="space-y-0.5">
+              <span class="text-[10px] font-bold text-slate-400 uppercase">Complete Remarks & Courier Info:</span>
+              <p class="text-xs text-slate-700 dark:text-slate-300 leading-relaxed font-medium break-words bg-white dark:bg-slate-900 p-3 rounded-xl border border-slate-200/70 dark:border-slate-700" id="kd-full-remarks">-</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Modal Footer -->
+      <div class="p-4 border-t border-slate-100 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-800/70 flex items-center justify-between shrink-0">
+        <span class="text-[11px] text-slate-400 font-medium">HCL & Allo Clinic Consignment Record</span>
+        <button onclick="window.closeKitsDetailModal()" class="px-5 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white dark:bg-white dark:text-slate-900 text-xs font-black shadow-sm transition active:scale-95 cursor-pointer">
+          Close Window
+        </button>
+      </div>
+    </div>
+  </div>
 </body>
 </html>
 

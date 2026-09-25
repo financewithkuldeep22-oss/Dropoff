@@ -356,6 +356,140 @@
     renderKitsContent();
   }
 
+
+  // Update Navigation Rail Badge with Non-Delivered Consignments Count
+  function updateKitsNavBadge() {
+    const badge = document.getElementById('badge-kits');
+    if (!badge) return;
+    const data = window._kitsState.allData || [];
+    const nonDelivered = data.filter(it => {
+      const st = (it.status || '').toLowerCase().trim();
+      return !st.includes('deliver') || st.includes('un-deliver') || st.includes('not deliver');
+    }).length;
+
+    if (nonDelivered > 0) {
+      badge.innerText = nonDelivered;
+      badge.setAttribute('data-count', String(nonDelivered));
+      badge.style.display = 'inline-flex';
+    } else {
+      badge.setAttribute('data-count', '0');
+      badge.style.display = 'none';
+    }
+
+    if (typeof window.updateNavBadges === 'function' && !window._inNavBadgeCall) {
+      window._inNavBadgeCall = true;
+      try { window.updateNavBadges(); } catch(e) {}
+      window._inNavBadgeCall = false;
+    }
+  }
+  window.updateKitsNavBadge = updateKitsNavBadge;
+
+  // Open Consignment Full Details Modal (Showing 100% of all 14 attributes)
+  window.openKitsDetailModal = function (itemIdx) {
+    const s = window._kitsState;
+    const page = s.pagination.pageSize === 'all' ? 0 : (s.pagination.currentPage - 1) * s.pagination.pageSize;
+    const realIdx = page + itemIdx;
+    const item = s.filteredData[realIdx] || s.filteredData[itemIdx] || s.allData[itemIdx];
+    if (!item) return;
+
+    const modal = document.getElementById('modal-kits-detail');
+    if (!modal) return;
+
+    const cfg = getStatusConfig(item.status);
+    const leadDays = calculateLeadDays(item.requestDate, item.deliveryDate);
+
+    const titleEl = document.getElementById('kd-item-title');
+    if (titleEl) titleEl.innerText = item.item || 'Consignment Details';
+
+    const subEl = document.getElementById('kd-clinic-city-sub');
+    if (subEl) subEl.innerText = `${item.clinic || 'Unassigned Clinic'} • ${item.city || 'City'}`;
+
+    const statusBadge = document.getElementById('kd-status-badge');
+    if (statusBadge) {
+      statusBadge.className = `px-2.5 py-0.5 rounded-full text-xs font-extrabold border ${cfg.bgClass} ${cfg.textClass} ${cfg.borderClass}`;
+      statusBadge.innerText = item.status || 'Unknown';
+    }
+
+    const rowNumEl = document.getElementById('kd-row-num');
+    if (rowNumEl) rowNumEl.innerText = item.rowNum ? `Sheet Row #${item.rowNum}` : '';
+
+    const fullItemEl = document.getElementById('kd-full-item');
+    if (fullItemEl) fullItemEl.innerText = item.item || '-';
+
+    const qtyEl = document.getElementById('kd-qty');
+    if (qtyEl) qtyEl.innerText = `${(item.qty || 0).toLocaleString('en-IN')} Units`;
+
+    const rateEl = document.getElementById('kd-rate');
+    if (rateEl) rateEl.innerText = `₹${(item.rate || 0).toFixed(2)}`;
+
+    const amountEl = document.getElementById('kd-amount');
+    if (amountEl) amountEl.innerText = `₹${(item.amount || 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}`;
+
+    const leadBadge = document.getElementById('kd-lead-badge');
+    if (leadBadge) {
+      if (leadDays !== null) {
+        leadBadge.innerText = `${leadDays} Days Lead Time`;
+        leadBadge.className = 'px-2 py-0.5 rounded text-[10px] font-extrabold bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300';
+      } else {
+        leadBadge.innerText = 'Transit Active / Pending';
+        leadBadge.className = 'px-2 py-0.5 rounded text-[10px] font-extrabold bg-amber-100 dark:bg-amber-950 text-amber-700 dark:text-amber-300';
+      }
+    }
+
+    const reqDateEl = document.getElementById('kd-req-date');
+    if (reqDateEl) reqDateEl.innerText = item.requestDate || '-';
+
+    const appDateEl = document.getElementById('kd-app-date');
+    if (appDateEl) appDateEl.innerText = item.approvalDate || 'Pending Approval';
+
+    const delDateEl = document.getElementById('kd-del-date');
+    if (delDateEl) delDateEl.innerText = item.deliveryDate || 'Pending Delivery';
+
+    const clinicNameEl = document.getElementById('kd-clinic-name');
+    if (clinicNameEl) clinicNameEl.innerText = item.clinic || '-';
+
+    const cityEl = document.getElementById('kd-city');
+    if (cityEl) cityEl.innerText = item.city || '-';
+
+    const fullAddressEl = document.getElementById('kd-full-address');
+    if (fullAddressEl) fullAddressEl.innerText = item.address || 'No specific street address provided';
+
+    const issuedByEl = document.getElementById('kd-issued-by');
+    if (issuedByEl) issuedByEl.innerText = item.issuedBy || 'Central Warehouse';
+
+    const raisedByEl = document.getElementById('kd-raised-by');
+    if (raisedByEl) raisedByEl.innerText = item.raisedBy || '-';
+
+    const docketActionEl = document.getElementById('kd-docket-action');
+    if (docketActionEl) {
+      if (item.docketNo) {
+        docketActionEl.innerHTML = `
+          <button onclick="window.copyKitsDocket('${item.docketNo}', event)" class="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl bg-blue-50 dark:bg-blue-950/60 hover:bg-blue-100 text-blue-700 dark:text-blue-300 font-mono font-bold text-xs border border-blue-200 dark:border-blue-800 transition cursor-pointer">
+            <span class="material-symbols-outlined text-[13px]">content_copy</span>
+            <span>Docket: ${item.docketNo}</span>
+          </button>
+        `;
+      } else {
+        docketActionEl.innerHTML = `<span class="text-xs text-slate-400 italic">No Docket Assigned</span>`;
+      }
+    }
+
+    const fullRemarksEl = document.getElementById('kd-full-remarks');
+    if (fullRemarksEl) fullRemarksEl.innerText = item.remarks || 'No special remarks recorded for this consignment.';
+
+    modal.classList.remove('hidden');
+    modal.style.display = 'flex';
+  };
+
+  window.closeKitsDetailModal = function () {
+    const modal = document.getElementById('modal-kits-detail');
+    if (modal) {
+      modal.classList.add('hidden');
+      modal.style.display = 'none';
+    }
+  };
+
+
   // Render Top KPI Summary Cards
   function renderKitsKPIs() {
     const items = window._kitsState.filteredData;
@@ -397,6 +531,7 @@
     if (kpiPipeline) kpiPipeline.innerText = activePipeline;
     if (kpiClinics) kpiClinics.innerHTML = `${uniqueClinics.size} <span class="text-xs font-semibold text-slate-400">Clinics (${uniqueCities.size} Cities)</span>`;
     if (kpiSubCount) kpiSubCount.innerText = `Showing ${items.length} of ${allItems.length} consignments`;
+    updateKitsNavBadge();
   }
 
   // Render Table or Cards view based on current state
@@ -446,7 +581,7 @@
     }
   }
 
-  // View 1: Data Grid Table
+  // View 1: Data Grid Table (Complete Un-truncated Details with Rate & Amount)
   function renderKitsTableView(container, items, page, totalPages, totalCount) {
     const sortField = window._kitsState.sort.field;
     const sortDir = window._kitsState.sort.direction;
@@ -455,10 +590,10 @@
       const isSorted = sortField === field;
       const icon = isSorted ? (sortDir === 'asc' ? 'arrow_upward' : 'arrow_downward') : 'unfold_more';
       return `
-        <th class="px-4 py-3.5 text-[11px] font-extrabold uppercase tracking-wider text-slate-600 dark:text-slate-300 text-${align} cursor-pointer hover:bg-slate-100/60 dark:hover:bg-slate-800/60 transition-colors select-none" onclick="window.toggleKitsSort('${field}')">
+        <th class="px-4 py-3.5 text-[11px] font-black uppercase tracking-wider text-slate-600 dark:text-slate-300 text-${align} cursor-pointer hover:bg-slate-100/60 dark:hover:bg-slate-800/60 transition-colors select-none" onclick="window.toggleKitsSort('${field}')">
           <div class="inline-flex items-center gap-1.5 ${align === 'right' ? 'justify-end' : ''}">
             <span>${label}</span>
-            <span class="material-symbols-outlined text-[14px] ${isSorted ? 'text-blue-600 dark:text-blue-400 font-bold' : 'text-slate-400'}">${icon}</span>
+            <span class="material-symbols-outlined text-[14px] ${isSorted ? 'text-indigo-600 dark:text-indigo-400 font-bold' : 'text-slate-400'}">${icon}</span>
           </div>
         </th>
       `;
@@ -473,10 +608,11 @@
                 ${renderSortHeader('requestDate', 'Date / Timeline')}
                 ${renderSortHeader('status', 'Status')}
                 ${renderSortHeader('item', 'Item & Quantity')}
-                ${renderSortHeader('clinic', 'Destination Clinic & City')}
-                <th class="px-4 py-3.5 text-[11px] font-extrabold uppercase tracking-wider text-slate-600 dark:text-slate-300">Dispatch Lab</th>
-                <th class="px-4 py-3.5 text-[11px] font-extrabold uppercase tracking-wider text-slate-600 dark:text-slate-300">Courier / Docket</th>
-                <th class="px-4 py-3.5 text-[11px] font-extrabold uppercase tracking-wider text-slate-600 dark:text-slate-300 text-right">Raised By</th>
+                ${renderSortHeader('amount', 'Commercials (Amt & Rate)')}
+                ${renderSortHeader('clinic', 'Destination Clinic & Complete Address')}
+                <th class="px-4 py-3.5 text-[11px] font-black uppercase tracking-wider text-slate-600 dark:text-slate-300">Logistics</th>
+                <th class="px-4 py-3.5 text-[11px] font-black uppercase tracking-wider text-slate-600 dark:text-slate-300">Courier & Remarks</th>
+                <th class="px-4 py-3.5 text-[11px] font-black uppercase tracking-wider text-slate-600 dark:text-slate-300 text-right">Actions</th>
               </tr>
             </thead>
             <tbody class="divide-y divide-slate-100 dark:divide-slate-800/80 text-xs">
@@ -488,27 +624,28 @@
       const leadBadge = leadDays !== null ? `<span class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 ml-1.5" title="Delivery Lead Time">${leadDays}d transit</span>` : '';
 
       const docketBtn = it.docketNo ? `
-        <button onclick="window.copyKitsDocket('${it.docketNo}', event)" class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-blue-50 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300 hover:bg-blue-100 border border-blue-200/60 dark:border-blue-800/60 text-[11px] font-mono font-bold transition-all shadow-2xs group" title="Click to copy tracking docket">
+        <button onclick="window.copyKitsDocket('${it.docketNo}', event)" class="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-blue-50 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300 hover:bg-blue-100 border border-blue-200/60 dark:border-blue-800/60 text-[11px] font-mono font-bold transition-all shadow-2xs group" title="Click to copy tracking docket">
           <span class="material-symbols-outlined text-[12px] group-hover:scale-110 transition-transform">content_copy</span>
           <span>${it.docketNo}</span>
         </button>
       ` : '';
 
       html += `
-        <tr class="kits-item-row hover:bg-slate-50/70 dark:hover:bg-slate-800/40 transition-colors">
+        <tr class="kits-item-row hover:bg-slate-50/80 dark:hover:bg-slate-800/50 transition-colors cursor-pointer group" onclick="window.openKitsDetailModal(${idx})">
           <!-- 1. Timeline & Dates -->
           <td class="px-4 py-3.5 align-top whitespace-nowrap">
-            <div class="flex flex-col">
-              <span class="font-extrabold text-slate-900 dark:text-white tabular-nums">${it.requestDate || 'N/A'}</span>
+            <div class="flex flex-col space-y-0.5">
+              <span class="font-extrabold text-slate-900 dark:text-white tabular-nums">Req: ${it.requestDate || 'N/A'}</span>
+              ${it.approvalDate ? `<span class="text-[10.5px] text-slate-500 dark:text-slate-400 font-semibold">App: ${it.approvalDate}</span>` : ''}
               ${it.deliveryDate ? `
-                <div class="flex items-center text-[10.5px] text-slate-500 dark:text-slate-400 font-semibold mt-0.5">
-                  <span class="material-symbols-outlined text-[12px] text-emerald-500 mr-1">task_alt</span>
-                  <span>Delivered: ${it.deliveryDate}</span>
+                <div class="flex items-center text-[10.5px] text-emerald-600 dark:text-emerald-400 font-semibold">
+                  <span class="material-symbols-outlined text-[13px] text-emerald-500 mr-0.5">task_alt</span>
+                  <span>Del: ${it.deliveryDate}</span>
                   ${leadBadge}
                 </div>
               ` : `
-                <span class="text-[10.5px] text-amber-600 dark:text-amber-400 font-semibold mt-0.5">
-                  Approval: ${it.approvalDate || 'Pending'}
+                <span class="text-[10.5px] text-amber-600 dark:text-amber-400 font-semibold">
+                  Del: In Progress
                 </span>
               `}
             </div>
@@ -522,49 +659,63 @@
             </span>
           </td>
 
-          <!-- 3. Item Description & Quantity -->
-          <td class="px-4 py-3.5 align-top">
-            <div class="flex flex-col max-w-xs">
+          <!-- 3. Item Description & Quantity (Complete, un-truncated) -->
+          <td class="px-4 py-3.5 align-top min-w-[240px] max-w-sm">
+            <div class="flex flex-col space-y-1">
               <div class="flex items-center gap-2">
-                <span class="px-2 py-0.5 rounded-lg bg-indigo-50 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300 font-extrabold text-xs tabular-nums border border-indigo-200/60 dark:border-indigo-800/60">
+                <span class="px-2 py-0.5 rounded-lg bg-indigo-50 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300 font-extrabold text-xs tabular-nums border border-indigo-200/60 dark:border-indigo-800/60 shrink-0">
                   ${(it.qty || 0).toLocaleString('en-IN')} Qty
                 </span>
-                <span class="font-bold text-slate-900 dark:text-white truncate" title="${it.item}">${it.item}</span>
               </div>
+              <span class="font-extrabold text-xs text-slate-900 dark:text-white whitespace-normal break-words leading-snug">${it.item}</span>
             </div>
           </td>
 
-          <!-- 4. Destination Clinic & City -->
-          <td class="px-4 py-3.5 align-top">
-            <div class="flex flex-col max-w-sm">
-              <div class="flex items-center gap-2 flex-wrap">
-                <span class="font-extrabold text-slate-900 dark:text-white">${it.clinic}</span>
-                ${it.city ? `<span class="px-1.5 py-0.2 rounded text-[10.5px] font-bold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300">${it.city}</span>` : ''}
-              </div>
-              ${it.address ? `<p class="text-[10.5px] text-slate-500 dark:text-slate-400 line-clamp-1 mt-0.5" title="${it.address}">${it.address}</p>` : ''}
-            </div>
-          </td>
-
-          <!-- 5. Dispatch Lab -->
+          <!-- 4. Rate & Invoiced Amount -->
           <td class="px-4 py-3.5 align-top whitespace-nowrap">
-            <div class="flex items-center gap-1.5 text-slate-700 dark:text-slate-300 font-semibold">
-              <span class="material-symbols-outlined text-[15px] text-slate-400">domain</span>
-              <span>${it.issuedBy || 'Central'}</span>
+            <div class="flex flex-col font-mono">
+              <span class="font-black text-xs text-slate-900 dark:text-white tabular-nums">₹${(it.amount || 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
+              <span class="text-[10px] text-slate-400 font-semibold mt-0.5">₹${(it.rate || 0).toFixed(2)} / unit</span>
             </div>
           </td>
 
-          <!-- 6. Courier / Remarks -->
-          <td class="px-4 py-3.5 align-top">
-            <div class="flex flex-col gap-1 max-w-[220px]">
+          <!-- 5. Destination Clinic & Complete Address (Un-truncated) -->
+          <td class="px-4 py-3.5 align-top min-w-[260px] max-w-md">
+            <div class="flex flex-col space-y-1">
+              <div class="flex items-center gap-2 flex-wrap">
+                <span class="font-black text-xs text-slate-900 dark:text-white">${it.clinic}</span>
+                ${it.city ? `<span class="px-1.5 py-0.2 rounded text-[10px] font-bold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300">${it.city}</span>` : ''}
+              </div>
+              ${it.address ? `<p class="text-[11px] text-slate-600 dark:text-slate-300 whitespace-normal break-words leading-snug">${it.address}</p>` : ''}
+            </div>
+          </td>
+
+          <!-- 6. Logistics: Dispatch Lab & Raised By -->
+          <td class="px-4 py-3.5 align-top whitespace-nowrap">
+            <div class="flex flex-col space-y-0.5">
+              <div class="flex items-center gap-1 text-slate-800 dark:text-slate-200 font-bold">
+                <span class="material-symbols-outlined text-[14px] text-slate-400">domain</span>
+                <span>${it.issuedBy || 'Central WH'}</span>
+              </div>
+              <span class="text-[10.5px] text-slate-400 font-medium">Req: ${it.raisedBy || '-'}</span>
+            </div>
+          </td>
+
+          <!-- 7. Courier / Docket & Complete Remarks (Un-truncated) -->
+          <td class="px-4 py-3.5 align-top min-w-[200px] max-w-xs">
+            <div class="flex flex-col gap-1">
               ${docketBtn}
-              ${it.courierName && !docketBtn ? `<span class="font-bold text-slate-700 dark:text-slate-300 text-[11px]">${it.courierName}</span>` : ''}
-              ${it.remarks ? `<span class="text-[10.5px] text-slate-500 dark:text-slate-400 truncate" title="${it.remarks}">${it.remarks}</span>` : '<span class="text-[10.5px] text-slate-400 italic">None</span>'}
+              ${it.courierName && !docketBtn ? `<span class="font-extrabold text-slate-700 dark:text-slate-300 text-[11px]">${it.courierName}</span>` : ''}
+              ${it.remarks ? `<p class="text-[10.5px] text-slate-600 dark:text-slate-300 whitespace-normal break-words leading-snug mt-0.5">${it.remarks}</p>` : '<span class="text-[10.5px] text-slate-400 italic">None</span>'}
             </div>
           </td>
 
-          <!-- 7. Raised By -->
+          <!-- 8. Actions (Details Modal) -->
           <td class="px-4 py-3.5 align-top text-right whitespace-nowrap">
-            <span class="font-bold text-slate-800 dark:text-slate-200 text-xs">${it.raisedBy || '-'}</span>
+            <button onclick="window.openKitsDetailModal(${idx}); event.stopPropagation();" class="px-2.5 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-900 hover:text-white dark:bg-slate-800 dark:hover:bg-white dark:hover:text-slate-900 text-slate-700 dark:text-slate-200 text-[11px] font-black border border-slate-200 dark:border-slate-700 transition-all shadow-xs flex items-center gap-1 ml-auto cursor-pointer group-hover:bg-slate-900 group-hover:text-white" title="Click to view all 14 fields">
+              <span class="material-symbols-outlined text-[14px]">visibility</span>
+              <span>Details</span>
+            </button>
           </td>
         </tr>
       `;
@@ -583,30 +734,29 @@
     container.innerHTML = html;
   }
 
-  // View 2: Consignment Cards View (Visual Tracking Progression)
+  // View 2: Consignment Cards View (Visual Tracking Progression & Complete Details)
   function renderKitsCardsView(container, items, page, totalPages, totalCount) {
     let html = `
       <div class="flex flex-col gap-5">
         <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
     `;
 
-    items.forEach(it => {
+    items.forEach((it, idx) => {
       const cfg = getStatusConfig(it.status);
       const leadDays = calculateLeadDays(it.requestDate, it.deliveryDate);
       const isDelivered = (it.status || '').toLowerCase().includes('deliver') && !it.status.toLowerCase().includes('un-deliver');
       const isInTransit = (it.status || '').toLowerCase().includes('transit');
-      const isInProcess = (it.status || '').toLowerCase().includes('process');
 
       html += `
-        <div class="kits-item-card bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-[20px] p-5 shadow-xs hover:shadow-md transition-all flex flex-col justify-between space-y-4">
+        <div class="kits-item-card bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-[20px] p-5 shadow-xs hover:shadow-md transition-all flex flex-col justify-between space-y-4 cursor-pointer" onclick="window.openKitsDetailModal(${idx})">
           <!-- Card Header: Clinic & Status -->
           <div class="flex items-start justify-between gap-3">
             <div class="flex flex-col min-w-0">
               <div class="flex items-center gap-1.5 flex-wrap">
-                <h4 class="font-extrabold text-sm text-slate-900 dark:text-white truncate" title="${it.clinic}">${it.clinic}</h4>
+                <h4 class="font-black text-sm text-slate-900 dark:text-white">${it.clinic}</h4>
                 ${it.city ? `<span class="px-1.5 py-0.2 rounded text-[10px] font-extrabold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300">${it.city}</span>` : ''}
               </div>
-              ${it.address ? `<p class="text-[11px] text-slate-500 dark:text-slate-400 line-clamp-1 mt-0.5" title="${it.address}">${it.address}</p>` : ''}
+              ${it.address ? `<p class="text-[11px] text-slate-500 dark:text-slate-400 leading-snug whitespace-normal break-words mt-1">${it.address}</p>` : ''}
             </div>
 
             <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10.5px] font-extrabold border shrink-0 ${cfg.bgClass} ${cfg.textClass} ${cfg.borderClass}">
@@ -615,16 +765,24 @@
             </span>
           </div>
 
-          <!-- Item Details Card Box -->
-          <div class="bg-slate-50/80 dark:bg-slate-800/50 rounded-xl p-3 border border-slate-100 dark:border-slate-800 flex items-center justify-between gap-3">
-            <div class="flex flex-col min-w-0">
-              <span class="text-[10px] font-extrabold uppercase text-slate-400 tracking-wider">Item Consigned</span>
-              <span class="font-bold text-xs text-slate-800 dark:text-slate-200 truncate mt-0.5" title="${it.item}">${it.item}</span>
+          <!-- Item Details Card Box with Commercials -->
+          <div class="bg-slate-50/80 dark:bg-slate-800/50 rounded-xl p-3 border border-slate-100 dark:border-slate-800 space-y-2">
+            <div class="flex items-start justify-between gap-3">
+              <div class="flex flex-col min-w-0">
+                <span class="text-[10px] font-extrabold uppercase text-slate-400 tracking-wider">Item Consigned</span>
+                <span class="font-extrabold text-xs text-slate-900 dark:text-white whitespace-normal break-words mt-0.5">${it.item}</span>
+              </div>
+              <div class="text-right shrink-0">
+                <span class="px-2.5 py-1 rounded-lg bg-indigo-600 text-white font-extrabold text-xs tabular-nums shadow-xs">
+                  ${(it.qty || 0).toLocaleString('en-IN')} Qty
+                </span>
+              </div>
             </div>
-            <div class="text-right shrink-0">
-              <span class="px-2.5 py-1 rounded-lg bg-indigo-600 text-white font-extrabold text-xs tabular-nums shadow-xs">
-                ${(it.qty || 0).toLocaleString('en-IN')} Qty
-              </span>
+
+            <!-- Rate & Total Amount -->
+            <div class="flex items-center justify-between pt-2 border-t border-slate-200/60 dark:border-slate-700/60 font-mono text-xs">
+              <span class="text-slate-400 text-[10.5px]">Unit Rate: ₹${(it.rate || 0).toFixed(2)}</span>
+              <span class="font-black text-slate-900 dark:text-white">Amount: ₹${(it.amount || 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
             </div>
           </div>
 
@@ -646,19 +804,25 @@
             </div>
           </div>
 
-          <!-- Card Footer: Logistics & Docket -->
+          <!-- Card Footer: Logistics, Courier & Details Action -->
           <div class="pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-xs text-slate-500 flex-wrap gap-2">
             <div class="flex items-center gap-1.5">
               <span class="material-symbols-outlined text-[14px]">local_shipping</span>
               <span class="font-semibold">${it.issuedBy || 'Warehouse'}</span>
+              ${it.raisedBy ? `<span class="text-[10px] text-slate-400">(by ${it.raisedBy})</span>` : ''}
             </div>
 
-            ${it.docketNo ? `
-              <button onclick="window.copyKitsDocket('${it.docketNo}', event)" class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-blue-50 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300 border border-blue-200/60 dark:border-blue-800/60 font-mono font-bold text-[11px] hover:bg-blue-100 transition-colors">
-                <span class="material-symbols-outlined text-[11px]">content_copy</span>
-                <span>${it.docketNo}</span>
+            <div class="flex items-center gap-1.5 ml-auto">
+              ${it.docketNo ? `
+                <button onclick="window.copyKitsDocket('${it.docketNo}', event)" class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-blue-50 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300 border border-blue-200/60 dark:border-blue-800/60 font-mono font-bold text-[11px] hover:bg-blue-100 transition-colors">
+                  <span class="material-symbols-outlined text-[11px]">content_copy</span>
+                  <span>${it.docketNo}</span>
+                </button>
+              ` : ''}
+              <button onclick="window.openKitsDetailModal(${idx}); event.stopPropagation();" class="px-2 py-0.5 rounded-lg bg-slate-100 hover:bg-slate-900 hover:text-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-[10.5px] font-black border border-slate-200 dark:border-slate-700 transition">
+                Details
               </button>
-            ` : (it.remarks ? `<span class="text-[10.5px] truncate max-w-[140px] text-slate-400">${it.remarks}</span>` : '')}
+            </div>
           </div>
         </div>
       `;

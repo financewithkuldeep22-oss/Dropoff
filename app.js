@@ -2759,7 +2759,7 @@ if(syncBtnEl && !syncBtnEl.dataset.fix) {
         'inventory': 'kits'
       };
       const tabId = aliasMap[e] || e || 'overview';
-      const tabs = ['overview', 'qc', 'allo', 'bhmc', 'medibuddy', 'challan', 'ops', 'bulk-dl', 'bookings', 'bot-lab', 'kits'];
+      const tabs = ['overview', 'qc', 'allo', 'bhmc', 'medibuddy', 'kits', 'challan', 'ops', 'bulk-dl', 'bookings', 'bot-lab'];
       const contents = {
         'overview': document.getElementById("tab-content-overview"),
         'qc': document.getElementById("tab-content-qc"),
@@ -6279,6 +6279,11 @@ window.updateNavBadges = function() {
         mbBadge.style.display = "none";
       }
     }
+    // 6. Kits Tracker Badge (Non-Delivered Consignments)
+    if (typeof window.updateKitsNavBadge === "function") {
+      window.updateKitsNavBadge();
+    }
+
     // Also sync Bot Lab active pendency chips
     if (typeof window.updateBotlabPendingChips === "function") {
       window.updateBotlabPendingChips();
@@ -9262,6 +9267,65 @@ document.addEventListener('change', function(e) {
       ctx.kpis.qcPending = kpiQcEl ? (parseInt(kpiQcEl.innerText) || 5) : 5;
     }
 
+    // Extract live Kits & Consumables Tracker state
+    try {
+      var kitsData = (window._kitsState && window._kitsState.allData) || [];
+      if (kitsData.length > 0) {
+        var nonDeliveredItems = [];
+        var statusCounts = {};
+        var clinicMap = {};
+        var totalAmount = 0;
+        var totalQty = 0;
+
+        kitsData.forEach(function (it) {
+          var st = (it.status || 'Unknown').trim();
+          var stLower = st.toLowerCase();
+          statusCounts[st] = (statusCounts[st] || 0) + 1;
+
+          var amt = parseFloat(it.amount) || (parseFloat(it.qty || 0) * parseFloat(it.rate || 0)) || 0;
+          totalAmount += amt;
+          totalQty += (parseInt(it.qty) || 0);
+
+          var clinic = it.clinic || 'Unassigned';
+          if (!clinicMap[clinic]) {
+            clinicMap[clinic] = { total: 0 };
+          }
+          clinicMap[clinic].total += 1;
+
+          var isNonDelivered = !stLower.includes('deliver') || stLower.includes('un-deliver') || stLower.includes('not deliver');
+          if (isNonDelivered) {
+            nonDeliveredItems.push({
+              item: it.item || '',
+              clinic: it.clinic || '',
+              city: it.city || '',
+              qty: it.qty || 0,
+              rate: it.rate || 0,
+              amount: it.amount || 0,
+              status: it.status || 'Pending',
+              requestDate: it.requestDate || '',
+              deliveryDate: it.deliveryDate || '',
+              remarks: it.remarks || ''
+            });
+          }
+        });
+
+        ctx.kitsTracker = {
+          totalConsignments: kitsData.length,
+          nonDeliveredCount: nonDeliveredItems.length,
+          deliveredCount: kitsData.length - nonDeliveredItems.length,
+          totalQuantity: totalQty,
+          totalAmount: Math.round(totalAmount),
+          statusBreakdown: statusCounts,
+          nonDeliveredItems: nonDeliveredItems.slice(0, 15),
+          clinicSummary: Object.keys(clinicMap).map(function (c) {
+            return { clinic: c, consignments: clinicMap[c].total };
+          })
+        };
+      }
+    } catch (kErr) {
+      console.warn("Failed gathering kits context:", kErr);
+    }
+
     return ctx;
   }
 
@@ -9415,7 +9479,7 @@ document.addEventListener('change', function(e) {
       switch (actionName) {
         case "switchTab": {
           var targetTab = (typeof params === "string" ? params : (params && params.tabId)) || "overview";
-          var validTabs = ["overview", "qc", "bulk", "challan", "bookings", "bot-lab"];
+          var validTabs = ["overview", "qc", "allo", "bhmc", "medibuddy", "kits", "challan", "ops", "bulk-dl", "bulk", "bookings", "bot-lab"];
           if (validTabs.indexOf(targetTab) !== -1) {
             window.switchDashboardTab(targetTab);
             return { success: true, message: "Switched to tab: " + targetTab };
@@ -9448,6 +9512,13 @@ document.addEventListener('change', function(e) {
           }
           break;
         }
+        case "openKitsTracker": {
+          if (typeof window.switchDashboardTab === "function") {
+            window.switchDashboardTab("kits");
+            return { success: true, message: "Navigated to Kits & Consumables Tracker." };
+          }
+          break;
+        }
         default: {
           console.warn("[BishtJiBot] Unpermitted action:", actionName);
           return { success: false, message: "Action '" + actionName + "' is not permitted in v1." };
@@ -9462,6 +9533,71 @@ document.addEventListener('change', function(e) {
 
   function _generateGlobalAIFallback(text) {
     var lower = (text || "").toLowerCase().trim();
+
+    // 0. Kits & Consumables Tracker Queries & Actions
+    if (lower.indexOf("kit") !== -1 || lower.indexOf("consumable") !== -1 || lower.indexOf("consignment") !== -1 || lower.indexOf("vial") !== -1 || lower.indexOf("tube") !== -1) {
+      // Direct navigation request
+      if (lower.indexOf("kholo") !== -1 || lower.indexOf("open") !== -1 || lower.indexOf("switch to kits") !== -1 || lower.indexOf("go to kits") !== -1) {
+        window.executeAgenticAction("openKitsTracker");
+        return "Navigated to the Kits & Consumables Tracker tab.<div style='margin-top:6px;'><button class='botlab-msg-action-btn' onclick=\"window.switchDashboardTab('kits')\"><span class='material-symbols-outlined' style='font-size:13px;'>inventory_2</span> Open Kits Tracker</button></div>";
+      }
+
+      var kitsData = (window._kitsState && window._kitsState.allData) || [];
+      var nonDelivered = kitsData.filter(function(it) {
+        var st = (it.status || '').toLowerCase().trim();
+        return !st.includes('deliver') || st.includes('un-deliver') || st.includes('not deliver');
+      });
+      var delivered = kitsData.length - nonDelivered.length;
+
+      var totalAmt = 0;
+      var totalQty = 0;
+      kitsData.forEach(function(it) {
+        totalAmt += parseFloat(it.amount) || (parseFloat(it.qty || 0) * parseFloat(it.rate || 0)) || 0;
+        totalQty += parseInt(it.qty) || 0;
+      });
+
+      // Clinic match inquiry
+      var clinicMatch = null;
+      var uniqueClinics = Array.from(new Set(kitsData.map(function(k) { return (k.clinic || '').toLowerCase(); }))).filter(Boolean);
+      for (var c = 0; c < uniqueClinics.length; c++) {
+        if (lower.indexOf(uniqueClinics[c]) !== -1) {
+          clinicMatch = uniqueClinics[c];
+          break;
+        }
+      }
+
+      if (clinicMatch) {
+        var clinicItems = kitsData.filter(function(k) { return (k.clinic || '').toLowerCase().includes(clinicMatch); });
+        var clinicND = clinicItems.filter(function(it) {
+          var st = (it.status || '').toLowerCase().trim();
+          return !st.includes('deliver') || st.includes('un-deliver') || st.includes('not deliver');
+        });
+        return "Haan, " + clinicItems[0].clinic + " ke liye kul " + clinicItems.length + " consignments hain (" + clinicND.length + " pending/transit, " + (clinicItems.length - clinicND.length) + " delivered).<br/><br/>" +
+          clinicItems.map(function(ci) {
+            return "• <b>" + ci.item + "</b> | Qty: " + ci.qty + " | Rate: ₹" + (ci.rate || 0) + " | Amount: ₹" + (ci.amount || 0) + " | Status: <i>" + ci.status + "</i>";
+          }).join("<br/>") +
+          "<div style='margin-top:6px;'><button class='botlab-msg-action-btn' onclick=\"window.switchDashboardTab('kits')\"><span class='material-symbols-outlined' style='font-size:13px;'>inventory_2</span> View in Kits Tracker</button></div>";
+      }
+
+      // Comprehensive Kits summary
+      var resp = "Haan bilkul! Dashboard mein ab naya <b>Kits & Consumables Tracker</b> feature live hai (Medibuddy aur Challan ke beech). Mujhe iska poora live access hai!<br/><br/>" +
+        "<b>Live Kits Summary:</b><br/>" +
+        "• Total Consignments: <b>" + kitsData.length + "</b><br/>" +
+        "• Non-Delivered (Pending / In-Transit / Approval): <b>" + nonDelivered.length + "</b><br/>" +
+        "• Delivered: <b>" + delivered + "</b><br/>" +
+        "• Total Quantity Dispatched: <b>" + totalQty.toLocaleString('en-IN') + " units</b><br/>" +
+        "• Total Value: <b>₹" + Math.round(totalAmt).toLocaleString('en-IN') + "</b><br/>";
+
+      if (nonDelivered.length > 0) {
+        resp += "<br/><b>Non-Delivered Consignments Details:</b><br/>";
+        nonDelivered.forEach(function(nd) {
+          resp += "• <b>" + (nd.item || 'Item') + "</b> — Qty: " + nd.qty + " | Clinic: " + (nd.clinic || 'Clinic') + " (" + (nd.city || '') + ") | Status: <i>" + nd.status + "</i>" + (nd.docketNo ? " | Docket: <code>" + nd.docketNo + "</code>" : "") + "<br/>";
+        });
+      }
+
+      resp += "<div style='margin-top:8px;'><button class='botlab-msg-action-btn' onclick=\"window.switchDashboardTab('kits')\"><span class='material-symbols-outlined' style='font-size:13px;'>inventory_2</span> Go to Kits Tracker Tab</button></div>";
+      return resp;
+    }
 
     // 1. Agentic Action: Dispatch Matrix
     if (lower.indexOf("dispatch matrix") !== -1 || lower.indexOf("matrix drawer") !== -1 || lower.indexOf("matrix kholo") !== -1) {
