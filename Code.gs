@@ -229,7 +229,7 @@ function getSheetColumnMap(sheet, clientName) {
   
   map.date = findCol(['date', 'bookingdate', 'timestamp', 'creationdate', 'uploadeddate']);
   map.bookingId = findCol(['redcliffebookingid', 'bookingid', 'bookingno', 'id', 'b_id']);
-  map.reqId = findCol(['requestid', 'refid', 'reqid', 'referenceno', 'bookingref']);
+  map.reqId = findCol(['requestid', 'refid', 'reqid', 'referenceno', 'bookingref', 'uhid', 'patientuhid']);
   map.name = findCol(['patientname', 'name', 'customername', 'clientname', 'fullname']);
   map.age = findCol(['patientage', 'age', 'patient_age', 'age(yrs)', 'age/gender', 'age/sex', 'ageyrs']);
   map.gender = findCol(['patientgender', 'gender', 'sex', 'gender/age', 'sex/age']);
@@ -343,6 +343,13 @@ function getSheetColumnMap(sheet, clientName) {
       var contactCol = findCol(['contactno', 'contact no', 'contact number', 'contact', 'customer number']);
       if (contactCol !== -1) {
         map.phone = contactCol;
+      }
+      
+      var uhidCol = findCol(['uhid', 'uh id', 'patient uhid', 'ref id', 'req id']);
+      if (uhidCol !== -1) {
+        map.reqId = uhidCol;
+      } else if (headers.length > 5 && headers[5] && headers[5].toString().toLowerCase().indexOf('uhid') !== -1) {
+        map.reqId = 5;
       }
 
       var sName = sheet.getName().toLowerCase();
@@ -650,7 +657,13 @@ function getDashboardLogsData(forceSync, startDate, endDate, targetClientName) {
             }
             if (cachedClientObj.logs && cachedClientObj.logs.length) {
               cachedClientObj.logs.forEach(function(log) {
-                var lKey = (log.client || '') + "_" + (log.bookingId || log.reqId || log.rowNum);
+                var cleanBId = (log.bookingId || '').toString().trim();
+                var cleanRId = (log.reqId || '').toString().trim();
+                if (cleanRId.toLowerCase() === 'n/a' || cleanRId.toLowerCase() === 'na' || cleanRId.toLowerCase() === 'null') cleanRId = '';
+
+                var rowId = log.rowNum ? ('row_' + log.rowNum) : Math.random().toString();
+                var idKey = cleanBId ? cleanBId : (cleanRId ? (cleanRId + '_' + rowId) : ((log.name ? log.name.toLowerCase().replace(/[^a-z0-9]/g, '') : 'unkn') + '_' + (log.date || '') + '_' + rowId));
+                var lKey = (log.client || '') + "_" + idKey;
                 allLogsMap[lKey] = log;
               });
             }
@@ -1055,9 +1068,9 @@ function getDashboardLogsData(forceSync, startDate, endDate, targetClientName) {
             }
           }
           
-          // Unique key construction for logs and test merging
-          var pendingGroupKey = normName ? (normName + '_' + dateStr) : ('row_' + actualRowNum);
-          var bookingKey = cleanBId ? (isNoDedupeClient ? cleanBId + '_' + actualRowNum : cleanBId) : (cleanRId ? cleanRId : pendingGroupKey);
+          // Unique key construction for logs and test merging (always include rowNum for pending to prevent overwriting)
+          var pendingGroupKey = (normName || 'unkn') + '_' + dateStr + '_row_' + actualRowNum;
+          var bookingKey = cleanBId ? (isNoDedupeClient ? cleanBId + '_' + actualRowNum : cleanBId) : (cleanRId ? (cleanRId + '_row_' + actualRowNum) : pendingGroupKey);
           bookingKey = displayName + '_' + bookingKey; // Isolate keys per display name
           
           if (isDuplicate) {
@@ -1165,8 +1178,8 @@ function getDashboardLogsData(forceSync, startDate, endDate, targetClientName) {
             var db = b.date ? new Date(b.date).getTime() : 0;
             return db - da;
           });
-          if (clientLogsToCache.length > 150) {
-            clientLogsToCache = clientLogsToCache.slice(0, 150);
+          if (clientLogsToCache.length > 350) {
+            clientLogsToCache = clientLogsToCache.slice(0, 350);
           }
           var clientCachePayload = {
             stats: {},

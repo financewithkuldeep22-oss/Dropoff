@@ -1369,10 +1369,14 @@ if(syncBtnEl && !syncBtnEl.dataset.fix) {
           const alloLbl = document.getElementById("allo-badge-lbl") || document.getElementById("badge-qc");
           let alloCount = (Qs.kpis && typeof Qs.kpis.alloPendingCount === 'number') ? Qs.kpis.alloPendingCount : 0;
           if (alloCount === 0) {
+            _r = [];
+            jr = 0;
+            try {
+              localStorage.setItem('allohealth_qc_cache', JSON.stringify({ status: 'success', data: [] }));
+            } catch(e) {}
+          } else {
             if (typeof _r !== 'undefined' && Array.isArray(_r) && _r.length > 0) {
-              alloCount = _r.length;
-            } else if (typeof jr !== 'undefined' && jr > 0) {
-              alloCount = jr;
+              alloCount = Math.max(alloCount, _r.length);
             }
           }
           if (typeof jr !== 'undefined') {
@@ -2975,6 +2979,9 @@ if(syncBtnEl && !syncBtnEl.dataset.fix) {
     Ur();
     const kpi = document.getElementById("kpi-qc-pendency");
     if (kpi) kpi.innerText = jr;
+    if (typeof Qs !== 'undefined' && Qs && Qs.kpis) {
+      Qs.kpis.alloPendingCount = jr;
+    }
   }
   function Ur() {
     const e = document.getElementById("kpi-pending-vol"),
@@ -5290,6 +5297,18 @@ window.togglePasswordVisibility = function(e) {
       }
     });
 
+    // Auto-detect mismatch between Overview clientStats pendency and Qs.logs
+    if (Qs && Qs.clientStats && Array.isArray(Qs.logs)) {
+      const totalStatsPending = Object.keys(Qs.clientStats).reduce((acc, k) => acc + (Qs.clientStats[k].pending || 0), 0);
+      const totalLogsPending = Qs.logs.filter(l => l.isPending).length;
+      if (totalStatsPending > totalLogsPending) {
+        console.warn(`[Inspector Sync] Pending mismatch detected (KPI: ${totalStatsPending}, Logs: ${totalLogsPending}). Triggering fresh live sync...`);
+        if (typeof window.syncAllDashboardData === 'function') {
+          window.syncAllDashboardData(true, true);
+        }
+      }
+    }
+
     window.renderInspectorView();
   };
 
@@ -6049,27 +6068,31 @@ window.updateNavBadges = function() {
       document.title = expectedTabTitle;
     }
 
-    // 2. QC Badge (Pending QC Check)
+    // 2. QC Badge (Pending QC Check) - Strictly synchronized with server KPI & active queue
     const qcBadge = document.getElementById("allo-badge-lbl") || document.getElementById("badge-qc");
     if (qcBadge) {
       let count = 0;
       let countDetermined = false;
 
-      // Priority 1: In-memory active QC bookings queue
-      if (typeof _r !== 'undefined' && Array.isArray(_r) && _r.length > 0) {
+      // Priority 1: Ground truth server KPI snapshot from data sync
+      if (typeof Qs !== 'undefined' && Qs && Qs.kpis && typeof Qs.kpis.alloPendingCount === 'number') {
+        count = Qs.kpis.alloPendingCount;
+        countDetermined = true;
+        if (count === 0) {
+          if (typeof _r !== 'undefined' && Array.isArray(_r) && _r.length > 0) _r = [];
+          if (typeof jr !== 'undefined') jr = 0;
+        }
+      }
+
+      // Priority 2: In-memory active QC bookings queue (if Qs not yet available)
+      if (!countDetermined && typeof _r !== 'undefined' && Array.isArray(_r)) {
         count = _r.length;
         countDetermined = true;
       }
 
-      // Priority 2: Count reported from QC check iframe / callback / initial sync
-      if (!countDetermined && typeof jr !== 'undefined' && jr > 0) {
+      // Priority 3: Count reported from QC check iframe / callback / initial sync
+      if (!countDetermined && typeof jr !== 'undefined') {
         count = jr;
-        countDetermined = true;
-      }
-
-      // Priority 3: Server KPI snapshot from data sync
-      if (!countDetermined && typeof Qs !== 'undefined' && Qs && Qs.kpis && typeof Qs.kpis.alloPendingCount === 'number' && Qs.kpis.alloPendingCount > 0) {
-        count = Qs.kpis.alloPendingCount;
         countDetermined = true;
       }
 
@@ -6079,7 +6102,7 @@ window.updateNavBadges = function() {
         if (kpiQc) {
           const rawText = (kpiQc.innerText || "").trim();
           const parsed = parseInt(rawText.replace(/[^0-9]/g, ''), 10);
-          if (!isNaN(parsed) && parsed > 0) {
+          if (!isNaN(parsed)) {
             count = parsed;
             countDetermined = true;
           }
@@ -6088,10 +6111,10 @@ window.updateNavBadges = function() {
 
       // Priority 5: External iframe badge message if any
       if (!countDetermined && window._iframeBadges) {
-        if (typeof window._iframeBadges['badge-qc'] === 'number' && window._iframeBadges['badge-qc'] > 0) {
+        if (typeof window._iframeBadges['badge-qc'] === 'number') {
           count = window._iframeBadges['badge-qc'];
           countDetermined = true;
-        } else if (typeof window._iframeBadges['allo-badge-lbl'] === 'number' && window._iframeBadges['allo-badge-lbl'] > 0) {
+        } else if (typeof window._iframeBadges['allo-badge-lbl'] === 'number') {
           count = window._iframeBadges['allo-badge-lbl'];
           countDetermined = true;
         }
