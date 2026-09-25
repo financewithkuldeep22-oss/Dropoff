@@ -283,6 +283,12 @@
         <span class="nav-badge ml-auto px-1.5 py-0.2 bg-amber-500 rounded-full text-white text-[9px] font-black shadow-sm" id="badge-kits" style="display:none;"></span>
       </button>
 
+      <!-- 7. NSA Dashboard Tab -->
+      <button class="nav-tab relative flex items-center flex-shrink-0" id="tab-nsa-btn" onclick="window.switchDashboardTab('nsa')">
+        <span class="material-symbols-outlined transition-transform duration-200">space_dashboard</span>
+        <span class="nav-label font-extrabold tracking-wider uppercase">NSA Dashboard</span>
+      </button>
+
       <!-- 6. Challan Tab -->
       <button class="nav-tab relative flex items-center flex-shrink-0" id="tab-challan-btn" onclick="window.switchDashboardTab('challan')">
         <span class="material-symbols-outlined transition-transform duration-200">receipt_long</span>
@@ -1246,6 +1252,11 @@
 
       <div id="tab-content-medibuddy" class="tab-content flex flex-col flex-1 w-full h-full relative bg-[#f8fafc] dark:bg-slate-900" style="display:none;">
         <iframe id="medibuddy-frame" src="about:blank" data-src="https://script.google.com/a/macros/redcliffelabs.com/s/AKfycbxVGPygavvON2AKM-aTDPuKXQS0IDdc-ASj4wB7gCwqL4gldI8e9-r7zJC_EbI8tcts/exec" class="w-full flex-1 border-0" title="Medibuddy Drop-off Portal" allow="clipboard-read; clipboard-write; fullscreen"></iframe>
+      </div>
+
+      <!-- ══ NSA DASHBOARD — Embedded Google Apps Script Portal ══ -->
+      <div id="tab-content-nsa" class="tab-content flex flex-col flex-1 w-full h-full relative bg-[#f8fafc] dark:bg-slate-900" style="display:none;">
+        <iframe id="nsa-frame" src="about:blank" data-src="https://script.google.com/a/macros/redcliffelabs.com/s/AKfycbzHvs-hjn-gvLpdAvfhdYB9_KJjBx4Gw1A1agbkq5DKD6g2Ei1xwfHoFnKPonkEgK1f3w/exec" class="w-full flex-1 border-0" title="NSA Dashboard" allow="clipboard-read; clipboard-write; fullscreen"></iframe>
       </div>
 
       <!-- ══ BOT LAB — Embedded Browser + AI Command Center ══ -->
@@ -2810,7 +2821,7 @@
   <script src="auth.js?v=6"></script>
   <script src="api_v2.js?v=5"></script>
   <script src="kits_tracker.js?v=3"></script>
-  <script src="app.js?v=41"></script>
+  <script src="app.js?v=42"></script>
   <!-- <script src="challan.js?v=6"></script> -->
 
   <!-- ==========================================

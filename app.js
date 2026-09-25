@@ -2756,10 +2756,13 @@ if(syncBtnEl && !syncBtnEl.dataset.fix) {
         'kits': 'kits',
         'kits-tracker': 'kits',
         'kit-tracker': 'kits',
-        'inventory': 'kits'
+        'inventory': 'kits',
+        'nsa': 'nsa',
+        'nsa-dashboard': 'nsa',
+        'nsadashboard': 'nsa'
       };
       const tabId = aliasMap[e] || e || 'overview';
-      const tabs = ['overview', 'qc', 'allo', 'bhmc', 'medibuddy', 'kits', 'challan', 'ops', 'bulk-dl', 'bookings', 'bot-lab'];
+      const tabs = ['overview', 'qc', 'allo', 'bhmc', 'medibuddy', 'kits', 'nsa', 'challan', 'ops', 'bulk-dl', 'bookings', 'bot-lab'];
       const contents = {
         'overview': document.getElementById("tab-content-overview"),
         'qc': document.getElementById("tab-content-qc"),
@@ -2771,7 +2774,8 @@ if(syncBtnEl && !syncBtnEl.dataset.fix) {
         'bulk-dl': document.getElementById("tab-content-bulk-dl"),
         'bookings': document.getElementById("tab-content-bookings"),
         'bot-lab': document.getElementById("tab-content-bot-lab"),
-        'kits': document.getElementById("tab-content-kits")
+        'kits': document.getElementById("tab-content-kits"),
+        'nsa': document.getElementById("tab-content-nsa")
       };
       
       // Update nav UI
@@ -2859,6 +2863,14 @@ if(syncBtnEl && !syncBtnEl.dataset.fix) {
                   }
                 } catch(e) {}
               }
+              if (key === 'nsa') {
+                try {
+                  const frame = document.getElementById('nsa-frame');
+                  if (frame && (!frame.getAttribute('src') || frame.getAttribute('src') === '' || frame.getAttribute('src') === 'about:blank')) {
+                    frame.src = frame.getAttribute('data-src') || 'https://script.google.com/a/macros/redcliffelabs.com/s/AKfycbzHvs-hjn-gvLpdAvfhdYB9_KJjBx4Gw1A1agbkq5DKD6g2Ei1xwfHoFnKPonkEgK1f3w/exec';
+                  }
+                } catch(e) {}
+              }
               if (key === 'bot-lab') {
                 if (typeof window.initBotlab === 'function') window.initBotlab();
               }
@@ -2890,7 +2902,8 @@ if(syncBtnEl && !syncBtnEl.dataset.fix) {
           'challan': '/challan',
           'ops': '/ops',
           'bot-lab': '/bot-lab',
-          'kits': '/kits'
+          'kits': '/kits',
+          'nsa': '/nsa'
         };
         const newPath = routeUrlMap[tabId] || ('/' + tabId);
         if (window.location.pathname !== newPath && window.location.pathname !== newPath + '/') {
@@ -2912,7 +2925,8 @@ if(syncBtnEl && !syncBtnEl.dataset.fix) {
           'bulk-dl': 'Bulk DL',
           'bookings': 'Bookings',
           'bot-lab': 'Bot Lab',
-          'kits': 'Kits Tracker'
+          'kits': 'Kits Tracker',
+          'nsa': 'NSA Dashboard'
         };
         pillTitle.innerText = titleMap[tabId] || 'Navigation';
       }
@@ -2947,6 +2961,8 @@ if(syncBtnEl && !syncBtnEl.dataset.fix) {
       } else if (path === 'kits' || path === 'kits-tracker' || path === 'inventory') {
         window.switchDashboardTab('kits', false);
         if (typeof window.renderKitsTrackerView === 'function') window.renderKitsTrackerView();
+      } else if (path === 'nsa' || path === 'nsa-dashboard' || path === 'nsadashboard') {
+        window.switchDashboardTab('nsa', false);
       } else if (path === 'bot-lab' || path === 'botlab') {
         window.switchDashboardTab('bot-lab', false);
       } else if (path === 'config' || path === 'settings') {
@@ -2969,6 +2985,15 @@ if(syncBtnEl && !syncBtnEl.dataset.fix) {
       const frame = document.getElementById('medibuddy-frame');
       if (frame) {
         const url = 'https://script.google.com/a/macros/redcliffelabs.com/s/AKfycbxVGPygavvON2AKM-aTDPuKXQS0IDdc-ASj4wB7gCwqL4gldI8e9-r7zJC_EbI8tcts/exec';
+        frame.src = '';
+        setTimeout(() => { frame.src = url; }, 100);
+      }
+    };
+
+    window.reloadNsaFrame = function() {
+      const frame = document.getElementById('nsa-frame');
+      if (frame) {
+        const url = 'https://script.google.com/a/macros/redcliffelabs.com/s/AKfycbzHvs-hjn-gvLpdAvfhdYB9_KJjBx4Gw1A1agbkq5DKD6g2Ei1xwfHoFnKPonkEgK1f3w/exec';
         frame.src = '';
         setTimeout(() => { frame.src = url; }, 100);
       }
@@ -9479,7 +9504,7 @@ document.addEventListener('change', function(e) {
       switch (actionName) {
         case "switchTab": {
           var targetTab = (typeof params === "string" ? params : (params && params.tabId)) || "overview";
-          var validTabs = ["overview", "qc", "allo", "bhmc", "medibuddy", "kits", "challan", "ops", "bulk-dl", "bulk", "bookings", "bot-lab"];
+          var validTabs = ["overview", "qc", "allo", "bhmc", "medibuddy", "kits", "nsa", "challan", "ops", "bulk-dl", "bulk", "bookings", "bot-lab"];
           if (validTabs.indexOf(targetTab) !== -1) {
             window.switchDashboardTab(targetTab);
             return { success: true, message: "Switched to tab: " + targetTab };
@@ -9519,6 +9544,13 @@ document.addEventListener('change', function(e) {
           }
           break;
         }
+        case "openNsaDashboard": {
+          if (typeof window.switchDashboardTab === "function") {
+            window.switchDashboardTab("nsa");
+            return { success: true, message: "Navigated to NSA Dashboard." };
+          }
+          break;
+        }
         default: {
           console.warn("[BishtJiBot] Unpermitted action:", actionName);
           return { success: false, message: "Action '" + actionName + "' is not permitted in v1." };
@@ -9533,6 +9565,12 @@ document.addEventListener('change', function(e) {
 
   function _generateGlobalAIFallback(text) {
     var lower = (text || "").toLowerCase().trim();
+
+    // NSA Dashboard Trigger
+    if (lower.indexOf("nsa") !== -1) {
+      window.executeAgenticAction("switchTab", "nsa");
+      return "Navigated to the NSA Dashboard.<div style='margin-top:6px;'><button class='botlab-msg-action-btn' onclick=\"window.switchDashboardTab('nsa')\"><span class='material-symbols-outlined' style='font-size:13px;'>space_dashboard</span> Open NSA Dashboard</button></div>";
+    }
 
     // 0. Kits & Consumables Tracker Queries & Actions
     if (lower.indexOf("kit") !== -1 || lower.indexOf("consumable") !== -1 || lower.indexOf("consignment") !== -1 || lower.indexOf("vial") !== -1 || lower.indexOf("tube") !== -1) {

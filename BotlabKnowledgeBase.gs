@@ -30,6 +30,8 @@ Companion system: a separate Chrome extension, "Bisht Ji Ultimate Bot" (a.k.a. R
 4. Challan Maker — external iframe to \`redcliffechallan.vercel.app\`. This app's own \`challan.js\` / \`challan.css\` exist in the repo but are legacy/unused (the \`<script>\` tag loading them is commented out in \`index.html\`). Never tell a user their Challan issue is a dashboard bug without first checking whether it's actually on the external site.
 5. Bookings — searchable/filterable patient booking inspector table (this is a view of already-created bookings pulled from partner sheets, not a booking-creation form).
 6. Embedded Partner Portals — sandboxed iframes for AlloHealth (local \`allo.html\`), BHMC, Medibuddy, etc.
+7. Kits & Consumables Tracker — Enterprise inventory & consignment tracking engine (located on the navigation rail between Medibuddy and NSA Dashboard).
+8. NSA Dashboard — Embedded Google Apps Script Portal (located on the navigation rail after Kits Tracker and before Challan). Sandboxed iframe connecting directly to the executive NSA Dashboard (https://script.google.com/a/macros/redcliffelabs.com/s/AKfycbzHvs-hjn-gvLpdAvfhdYB9_KJjBx4Gw1A1agbkq5DKD6g2Ei1xwfHoFnKPonkEgK1f3w/exec).
 7. Bot Lab — see Section 4, this is where the AI chat this file feeds lives.
 8. Dispatch Matrix Modal — accessible dialog, multi-select rows, batch actions, respects Dry Run mode.
 9. AI Assistant Panel — the Bot Lab chat UI itself; see Section 6.

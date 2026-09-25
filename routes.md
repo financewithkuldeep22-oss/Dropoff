@@ -14,10 +14,11 @@ Navigation routing is managed dynamically by `window.switchDashboardTab(tabId)` 
 | `bhmc` | `#tab-content-bhmc` | `#tab-bhmc-btn` | 4 | Yes | Embedded Bharath Home Medicare Tracker (`bhmc-redcliffelabs.vercel.app`) |
 | `medibuddy` | `#tab-content-medibuddy`| `#tab-medibuddy-btn` | 5 | Yes | Embedded Medibuddy Drop-off Portal with auto-authorized domain access |
 | `kits` | `#tab-content-kits` | `#tab-kits-btn` | 6 | Yes | Kits & Consumables Tracker (HCL & Allo Clinic), inventory dispatch grid, consignment cards, courier docket copying, lead-time metrics, CSV export |
-| `challan` | `#tab-content-challan` | `#tab-challan-btn` | 7 | Yes | Phlebotomist Challan Maker with auto-numbering and PDF export |
-| `ops` | `#tab-content-ops` | `#tab-ops-btn` | 8 | Yes | Integrated Operations Tool suite (`ops.html`) |
-| `bulk-dl` | `#tab-content-bulk-dl` | `#tab-bulk-dl-btn` | 9 | Yes | Mass report export and bulk sample manifest generator |
-| `bot-lab` | `#tab-content-bot-lab` | `#tab-bot-lab-btn` | 10 | Yes | Embedded multi-tab partner portal browser & AI command automation center |
+| `nsa` | `#tab-content-nsa` | `#tab-nsa-btn` | 7 | Yes | Embedded NSA Executive Dashboard (`script.google.com/a/macros/redcliffelabs.com/...`) |
+| `challan` | `#tab-content-challan` | `#tab-challan-btn` | 8 | Yes | Phlebotomist Challan Maker with auto-numbering and PDF export |
+| `ops` | `#tab-content-ops` | `#tab-ops-btn` | 9 | Yes | Integrated Operations Tool suite (`ops.html`) |
+| `bulk-dl` | `#tab-content-bulk-dl` | `#tab-bulk-dl-btn` | 10 | Yes | Mass report export and bulk sample manifest generator |
+| `bot-lab` | `#tab-content-bot-lab` | `#tab-bot-lab-btn` | 11 | Yes | Embedded multi-tab partner portal browser & AI command automation center |
 | `config` | Triggered via Modal | `#sidebar-manage-sheets-btn`| 11 | Yes (Admin) | Client Google Sheet connection registry manager |
 | `bookings` | Nested in `#tab-content-overview`| Deep link / Button | - | Yes | Detailed booking inspector and real-time client filter |
 
@@ -38,6 +39,7 @@ The application supports standard browser history navigation (`pushState` and `p
 | `/ops` | `ops` | `/opstool`, `/operations`, `/rishabh` |
 | `/bulk` | `bulk-dl` | `/bulk-dl`, `/bulk-download` |
 | `/kits` | `kits` | `/kits-tracker`, `/kit-tracker`, `/inventory` |
+| `/nsa` | `nsa` | `/nsa-dashboard`, `/nsadashboard` |
 | `/bot-lab` | `bot-lab` | `/bot`, `/lab`, `/partner-portal` |
 | `/bookings` | `bookings` | `/inspector`, `/live-view` |
 
