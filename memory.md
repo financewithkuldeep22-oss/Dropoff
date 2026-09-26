@@ -788,3 +788,8 @@ When operators launch multiple concurrent booking tabs (2–6 cards in Bot Lab P
 - **Pipelined Staggering in Dashboard (`app.js`):**
   - In `window.botlabLaunchAllParallel`, tabs launch with staggered delays (`2000 + idx * 2000ms`), creating a smooth conveyor belt across parallel frames.
 
+### 27.3 Concurrency Architecture: 4 Tabs vs 10 Tabs
+1. **Chrome Network Socket Limit (HTTP/1.1 6 Sockets):** Chrome restricts active connections per domain (`partner.redcliffelabs.com`) to 6. Running 4 parallel tabs keeps network utilization under 4 sockets with 2 spare sockets for instantaneous AJAX autocomplete queries. Running 10 simultaneous iframes hits the ceiling, causing requests 7-10 to queue in Chrome's socket pool.
+2. **Turn Queue Time Budget:** 4 tabs finish all 3 server steps in ~16–20s. 10 tabs in a single queue take ~55–60s. Previously, `maxWaitMs = 45000` expired on tabs 8-10, causing forced lock theft and collision. `maxWaitMs` is now expanded to **180,000ms (3 minutes)** with an 8s stale grace threshold, enabling large queues to complete without collision.
+3. **Recommended Operating Pattern:** For batches of 10–50 bookings, operators should either run in continuous 4-card batches (fastest, lightest RAM, 100% stable) or switch to **Mode B: 1-by-1 Sequential Queue (`window.botlabLaunchPendingQueue`)** which processes any volume smoothly without screen clutter.
+
