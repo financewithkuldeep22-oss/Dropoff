@@ -1,76 +1,43 @@
-# Walkthrough: Tube Checklist Helper Accuracy & Rule Trainer
+# Walkthrough: Resolution of Layout Break & Missing Overview Content
 
-We have resolved the issue where **Sterile Urine Container** was incorrectly demanded for tests that only require blood vials (such as `Sexual Health Profile: Plus`, `TPHA`, and `VDRL with Titres`), and implemented a live interactive **Rule Trainer** directly from the frontend to train and update the Google Sheet `Required Tube Checklist Helper`.
-
----
-
-## 1. Problem & Root Cause
-
-1. **Incorrect Specimen Requirement:**
-   - For patient `RAVI KUMAR (#19013745)` with tests:
-     - `1. TPHA`
-     - `2. Sexual Health Profile: Plus`
-     - `3. VDRL with Titres`
-   - The UI previously displayed: `VIALS: 2 Blood Vials (SST, EDTA) + 1 Urine Cup` and `TUBE HELPER: Sterile Urine Container`.
-   - **Root Cause:** In `app.js` (`qr(e)`), hardcoded regex checks existed (`/plus|advanced/ -> needUrine = true` and `sti -> needUrine = true`) that falsely forced a urine container regardless of the actual rules in the `Required Tube Checklist Helper` Google Sheet (Row 7 clearly defines `Sexual Health Profile: Plus` as `SST: YES, EDTA: YES, Fluoride: NO, Urine: NO, Consent: NO`).
-   - Additionally, the sheet mapping was fetched with a 3-second delay with no local cache fallback, resulting in empty sheet rules during fast patient selection.
+We have diagnosed and resolved the issue shown in your screenshot where the dashboard overview content was pushed off-screen and replaced by floating buttons ("Reload Embedded Frame", "Copy Direct Web Link", "Switch to This Tab Inside App").
 
 ---
 
-## 2. Changes Made
+## 1. Root Cause Analysis
 
-### A. Frontend (`app.js`)
-- **Pre-Hydrated Database (`DEFAULT_TUBE_RULES`):**
-  - Embedded all 42 rules directly from your `Required Tube Checklist Helper` sheet tab (`Sexual Health Profile: Plus`, `Basic`, `Advanced`, `TPHA`, `VDRL with Titres`, `Urine Routine`, `Gonorrhoeae PCR`, `STI Ulcers`, etc.).
-  - Rules are cached in `localStorage ('tube_checklist_rules')` and synchronized seamlessly with the backend.
-- **Removed Hardcoded Regex Guesses in `qr(e)`:**
-  - Removed faulty `/plus|advanced/` and generic `sti` urine assumptions.
-  - Test tokens are now matched against the sheet rules (`findMatchingTubeRule(token)`).
-  - Urine container is only demanded if the test actually requires urine (e.g. `STI Asymptomatic package (<=21 days)`, `Urine routine & Microscopy`, `Gonorrhoeae PCR`).
-  - For Ravi Kumar's test combination, the output is now strictly:
-    - **SST (Yellow Top)**: 1
-    - **EDTA (Purple Top)**: 1
-    - **Urine Container**: **0 (None)**
-    - **Vials Summary**: `2 Blood Vials (SST, EDTA)`
-- **Rule Training & Editing System (`window.openTubeChecklistModal`):**
-  - Added interactive modal logic to train new rules or modify existing ones.
-  - Updates in-memory dictionary & `localStorage` with **0ms latency** and immediately refreshes the active patient view.
-  - Sends a remote RPC `saveRequiredTubeRule` to persist the rule directly to the Google Sheet.
+1. **Orphaned Context Menu Markup in `index.html`:**
+   - In an earlier commit when the right-click context menu was replaced with direct `Ctrl+Click` tab navigation, the outer wrapper `<div id="nav-tab-context-menu">` was deleted, but its inner buttons:
+     - `Reload Embedded Frame`
+     - `Copy Direct Web Link`
+     - `Switch to This Tab Inside App`
+     along with unclosed `</button></div></div>` tags were accidentally left at the bottom of `index.html`.
+   - Because `<body>` has CSS flex row layout (`class="font-body-md min-h-screen flex"`), having raw `<button class="w-full...">` elements as direct children of `<body>` caused flexbox to resize and crush `.main-content-wrapper` (which has `flex-1`), pushing the entire overview content and KPI cards completely out of view.
+   - Furthermore, the two unclosed `</div></div>` tags closed `<body>` and `<html>` prematurely, causing the HTML parser to corrupt the DOM tree.
 
-### B. UI / QC Modal (`index.html`)
-- Added an **"Edit Rules"** button next to the "Tube Helper" header in the QC Check panel.
-- Built the **Rule Trainer Modal (`#modal-tube-checklist`)**:
-  - **Quick Select Chips**: Displays all individual tests for the active patient booking for 1-click selection.
-  - **Datalist Autocomplete**: Type-ahead search across all 40+ known tests.
-  - **Specimen Checkboxes**: SST (Yellow), EDTA (Purple), Fluoride (Grey), Urine Container, and HIV Consent Form.
-  - **Handling Notes**: Custom notes or centrifugation instructions.
-  - **Database Viewer**: Expandable list of all currently trained rules with search & quick edit buttons.
-- Bumped client asset version to `app.js?v=47`.
-
-### C. Backend Google Apps Script (`Code.gs`)
-- Implemented `saveRequiredTubeRule(testName, sst, edta, fluoride, urine, consent, notes)`:
-  - Searches for existing test names (case-insensitive) in `Required Tube Checklist Helper`.
-  - Updates the existing row or appends a new row with `"YES"` / `"NO"` values.
-  - Whitelisted `'saveRequiredTubeRule'` in `allowedActions`.
+2. **Console Errors:**
+   - `getUserEmail`: Called by the embedded `ops.html` frame, but `'getUserEmail'` was missing from `allowedActions` in `Code.gs` and lacked a client-side session fallback in `api_v2.js`.
+   - `onRedcliffeIframeLoad` / `onBrowserIframeLoad`: Handled as top-level hoisted global functions in `<head>`.
 
 ---
 
-## 3. Verification & Test Results
+## 2. Changes Applied
 
-### Automated Logic Verification
-Executed against the updated logic in `app.js`:
-- `1. TPHA / 2. Sexual Health Profile: Plus / 3. VDRL with Titres`:
-  - `needSst`: `true`
-  - `needEdta`: `true`
-  - `needFluoride`: `false`
-  - `needUrine`: `false` *(Urine container completely eliminated)*
-  - `needConsent`: `false`
-- `STI Asymptomatic package (<=21 days)`:
-  - `needSst`: `true`, `needUrine`: `true`, `needConsent`: `true`
-- `Complete Blood Count (CBC)`:
-  - `needEdta`: `true`, `needUrine`: `false`
+### A. Repaired HTML Layout (`index.html`)
+- Completely purged all orphaned context menu buttons and stray `</div></div>` tags from `index.html`.
+- Verified tag balance across all 3,138 lines: **0 unclosed tags, 0 mismatched tags**.
+- Registered hoisted global functions `function onRedcliffeIframeLoad() {}` and `function onBrowserIframeLoad() {}` in `<head>`.
+- Bumped script versions to `api_v2.js?v=6` and `app.js?v=48`.
 
-### Build & Syntax Verification
-- `node --check app.js`: **0 syntax errors**.
-- Synchronized to both repositories (`Dropoff` and `redcliffe-dropoff-portal`).
-- Vercel production deployment: **`READY`** at `https://redcliffedropoff.vercel.app`.
+### B. Fixed `getUserEmail` Action (`Code.gs` & `api_v2.js`)
+- Added `'getUserEmail'` to the backend `allowedActions` whitelist in `Code.gs`.
+- Added an instantaneous local session fallback in `api_v2.js` so it immediately returns the active user's email without logging an error.
+
+---
+
+## 3. Verification
+
+- Ran automated DOM tag balance validator: **0 unclosed tags, 0 errors**.
+- Validated JS syntax of `app.js` and `api_v2.js`: **0 syntax errors**.
+- Synced to both git repositories (`Dropoff` and `redcliffe-dropoff-portal`).
+- Production deployment pushed to Vercel.

@@ -7870,6 +7870,14 @@ window.addEventListener('message', function(event) {
         }
       }
 
+      // Booking form filled signal from bot
+      if (event.data.action === "redcliffeFormFilled") {
+        var hudText = document.getElementById("botlab-queue-hud-text");
+        if (hudText && !hudText.innerHTML.includes("Form Filled")) {
+          hudText.innerHTML += " — <span style='color:#10b981;font-weight:600;'>✅ Form Filled!</span>";
+        }
+      }
+
       // Booking success signal from bot
       if (event.data.action === "redcliffeBookingSuccess" && event.data.bookingId) {
         _addMsg("success", "Booking created successfully: " + event.data.bookingId);
@@ -8566,7 +8574,7 @@ window.addEventListener('message', function(event) {
 
     batch.forEach(function (b, idx) {
       setTimeout(function() {
-        var delay = 2500 + (idx * 1500);
+        var delay = 2000 + (idx * 2000);
         var targetUrl = _buildBotBookingUrl(b, delay);
         var tabTitle = (b.name || "Patient") + " (R" + (b.rowNum || idx + 1) + ")";
 

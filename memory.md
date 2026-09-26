@@ -644,6 +644,15 @@ Initializes dashboard data sync
     - **Linear & Raycast AI Command Dock**: Redesigned RedcliffeBot AI panel with a glowing multi-stop gradient avatar (`#6366f1` to `#06b6d4`), version chip (`v2.4`), status pill with pulsing emerald indicator, Raycast-inspired prompt suggestion chips, and a Linear capsule composer with keyboard hint (`<kbd>↵ Enter</kbd>`).
     - **Full Dark Mode Parity**: Styled all newly introduced UI components with slate-900 / dark-mode themes, indigo accents, and subtle borders.
 
+12. **Universal Server Turn Token & Round-Robin Multi-Tab Pipeline (September 2026):**
+    - **Problem**: When running 4+ tabs simultaneously in Bot Lab Grid View or external windows, local fields (Name, Phone, Age, Gender) filled in parallel without issue, but server-dependent fields (Center selection, Address lookup, Test selection) failed in all except 1 tab due to Material-UI Autocomplete focus stealing (`document.activeElement`), popper unmounting on `blur`, and server rate-limiting.
+    - **Solution Architecture**: Implemented a FIFO Round-Robin Universal Server Turn Token (`SERVER_TURN_LOCK_KEY` = `bisht_global_server_turn`, `SERVER_TURN_QUEUE_KEY` = `bisht_global_server_queue`) across `redcliffe.js`.
+    - **Granular Protection**:
+      - `fillCentreStrict`: Acquires turn for ~1.5s, selects Center, verifies, and immediately releases turn.
+      - `fillAutoAddressStrict`: Acquires turn for ~2.0s, handles address popup, verifies dialog closed, and releases turn.
+      - `fillTestNameStrict`: Acquires turn per test item (~1.2s), attaches `preventBlur` so background tab focus shifts do not close popper, clicks option, verifies chip, blurs input, and releases turn.
+    - **Outcome**: All tabs remain open and active simultaneously in Grid View, progressing harmoniously through Center -> Local Details -> Address -> Tests without focus collisions or server timeouts.
+
 ---
 
 ## 25. Comprehensive Codebase Intelligence Audit & Verified Defect Catalog (September 2026)
