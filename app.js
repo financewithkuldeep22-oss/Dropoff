@@ -8572,8 +8572,8 @@ window.addEventListener('message', function(event) {
       return;
     }
 
-    // Launch up to 6 concurrent tabs for high-speed parallel booking
-    var batch = pending.slice(0, 6);
+    // Launch up to 10 concurrent tabs for high-speed parallel booking
+    var batch = pending.slice(0, 10);
     var panel = document.getElementById("botlab-ai-panel");
     if (panel) panel.classList.add("run-active");
     var sugg = document.getElementById("botlab-ai-suggestions");
@@ -8986,7 +8986,7 @@ window.addEventListener('message', function(event) {
     if (window.matrixSelectedRows.size > 0) {
       targetList = pending.filter(function (l) { return window.matrixSelectedRows.has(String(l.rowNum)); });
     } else {
-      targetList = pending.slice(0, 6);
+      targetList = pending.slice(0, 10);
     }
 
     if (targetList.length === 0) {
