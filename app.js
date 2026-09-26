@@ -8054,11 +8054,20 @@ window.addEventListener('message', function(event) {
     var pTest = b.test || b.testPackage;
     if (pTest && pTest !== "N/A") p.set("botTest", pTest);
     
-    // Address fallback: if address is undefined, automatically pass location / sheetName
+    // Address fallback: sanitize and ensure no "undefined" or raw tab name is passed
     var addressVal = b.address || b.location || b.sheetName || "";
-    if (addressVal && addressVal !== "N/A") {
-      p.set("botAddress", addressVal);
-      p.set("botLocation", addressVal);
+    var cleanAddr = String(addressVal).replace(/undefined/gi, "").replace(/^[,\s]+|[,\s]+$/g, "").trim();
+    if (cleanAddr && cleanAddr !== "N/A" && cleanAddr.toLowerCase() !== "data") {
+      p.set("botAddress", cleanAddr);
+      p.set("botLocation", cleanAddr);
+    } else {
+      var fallbackCity = b.city || b.location || "Indore";
+      var cleanFallback = String(fallbackCity).replace(/undefined/gi, "").replace(/^[,\s]+|[,\s]+$/g, "").trim();
+      if (cleanFallback && cleanFallback.toLowerCase() !== "data") {
+        p.set("botLocation", cleanFallback);
+      } else {
+        p.set("botLocation", "Indore");
+      }
     }
 
     var targetUrl = "https://partner.redcliffelabs.com/dashboard/corpclientadmin/booking?" + p.toString();
