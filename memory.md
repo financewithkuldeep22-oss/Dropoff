@@ -757,3 +757,34 @@ Previously, operations coordinators tracked dispatches via a view-only Google Sh
    - Synchronized QC badge counter to hide immediately when pending count reaches 0.
 2. **Bookings Inspector Data & KPI Reconciliation:**
    - Corrected discrepancy where KPI displayed real pending count (36) while the list view showed a filtered subset. Synchronized client-level pending aggregations directly with the authoritative `Qs.clientStats` dataset.
+
+---
+
+## 27. BOT LAB MULTI-TAB AUTOMATION & SHARED SERVER TURN PIPELINE
+
+### 27.1 Problem Statement & Background
+When operators launch multiple concurrent booking tabs (2–6 cards in Bot Lab Parallel Grid View), each tab runs inside an isolated `<iframe>` executing the Chrome Extension content script (`redcliffe.js`). In earlier versions, parallel tabs competed simultaneously for Redcliffe's Material-UI Autocomplete dropdowns (Center/Partner selection, Address locality lookup, and Test package assignment), leading to:
+1. **Server Throttling & Concurrent AJAX Collision:** Multiple background iframes concurrently requesting the `/api/v1/corporate-clients` and tests search API caused Redcliffe to return unfiltered default corporate lists (e.g., `Vidya Arogyam`, `The Reward Store`) instead of filtering by the requested partner (`Flebo.in`).
+2. **Material-UI Popper Latching & Focus Stealing:** When background iframes executed `input.focus()` or `ArrowDown`, MUI opened the autocomplete popper across multiple iframes simultaneously. Subsequent steps failed to unmount previous poppers, leaving orphaned dropdowns overlapping the screen.
+3. **Locality Input Corruption:** When client records in Google Sheets or dashboard state lacked explicit address fields, parameters evaluated to `undefined, undefined`, freezing the `Add New Address` dialog.
+
+### 27.2 Solution Architecture & Implementation
+- **Universal Server Turn Token (`acquireServerTurn` / `releaseServerTurn`):**
+  - Uses cross-iframe shared storage primitives (`bisht_global_server_turn` and `bisht_global_server_queue` in `localStorage`).
+  - Guaranteed FIFO queuing ensuring only **one tab at a time** engages server-dependent dropdowns (Center, Address, Test Name).
+  - Stale lock detection reduced from 14s to **6s** to prevent stalled background tabs from blocking the queue.
+  - Cross-iframe reactive wakeup dispatching storage events on release.
+- **Bulletproof Center Autocomplete Typing (`fillCentreStrict`):**
+  - Simulates human character-by-character typing with native setter and synthetic keyboard events (`keydown`, `keypress`, `keyup`).
+  - Active unfiltered list detection: if the popper opens with default corporate clients (e.g. `Vidya Arogyam`), it immediately performs a backspace + re-type to force MUI's `onInputChange` filter.
+  - Strict popper unmounting: upon option selection, calls `Escape` key, blurs input, and forcefully hides any open `.MuiAutocomplete-popper` elements.
+- **Address Sanitization & Fallback Guard (`fillAutoAddressStrict` & `_buildBotBookingUrl`):**
+  - Strict string sanitization stripping all occurrences of `"undefined"` and fallback to the partner hub (e.g. `Flebo.in_Indore`).
+  - Prevents literal `undefined, undefined` from ever entering locality inputs.
+  - Auto-dismisses address dialog cleanly if the `SELECT` button is disabled, allowing smooth fallback to manual mode without freezing the queue.
+- **Test Multi-Select Popper Closure (`fillTestNameStrict`):**
+  - Removes `preventTestBlur` event listeners before option click.
+  - Immediately dispatches `Escape`, blurs input, and forces `.MuiAutocomplete-popper` elements to hide, ensuring multi-select dropdowns do not latch open.
+- **Pipelined Staggering in Dashboard (`app.js`):**
+  - In `window.botlabLaunchAllParallel`, tabs launch with staggered delays (`2000 + idx * 2000ms`), creating a smooth conveyor belt across parallel frames.
+
