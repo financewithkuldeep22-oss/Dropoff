@@ -340,6 +340,13 @@ function getSheetColumnMap(sheet, clientName) {
         map.test = packageCol;
       }
       
+      var addOnCol = findCol(['addontest', 'addon test', 'addon', 'addontests', 'additionaltest']);
+      if (addOnCol !== -1) {
+        map.addOnTest = addOnCol;
+      } else if (headers.length > 7) {
+        map.addOnTest = 7;
+      }
+      
       var contactCol = findCol(['contactno', 'contact no', 'contact number', 'contact', 'customer number']);
       if (contactCol !== -1) {
         map.phone = contactCol;
@@ -352,12 +359,11 @@ function getSheetColumnMap(sheet, clientName) {
         map.reqId = 5;
       }
 
-      var sName = sheet.getName().toLowerCase();
-      if (sName.indexOf('noida') !== -1) {
-        if (map.bookingId === -1) map.bookingId = 8;
-        if (map.test === -1) map.test = 6;
-        if (map.phone === -1) map.phone = 4;
-      }
+      // Universal column fallbacks across all HCL sheets (Noida, Lucknow, etc.)
+      if (map.bookingId === -1) map.bookingId = 8;
+      if (map.test === -1) map.test = 6;
+      if (map.phone === -1) map.phone = 4;
+      if (map.reqId === -1) map.reqId = 5;
     }
   }
   
@@ -397,62 +403,89 @@ function normalizeDate(dateVal, formatPref) {
     return Utilities.formatDate(dateVal, "Asia/Kolkata", "yyyy-MM-dd");
   }
   var s = dateVal.toString().trim();
-  if (s === "" || s === "-" || s === "--" || s.toLowerCase() === "n/a") return null;
+  if (s === "" || s === "-" || s === "--" || s.toLowerCase() === "n/a" || s.toLowerCase() === "null") return null;
   
-  // Handle formats like "26-Aug-2026", "26-Aug-26", "26 Aug 2026", "26-August-2026"
-  var alphaMatch = s.match(/^(\d{1,2})[-/\s]([a-zA-Z]{3,})[-/\s](\d{2,4})/);
+  var now = getISTDate();
+  var curYear = now.getFullYear();
+  var curMonth = now.getMonth() + 1; // 1-12
+  
+  // 1. Text Month Formats (e.g., "26-Sep-2026", "26-Aug-26", "26 Aug 2026", "26-September-2026")
+  var alphaMatch = s.match(/^(\d{1,2})[-/\s.]([a-zA-Z]{3,})[-/\s.](\d{2,4})/);
   if (alphaMatch) {
     var day = parseInt(alphaMatch[1], 10);
     var monthStr = alphaMatch[2].toLowerCase().substring(0, 3);
     var year = parseInt(alphaMatch[3], 10);
-    if (year < 100) year += 2000;
+    if (year < 100) year += (year < 50 ? 2000 : 1900);
     var months = { jan: 0, feb: 1, mar: 2, apr: 3, may: 4, jun: 5, jul: 6, aug: 7, sep: 8, oct: 9, nov: 10, dec: 11 };
     if (months[monthStr] !== undefined) {
       var d = new Date(year, months[monthStr], day);
-      return Utilities.formatDate(d, "Asia/Kolkata", "yyyy-MM-dd");
+      if (!isNaN(d.getTime())) {
+        return Utilities.formatDate(d, "Asia/Kolkata", "yyyy-MM-dd");
+      }
     }
   }
   
-  // Handle formats like "August 25, 2026", "Aug 25, 2026"
+  // 2. Month First Text (e.g., "September 26, 2026", "Sep 26, 2026")
   var monthFirstAlphaMatch = s.match(/^([a-zA-Z]{3,})\s+(\d{1,2}),?\s+(\d{2,4})/);
   if (monthFirstAlphaMatch) {
     var monthStr = monthFirstAlphaMatch[1].toLowerCase().substring(0, 3);
     var day = parseInt(monthFirstAlphaMatch[2], 10);
     var year = parseInt(monthFirstAlphaMatch[3], 10);
-    if (year < 100) year += 2000;
+    if (year < 100) year += (year < 50 ? 2000 : 1900);
     var months = { jan: 0, feb: 1, mar: 2, apr: 3, may: 4, jun: 5, jul: 6, aug: 7, sep: 8, oct: 9, nov: 10, dec: 11 };
     if (months[monthStr] !== undefined) {
       var d = new Date(year, months[monthStr], day);
-      return Utilities.formatDate(d, "Asia/Kolkata", "yyyy-MM-dd");
+      if (!isNaN(d.getTime())) {
+        return Utilities.formatDate(d, "Asia/Kolkata", "yyyy-MM-dd");
+      }
     }
   }
 
-  var parts2 = s.match(/^(\d{4})[-/](\d{1,2})[-/](\d{1,2})/);
-  if (parts2) {
-    var year = parseInt(parts2[1], 10);
-    var month = parseInt(parts2[2], 10);
-    var day = parseInt(parts2[3], 10);
-    var d = new Date(year, month - 1, day);
-    return Utilities.formatDate(d, "Asia/Kolkata", "yyyy-MM-dd");
+  // 3. Year First Formats (e.g., "2026-09-26", "2026/09/26", "2026.09.26", "2026-0-26")
+  var partsYearFirst = s.match(/^(\d{4})[-/.\s]+(\d{1,2})[-/.\s]+(\d{1,2})/);
+  if (partsYearFirst) {
+    var year = parseInt(partsYearFirst[1], 10);
+    var month = parseInt(partsYearFirst[2], 10);
+    var day = parseInt(partsYearFirst[3], 10);
+    
+    // Auto-heal typo where month is entered as 0 or 00
+    if (month === 0) {
+      month = curMonth;
+    }
+    
+    if (month >= 1 && month <= 12 && day >= 1 && day <= 31) {
+      var d = new Date(year, month - 1, day);
+      if (d.getMonth() === month - 1) {
+        return Utilities.formatDate(d, "Asia/Kolkata", "yyyy-MM-dd");
+      }
+    }
   }
   
-  var parts1 = s.match(/^(\d{1,2})[-/](\d{1,2})[-/](\d{4})/);
-  if (parts1) {
-    var first = parseInt(parts1[1], 10);
-    var second = parseInt(parts1[2], 10);
-    var year = parseInt(parts1[3], 10);
+  // 4. Day/Month/Year or Month/Day/Year (e.g., "26-0-2026", "26-09-2026", "9/26/2026", "26.9.26")
+  var partsDmy = s.match(/^(\d{1,2})[-/.\s]+(\d{1,2})[-/.\s]+(\d{2,4})/);
+  if (partsDmy) {
+    var first = parseInt(partsDmy[1], 10);
+    var second = parseInt(partsDmy[2], 10);
+    var year = parseInt(partsDmy[3], 10);
+    if (year < 100) year += (year < 50 ? 2000 : 1900);
     
     var day, month;
-    if (first > 12) {
+    
+    // Auto-heal 0 month typos (like "26-0-2026", "0-26-2026", "5-0-2026")
+    if (second === 0 && first > 0 && first <= 31) {
+      day = first;
+      month = curMonth;
+    } else if (first === 0 && second > 0 && second <= 31) {
+      day = second;
+      month = curMonth;
+    } else if (first > 12) {
       day = first;
       month = second;
     } else if (second > 12) {
       day = second;
       month = first;
     } else {
-      // Smart check: if one number matches the current month and the other does not, prioritize current month
-      var now = new Date();
-      var curMonth = now.getMonth() + 1;
+      // Both numbers are <= 12 (ambiguous day/month)
       if (first === curMonth && second !== curMonth) {
         month = first;
         day = second;
@@ -468,16 +501,26 @@ function normalizeDate(dateVal, formatPref) {
       }
     }
     
-    var d = new Date(year, month - 1, day);
-    if (d.getMonth() === month - 1) {
-      return Utilities.formatDate(d, "Asia/Kolkata", "yyyy-MM-dd");
+    // Final check for month bounds: if month became 0 or invalid, fallback to curMonth
+    if (month === 0 || month > 12) {
+      month = curMonth;
     }
-    return null;
+    
+    if (month >= 1 && month <= 12 && day >= 1 && day <= 31) {
+      var d = new Date(year, month - 1, day);
+      if (d.getMonth() === month - 1) {
+        return Utilities.formatDate(d, "Asia/Kolkata", "yyyy-MM-dd");
+      }
+    }
   }
   
+  // 5. Fallback native JS parser (handles ISO strings, full date stamps)
   var temp = new Date(s);
   if (!isNaN(temp.getTime())) {
-    return Utilities.formatDate(temp, "Asia/Kolkata", "yyyy-MM-dd");
+    var ty = temp.getFullYear();
+    if (ty >= 2020 && ty <= 2035) {
+      return Utilities.formatDate(temp, "Asia/Kolkata", "yyyy-MM-dd");
+    }
   }
   return null;
 }
@@ -560,7 +603,7 @@ function getDashboardLogsData(forceSync, startDate, endDate, targetClientName) {
   var todayStr = formatDateString(today);
 
   if (!targetClientName && (forceSync === false || forceSync === "false" || !forceSync)) {
-    var cachedData = getLargeCache("dashboard_data_cache");
+    var cachedData = getLargeCache("dashboard_data_cache_v5");
     if (cachedData && cachedData.trendDays && cachedData.trendDays.indexOf(todayStr) !== -1) {
       cachedData.isCached = true;
       return cachedData;
@@ -635,7 +678,7 @@ function getDashboardLogsData(forceSync, startDate, endDate, targetClientName) {
     var client = clientsList[cIdx];
 
     // Per-client cache lookup FIRST (bypassed if forceSync is explicitly true) - instant <1ms restore!
-    var clientCacheKey = "cl_cache_" + client.id.substring(0, 16) + "_" + (client.tabName || 'all').replace(/[^a-zA-Z0-9]/g, '');
+    var clientCacheKey = "cl_cache_v5_" + client.id.substring(0, 16) + "_" + (client.tabName || 'all').replace(/[^a-zA-Z0-9]/g, '');
     var cachedClientStr = (!forceSync && !targetClientName) ? scriptCache.get(clientCacheKey) : null;
     if (cachedClientStr) {
       try {
@@ -788,7 +831,7 @@ function getDashboardLogsData(forceSync, startDate, endDate, targetClientName) {
           var lastRow = sheet.getLastRow();
           if (lastRow < 2) return;
           
-          var startRow = Math.max(2, lastRow - 400 + 1);
+          var startRow = Math.max(2, lastRow - 500 + 1);
           var numRows = lastRow - startRow + 1;
           var sheetLastCol = sheet.getLastColumn() || 1;
           var readCols = Math.min(Math.max(colMap.maxColToRead || colMap.lastCol || 1, 1), sheetLastCol);
@@ -957,7 +1000,7 @@ function getDashboardLogsData(forceSync, startDate, endDate, targetClientName) {
         if (lastRow < 2) return;
         
         // Scan up to 500 rows for high accuracy weekly / custom date range aggregates
-        var startRow = Math.max(2, lastRow - 300 + 1);
+        var startRow = Math.max(2, lastRow - 500 + 1);
         var numRows = lastRow - startRow + 1;
         var sheetLastCol = sheet.getLastColumn() || 1;
         var readCols = Math.min(Math.max(colMap.maxColToRead || colMap.lastCol || 1, 1), sheetLastCol);
@@ -974,6 +1017,10 @@ function getDashboardLogsData(forceSync, startDate, endDate, targetClientName) {
           var status = colMap.status !== -1 && row[colMap.status] ? row[colMap.status].toString().trim() : '';
           var location = colMap.location !== -1 && row[colMap.location] ? row[colMap.location].toString().trim() : '';
           var test = colMap.test !== -1 && row[colMap.test] ? row[colMap.test].toString().trim() : '';
+          var addOn = colMap.addOnTest !== undefined && colMap.addOnTest !== -1 && row[colMap.addOnTest] ? row[colMap.addOnTest].toString().trim() : '';
+          if (addOn && addOn.toLowerCase() !== 'n/a' && addOn !== '-' && addOn !== '--') {
+            test = test ? (test + ' + ' + addOn) : addOn;
+          }
           var phone = colMap.phone !== -1 && row[colMap.phone] ? row[colMap.phone].toString().trim() : '';
           
           if (status) {
@@ -1308,9 +1355,9 @@ function getDashboardLogsData(forceSync, startDate, endDate, targetClientName) {
   };
   
   if (!targetClientName && allClientsCompleted) {
-    putLargeCache("dashboard_data_cache", result, 600); // Cache for 10 minutes ONLY if all clients completed
+    putLargeCache("dashboard_data_cache_v5", result, 600); // Cache for 10 minutes ONLY if all clients completed
   } else if (!allClientsCompleted) {
-    Logger.log("Skipped caching dashboard_data_cache because some clients were skipped due to time budget.");
+    Logger.log("Skipped caching dashboard_data_cache_v5 because some clients were skipped due to time budget.");
   }
   
   return result;
@@ -1350,20 +1397,22 @@ function clearDashboardCache() {
   try {
     var cache = CacheService.getScriptCache();
     try { cache.remove("allohealth_qc_data"); } catch (qcRemoveErr) {}
-    var manifestStr = cache.get("dashboard_data_cache_manifest");
-    var chunksToRemove = 30; // fallback
-    if (manifestStr) {
-      try {
-        var manifest = JSON.parse(manifestStr);
-        chunksToRemove = Math.max(manifest.chunks || 0, 30);
-      } catch (e) {}
-    }
     
-    cache.remove("dashboard_data_cache_manifest");
-    for (var i = 0; i < chunksToRemove; i++) {
-      cache.remove("dashboard_data_cache_chunk_" + i);
-    }
-    cache.remove("dashboard_data_cache"); // backward compatibility
+    ['dashboard_data_cache_v5', 'dashboard_data_cache'].forEach(function(baseKey) {
+      var manifestStr = cache.get(baseKey + "_manifest");
+      var chunksToRemove = 30;
+      if (manifestStr) {
+        try {
+          var manifest = JSON.parse(manifestStr);
+          chunksToRemove = Math.max(manifest.chunks || 0, 30);
+        } catch (e) {}
+      }
+      cache.remove(baseKey + "_manifest");
+      for (var i = 0; i < chunksToRemove; i++) {
+        cache.remove(baseKey + "_chunk_" + i);
+      }
+      cache.remove(baseKey);
+    });
     Logger.log("Dashboard cache cleared successfully.");
   } catch (e) {
     Logger.log("Failed to clear dashboard cache: " + e.message);

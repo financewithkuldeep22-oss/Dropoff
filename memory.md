@@ -791,5 +791,48 @@ When operators launch multiple concurrent booking tabs (2–6 cards in Bot Lab P
 ### 27.3 Concurrency Architecture: 4 Tabs vs 10 Tabs
 1. **Chrome Network Socket Limit (HTTP/1.1 6 Sockets):** Chrome restricts active connections per domain (`partner.redcliffelabs.com`) to 6. Running 4 parallel tabs keeps network utilization under 4 sockets with 2 spare sockets for instantaneous AJAX autocomplete queries. Running 10 simultaneous iframes hits the ceiling, causing requests 7-10 to queue in Chrome's socket pool.
 2. **Turn Queue Time Budget:** 4 tabs finish all 3 server steps in ~16–20s. 10 tabs in a single queue take ~55–60s. Previously, `maxWaitMs = 45000` expired on tabs 8-10, causing forced lock theft and collision. `maxWaitMs` is now expanded to **180,000ms (3 minutes)** with an 8s stale grace threshold, enabling large queues to complete without collision.
-3. **Recommended Operating Pattern:** For batches of 10–50 bookings, operators should either run in continuous 4-card batches (fastest, lightest RAM, 100% stable) or switch to **Mode B: 1-by-1 Sequential Queue (`window.botlabLaunchPendingQueue`)** which processes any volume smoothly without screen clutter.
+
+
+---
+
+## 28. HCL OPERATIONS TRACKER INTELLIGENCE & DATE NORMALIZATION ENGINE
+
+### 28.1 Problem Statement & Root Cause
+Operators reported a severe count mismatch in the Drop-Off Dashboard for HCL:
+- Dashboard showed:
+  - `HCL - Lucknow`: `0 / 16 UNIQUE BOOKINGS`, `16 Pending`
+  - `HCL - Noida`: `0 / 0 UNIQUE BOOKINGS`, `4 Pending`
+  - Overall `HCL` (merged): `0 / 16 UNIQUE BOOKINGS`, `20 Pending`
+- Actual Google Sheet State (`138OxYFhljZ2bYa8Eil2k4UA5LOrREeuiAj6WecHAVxl`):
+  - **Noida tab:** 40 bookings for today (`Count: 40`), mostly created with Redcliffe Booking IDs (`19024306`, etc.), plus pending entries.
+  - **Lucknow tab:** 17 bookings for today (`Count: 17`), pending creation.
+  - Total actual HCL volume: **57 bookings**!
+
+#### Deep Root Causes:
+1. **Zero-Month Typo in HCL Noida Tab (`26-0-2026`):**
+   In the Noida sheet tab, Column A was filled with `26-0-2026` (the month was typed as `0` instead of `9` or `09` due to key adjacency on keyboards or formula formatting).
+   `normalizeDate` previously executed `new Date(year, month - 1, day)`. With `month = 0`, `month - 1 = -1` (December of previous year), causing `d.getMonth() === month - 1` to fail and return `null` for **all 40 rows**. Every row was skipped from both counts and log aggregation.
+2. **Column Mapping Fallback Scope:**
+   Universal fallback indices for HCL (`bookingId = 8`, `test = 6`, `phone = 4`, `reqId = 5`) were previously restricted to tabs containing `"noida"`. All tabs in the HCL workbook follow this exact schema.
+3. **Add-On Test Omission (Column H):**
+   Column H in HCL contains add-on tests (e.g. `HSCRP`, `PPBS`, `CA-15.3`). Only Column G was previously mapped to `test`.
+4. **Stale Script Cache:**
+   When 0 counts were aggregated, `CacheService` cached the 0 total/created state in `cl_cache_` and `dashboard_data_cache`, serving stale 0s on page load.
+
+### 28.2 Architectural Solution
+1. **Intelligent Zero-Month Healing in `normalizeDate` (`Code.gs`):**
+   - Automatically detects `month === 0` (e.g., `26-0-2026`, `0-26-2026`, `2026-0-26`, `5-0-2026`).
+   - Resolves month `0` to the current active calendar month (`curMonth = now.getMonth() + 1`).
+   - Supports 2-digit years (`26-09-26`, `26-0-26`, `9/26/26`) normalized to `2026`.
+   - Supports dot-separated dates (`26.09.2026`, `26.9.26`).
+   - Supports optional whitespace around delimiters (`\s*[-/. \s]\s*`).
+   - Retains 100% backward compatibility with US (`M/D/YYYY` for Medibuddy) and UK (`D/M/YYYY` for Morepen/HCL).
+2. **Universal HCL Column Schema & Add-On Aggregation:**
+   - Universal column fallbacks across all HCL tabs: `bookingId = 8`, `test = 6`, `phone = 4`, `reqId = 5`.
+   - Automatic detection of Column H (`addOnTest`), concatenated into `test` as `EXECUTIVE HEALTH CHECKUP + HSCRP`.
+3. **Extended Scan Window:**
+   - Scan depth increased from 300 to **500 rows** (`lastRow - 500 + 1`) to ensure high-volume periods are never truncated.
+4. **Cache Version Bumping (`v5`):**
+   - Cache keys upgraded to `dashboard_data_cache_v5` and `cl_cache_v5_`, instantaneously invalidating stale 0-count caches across all clients.
+
 
